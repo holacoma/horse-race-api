@@ -160,12 +160,28 @@
       from { transform: scale(0.8); opacity: 0; }
       to   { transform: scale(1);   opacity: 1; }
     }
+
+    /* ── Selector de animal ── */
+    #animal-selector {
+      margin-bottom: 1.5rem;
+    }
+    #animal-selector select {
+      padding: 0.5rem 1rem;
+      border: 2px solid #4f46e5;
+      border-radius: 8px;
+      background: #2a2a4a;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <h1>Horse Race</h1>
   <p class="subtitle">WebSocket powered</p>
+
+  <div id="animal-selector"></div>
 
   <div id="controls">
     <button id="btn-new">Nueva carrera</button>
@@ -181,18 +197,61 @@
   var FRAME_COUNT   = 5;
   var FRAME_RATE_MS = 110;
 
-  var frameIndex   = 0;
-  var animInterval = null;
-  var raceId       = null;
-  var socket       = null;
+  var frameIndex    = 0;
+  var animInterval  = null;
+  var raceId        = null;
+  var socket        = null;
+  var selectedAnimal = "guinea_pig";
 
-  var btnNew   = document.getElementById("btn-new");
-  var btnStart = document.getElementById("btn-start");
-  var statusEl = document.getElementById("status-text");
-  var trackEl  = document.getElementById("track");
-  var bannerEl = document.getElementById("winner-banner");
+  // Para agregar un nuevo animal: añadir una entrada aquí. Nada más.
+  var ANIMALS = {
+    horse: {
+      label: "Caballos", emoji: "🐴",
+      frameCount: 5,
+      createElement: function(id, hue) {
+        return '<img class="horse-sprite" id="horse-' + id + '"' +
+               ' src="/images/horse/frame_1.png"' +
+               ' style="filter: hue-rotate(' + hue + 'deg)">';
+      },
+      updateFrame: function(el, i) {
+        el.src = "/images/horse/frame_" + (i + 1) + ".png";
+      }
+    },
+    guinea_pig: {
+      label: "Cobayas", emoji: "🐹",
+      frameCount: 4,
+      createElement: function(id, hue) {
+        return '<img class="horse-sprite" id="horse-' + id + '"' +
+               ' src="/images/guinea_pig/frame_1.png"' +
+               ' style="transform: scaleX(1); height: auto; filter: hue-rotate(' + hue + 'deg)">';
+      },
+      updateFrame: function(el, i) {
+        el.src = "/images/guinea_pig/frame_" + (i + 1) + ".png";
+      }
+    }
+  };
+
+  var btnNew      = document.getElementById("btn-new");
+  var btnStart    = document.getElementById("btn-start");
+  var statusEl    = document.getElementById("status-text");
+  var trackEl     = document.getElementById("track");
+  var bannerEl    = document.getElementById("winner-banner");
+  var selectorEl  = document.getElementById("animal-selector");
 
   function setStatus(text) { statusEl.textContent = text; }
+
+  selectorEl.innerHTML = '<select id="animal-select">' +
+    Object.keys(ANIMALS).map(function(key) {
+      var a = ANIMALS[key];
+      return '<option value="' + key + '">' + a.emoji + ' ' + a.label + '</option>';
+    }).join('') +
+  '</select>';
+
+  var animalSelect = document.getElementById("animal-select");
+  animalSelect.value = selectedAnimal;
+  animalSelect.addEventListener("change", function() {
+    selectedAnimal = this.value;
+  });
 
   function renderTrack(horses) {
     trackEl.innerHTML = horses.map(function(h, i) {
@@ -202,9 +261,7 @@
           '<span class="lane-label">' + h.name + '</span>' +
           '<div class="track-wrap" id="wrap-' + h.id + '">' +
             '<div class="track-bg"></div>' +
-            '<img class="horse-sprite" id="horse-' + h.id + '"' +
-              ' src="/images/horse/frame_1.png"' +
-              ' style="filter: hue-rotate(' + hue + 'deg)">' +
+            ANIMALS[selectedAnimal].createElement(h.id, hue) +
           '</div>' +
         '</div>'
       );
@@ -213,11 +270,11 @@
 
   function startAnimation() {
     if (animInterval) return;
+    var cfg = ANIMALS[selectedAnimal];
     animInterval = setInterval(function() {
-      frameIndex = (frameIndex + 1) % FRAME_COUNT;
-      var src = "/images/horse/frame_" + (frameIndex + 1) + ".png";
-      document.querySelectorAll(".horse-sprite").forEach(function(img) {
-        img.src = src;
+      frameIndex = (frameIndex + 1) % cfg.frameCount;
+      document.querySelectorAll(".horse-sprite").forEach(function(el) {
+        cfg.updateFrame(el, frameIndex);
       });
     }, FRAME_RATE_MS);
   }
@@ -264,6 +321,7 @@
         bannerEl.style.display = "block";
         setStatus("Carrera terminada");
         btnNew.disabled = false;
+        selectorEl.style.display = "flex";
         socket.close();
       }
     };
@@ -274,6 +332,7 @@
   btnNew.addEventListener("click", function() {
     btnNew.disabled = true;
     btnStart.disabled = true;
+    selectorEl.style.display = "none";
     bannerEl.style.display = "none";
     stopAnimation();
     frameIndex = 0;
@@ -295,6 +354,7 @@
       .catch(function(err) {
         setStatus("Error: " + err.message);
         btnNew.disabled = false;
+        selectorEl.style.display = "flex";
       });
   });
 

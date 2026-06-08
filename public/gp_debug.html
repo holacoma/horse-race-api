@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Guinea Pig Spritesheet Debug</title>
+  <style>
+    body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+    canvas { display: block; margin: 10px 0; cursor: crosshair; }
+    .frames { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .frame-box { text-align: center; font-size: 11px; }
+    .frame-box canvas { border: 2px solid #4f46e5; display: block; }
+    label { display: inline-block; margin: 4px 8px 4px 0; }
+    input[type=number] { width: 65px; background: #2a2a4a; color: #fff; border: 1px solid #555; padding: 2px 4px; }
+    input[type=text]   { width: 220px; background: #2a2a4a; color: #fff; border: 1px solid #555; padding: 2px 4px; }
+    button { padding: 4px 12px; background: #4f46e5; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin: 4px 2px; }
+    button.danger { background: #b91c1c; }
+    #coords { background: #0a0a1a; padding: 12px; border-radius: 4px; margin: 10px 0; font-size: 12px; line-height: 1.8; }
+    #hint   { font-size: 11px; color: #aaa; margin: 4px 0 8px; }
+    .row { margin: 6px 0; }
+  </style>
+</head>
+<body>
+<h2>Spritesheet Debug — Guinea Pig</h2>
+
+<div class="row">
+  <label>frameY: <input type="number" id="fY" value="55"></label>
+  <label>frameH: <input type="number" id="fH" value="145"></label>
+  <label>displayW: <input type="number" id="dW" value="164"></label>
+</div>
+<div class="row">
+  <label>frameXs: <input type="text" id="fXs" value="80,260,440,620"></label>
+  <label>frameW: <input type="number" id="fW" value="180"></label>
+</div>
+<div class="row">
+  <button onclick="redraw()">Actualizar</button>
+  <button onclick="autoDetect()">🔍 Auto-detectar columnas</button>
+  <button class="danger" onclick="clearXs()">Limpiar Xs</button>
+</div>
+<div id="hint">
+  <b>Click izquierdo</b> en la imagen → agrega ese X a frameXs &nbsp;|&nbsp;
+  <b>Click derecho</b> → quita el X más cercano &nbsp;|&nbsp;
+  Coordenadas nativas mostradas al pasar el mouse
+</div>
+
+<canvas id="full"></canvas>
+<div id="mouseInfo" style="font-size:11px; color:#888; min-height:16px;"></div>
+
+<h3>Frames extraídos:</h3>
+<div id="frames" class="frames"></div>
+<div id="coords"></div>
+
+<script>
+var img = new Image();
+var viewScale = 1;
+
+img.src = '/images/guinea_pig/spritesheet.webp';
+img.onload = function() { redraw(); };
+
+function p() {
+  return {
+    sW:  img.naturalWidth,
+    sH:  img.naturalHeight,
+    fW:  +document.getElementById('fW').value,
+    fH:  +document.getElementById('fH').value,
+    fY:  +document.getElementById('fY').value,
+    fXs: document.getElementById('fXs').value.split(',').map(Number).filter(function(n){ return !isNaN(n); }),
+    dW:  +document.getElementById('dW').value
+  };
+}
+
+function setXs(arr) {
+  document.getElementById('fXs').value = arr.join(',');
+}
+
+function clearXs() { setXs([]); redraw(); }
+
+function redraw() {
+  var pr = p();
+  if (!img.naturalWidth) return;
+
+  var fullCanvas = document.getElementById('full');
+  viewScale = Math.min(1, 800 / img.naturalWidth);
+  fullCanvas.width  = img.naturalWidth  * viewScale;
+  fullCanvas.height = img.naturalHeight * viewScale;
+  var ctx = fullCanvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
+
+  // Draw horizontal band for fY / fH
+  ctx.fillStyle = 'rgba(0,200,255,0.08)';
+  ctx.fillRect(0, pr.fY * viewScale, fullCanvas.width, pr.fH * viewScale);
+  ctx.strokeStyle = 'rgba(0,200,255,0.6)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.moveTo(0, pr.fY * viewScale); ctx.lineTo(fullCanvas.width, pr.fY * viewScale);
+  ctx.moveTo(0, (pr.fY + pr.fH) * viewScale); ctx.lineTo(fullCanvas.width, (pr.fY + pr.fH) * viewScale);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw vertical frame boxes
+  pr.fXs.forEach(function(x, i) {
+    var colors = ['#ff0044','#ff8800','#00cc44','#aa00ff'];
+    var col = colors[i % colors.length];
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2;
+    ctx.fillStyle = col.replace(')', ',0.12)').replace('rgb','rgba').replace('#','rgba(').replace(')',',0.12)');
+    // simpler: just use fixed alpha
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(x * viewScale, pr.fY * viewScale, pr.fW * viewScale, pr.fH * viewScale);
+    ctx.globalAlpha = 1;
+    ctx.strokeRect(x * viewScale, pr.fY * viewScale, pr.fW * viewScale, pr.fH * viewScale);
+    // label
+    ctx.fillStyle = col;
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText('F'+(i+1)+' x='+x, x * viewScale + 2, pr.fY * viewScale + 13);
+    // vertical left line through full image
+    ctx.strokeStyle = col;
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(x * viewScale, 0);
+    ctx.lineTo(x * viewScale, fullCanvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  });
+
+  // Mouse move
+  fullCanvas.onmousemove = function(e) {
+    var rect = fullCanvas.getBoundingClientRect();
+    var nx = Math.round((e.clientX - rect.left)  / viewScale);
+    var ny = Math.round((e.clientY - rect.top)   / viewScale);
+    document.getElementById('mouseInfo').textContent =
+      'x=' + nx + '  y=' + ny + '  (coordenadas nativas)';
+  };
+
+  // Left click → add X; right click → remove closest X
+  fullCanvas.onclick = function(e) {
+    e.preventDefault();
+    var rect = fullCanvas.getBoundingClientRect();
+    var nx = Math.round((e.clientX - rect.left) / viewScale);
+    var xs = p().fXs.slice();
+    xs.push(nx);
+    xs.sort(function(a,b){return a-b;});
+    setXs(xs);
+    redraw();
+  };
+  fullCanvas.oncontextmenu = function(e) {
+    e.preventDefault();
+    var rect = fullCanvas.getBoundingClientRect();
+    var nx = Math.round((e.clientX - rect.left) / viewScale);
+    var xs = p().fXs.slice();
+    if (!xs.length) return;
+    var closest = xs.reduce(function(best, x) {
+      return Math.abs(x - nx) < Math.abs(best - nx) ? x : best;
+    }, xs[0]);
+    setXs(xs.filter(function(x){ return x !== closest; }));
+    redraw();
+  };
+
+  // Extract frames
+  var displayScale = pr.dW / pr.fW;
+  var dH = Math.round(pr.fH * displayScale);
+  var framesEl = document.getElementById('frames');
+  framesEl.innerHTML = '';
+  pr.fXs.forEach(function(x, i) {
+    var fc = document.createElement('canvas');
+    fc.width  = pr.dW;
+    fc.height = dH;
+    fc.getContext('2d').drawImage(img, x, pr.fY, pr.fW, pr.fH, 0, 0, pr.dW, dH);
+    var box = document.createElement('div');
+    box.className = 'frame-box';
+    box.appendChild(fc);
+    box.appendChild(document.createTextNode('F'+(i+1)+' x='+x));
+    framesEl.appendChild(box);
+  });
+
+  // Code output
+  var displayScale2 = pr.dW / pr.fW;
+  var bgSz = Math.round(pr.sW * displayScale2) + 'px ' + Math.round(pr.sH * displayScale2) + 'px';
+  var positions = pr.fXs.map(function(x) {
+    return '"-' + Math.round(x * displayScale2) + 'px -' + Math.round(pr.fY * displayScale2) + 'px"';
+  });
+  document.getElementById('coords').innerHTML =
+    '<b>Copiar al código:</b><br>' +
+    'sheetFrames(' + pr.sW + ', ' + pr.sH + ', ' + pr.fW + ', ' + pr.dW +
+    ', [' + pr.fXs.join(', ') + '], ' + pr.fY + ')<br>' +
+    'background-size: ' + bgSz + '<br>' +
+    'positions: [' + positions.join(', ') + ']';
+}
+
+function autoDetect() {
+  var pr = p();
+  if (!img.naturalWidth) return;
+
+  // Draw image to offscreen canvas to sample pixels
+  var off = document.createElement('canvas');
+  off.width  = img.naturalWidth;
+  off.height = img.naturalHeight;
+  off.getContext('2d').drawImage(img, 0, 0);
+  var ctx = off.getContext('2d');
+
+  // Sample a horizontal line in the middle of the WALK row
+  var sampleY = Math.round(pr.fY + pr.fH / 2);
+  var row = ctx.getImageData(0, sampleY, img.naturalWidth, 1).data;
+
+  // Compute per-column brightness
+  var brightness = [];
+  for (var x = 0; x < img.naturalWidth; x++) {
+    var r = row[x*4], g = row[x*4+1], b = row[x*4+2];
+    brightness.push((r + g + b) / 3);
+  }
+
+  // Smooth brightness (5px window)
+  var smooth = brightness.map(function(_, i) {
+    var sum = 0, cnt = 0;
+    for (var d = -2; d <= 2; d++) {
+      if (brightness[i+d] !== undefined) { sum += brightness[i+d]; cnt++; }
+    }
+    return sum / cnt;
+  });
+
+  // Find local minima (separators between frames are darker)
+  var minima = [];
+  for (var i = 5; i < smooth.length - 5; i++) {
+    var isMin = true;
+    for (var d = -4; d <= 4; d++) {
+      if (d !== 0 && smooth[i+d] < smooth[i]) { isMin = false; break; }
+    }
+    if (isMin && smooth[i] < 80) minima.push(i);
+  }
+
+  // Cluster close minima
+  var clustered = [];
+  minima.forEach(function(x) {
+    if (!clustered.length || x - clustered[clustered.length-1] > 10) clustered.push(x);
+  });
+
+  if (clustered.length >= 3) {
+    // Frame starts are right after each separator
+    var xs = clustered.map(function(sep) { return sep + 1; });
+    // Also add x=0 if the first frame starts at the edge
+    if (xs[0] > 10) xs.unshift(0);
+    setXs(xs.slice(0, 6));
+    alert('Auto-detectados ' + xs.length + ' separadores. Verificá en la imagen y ajustá si hace falta.');
+  } else {
+    // Fallback: divide width evenly
+    var nFrames = 4;
+    var xs2 = [];
+    for (var j = 0; j < nFrames; j++) xs2.push(Math.round(img.naturalWidth / nFrames * j));
+    setXs(xs2);
+    alert('No se encontraron separadores claros. Se dividió el ancho en ' + nFrames + ' partes iguales como punto de partida.');
+  }
+  redraw();
+}
+</script>
+</body>
+</html>
