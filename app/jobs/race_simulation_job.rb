@@ -10,7 +10,7 @@ class RaceSimulationJob < ApplicationJob
     return unless race.running?
 
     entries = race.participants.includes(:user).map do |p|
-      { horse: Horse.find(p.horse_id), username: p.user.username }
+      { horse: Horse.find(p.horse_id), username: p.display_name }
     end
 
     return if entries.empty?

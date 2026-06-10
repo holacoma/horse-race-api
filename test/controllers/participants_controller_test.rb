@@ -3,7 +3,8 @@ require "test_helper"
 class ParticipantsControllerTest < ActionDispatch::IntegrationTest
   setup do
     post guest_session_path, params: { username: "Rider" }
-    @race = Race.create!
+    @creator = User.find_by(username: "Rider")
+    @race = Race.create!(creator: @creator)
   end
 
   test "POST join with valid horse creates participant" do
@@ -35,5 +36,21 @@ class ParticipantsControllerTest < ActionDispatch::IntegrationTest
     delete logout_path
     post race_participants_path(@race), params: { horse_id: 1 }, as: :json
     assert_redirected_to login_path
+  end
+
+  test "creator can add a guest apostador" do
+    assert_difference "Participant.count", 1 do
+      post race_participants_path(@race), params: { horse_id: 1, guest_name: "Juan" }, as: :json
+    end
+    assert_response :ok
+    assert_equal "Juan", Participant.last.display_name
+  end
+
+  test "non-creator cannot add guest apostador" do
+    delete logout_path
+    post guest_session_path, params: { username: "OtherRider" }
+
+    post race_participants_path(@race), params: { horse_id: 1, guest_name: "Juan" }, as: :json
+    assert_response :forbidden
   end
 end
