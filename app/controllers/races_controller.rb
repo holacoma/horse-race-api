@@ -1,29 +1,52 @@
-class RacesController < ApplicationController
+class RacesController < WebController
+  layout false
+  before_action :require_login
+  before_action :set_race, only: [ :show, :start ]
+
+  def index
+    @races = Race.where(is_public: true, status: :pending)
+                 .includes(:participants, :creator)
+                 .order(created_at: :desc)
+  end
+
+  def new
+    @race = Race.new
+    @race.generate_slug
+  end
+
   def create
-    horse_ids = params[:horse_ids]&.map(&:to_i)
-    race = Race.create!(status: :pending)
-    render json: { id: race.id, status: race.status }, status: :created
+    @race = Race.new(race_params)
+    @race.creator = current_user
+    if @race.save
+      redirect_to race_path(@race)
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def show
-    race = Race.find(params[:id])
-    render json: {
-      id: race.id,
-      status: race.status,
-      winner_name: race.winner_name,
-      horses: Horse.all.map { |h| { id: h.id, name: h.name } }
-    }
+    @participants    = @race.participants.includes(:user)
+    @available_horses = @race.available_horses.sample(4)
+    @my_participant  = @race.participants.find_by(user: current_user)
   end
 
   def start
-    race = Race.find(params[:id])
-
-    if race.pending?
-      race.update!(status: :running, started_at: Time.current)
-      RaceSimulationJob.perform_later(race.id)
-      render json: { id: race.id, status: race.status }
+    if @race.pending?
+      @race.update!(status: :running, started_at: Time.current)
+      RaceSimulationJob.perform_later(@race.id)
+      render json: { id: @race.id, status: @race.status }
     else
-      render json: { error: "Race already #{race.status}" }, status: :unprocessable_entity
+      render json: { error: "Race already #{@race.status}" }, status: :unprocessable_entity
     end
+  end
+
+  private
+
+  def set_race
+    @race = Race.find_by!(slug: params[:slug])
+  end
+
+  def race_params
+    params.require(:race).permit(:slug, :capacity, :animal_type, :is_public)
   end
 end
