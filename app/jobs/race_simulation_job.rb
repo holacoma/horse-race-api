@@ -2,30 +2,42 @@ class RaceSimulationJob < ApplicationJob
   queue_as :default
 
   TICK_INTERVAL = 0.3
-  FINISH_LINE = 100.0
+  FINISH_LINE   = 100.0
+  COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
 
   def perform(race_id)
     race = Race.find(race_id)
     return unless race.running?
 
-    horses = Horse.all
+    entries = race.participants.includes(:user).map do |p|
+      { horse: Horse.find(p.horse_id), username: p.user.username }
+    end
+
+    return if entries.empty?
+
+    ActionCable.server.broadcast("race_#{race_id}", {
+      type: "race_started",
+      participants: entries.map { |e| { id: e[:horse].id, name: e[:horse].name, username: e[:username] } }
+    })
+
+    sleep COUNTDOWN_SEC
 
     loop do
-      horses.each { |h| h.position = [ h.position + rand(1.0..8.0), FINISH_LINE ].min }
+      entries.each { |e| e[:horse].position = [ e[:horse].position + rand(1.0..8.0), FINISH_LINE ].min }
 
       ActionCable.server.broadcast("race_#{race_id}", {
         type: "progress",
-        participants: horses.map { |h| { id: h.id, name: h.name, position: h.position.round(2) } }
+        participants: entries.map { |e| { id: e[:horse].id, position: e[:horse].position.round(2) } }
       })
 
-      winner = horses.find { |h| h.position >= FINISH_LINE }
+      winner = entries.find { |e| e[:horse].position >= FINISH_LINE }
 
       if winner
-        race.update!(status: :finished, winner_name: winner.name, finished_at: Time.current)
+        race.update!(status: :finished, winner_name: winner[:horse].name, finished_at: Time.current)
 
         ActionCable.server.broadcast("race_#{race_id}", {
           type: "finished",
-          winner: { id: winner.id, name: winner.name }
+          winner: { id: winner[:horse].id, name: winner[:horse].name, username: winner[:username] }
         })
 
         break
