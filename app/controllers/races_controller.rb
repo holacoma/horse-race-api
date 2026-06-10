@@ -29,7 +29,7 @@ class RacesController < WebController
     @available_horses     = @race.available_horses.sample(4)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
-    @all_available_horses = @race.available_horses if @is_creator
+    @all_available_horses = @race.available_horses.sample(@race.capacity) if @is_creator
   end
 
   def start
