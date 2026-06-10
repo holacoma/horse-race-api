@@ -52,4 +52,27 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
              "frame_#{n}.png missing from public/images/horse/"
     end
   end
+
+  test "race page renders the horse picker" do
+    post guest_session_path, params: { username: "TestRider" }
+    get root_path
+    assert_select "#horse-picker"
+    assert_select "#picker-cards"
+    assert_select "#picker-timer-fill"
+  end
+
+  test "race page hides controls and animal-selector until horse is picked" do
+    post guest_session_path, params: { username: "TestRider" }
+    get root_path
+    assert_select "#controls[style~='display:none']"
+    assert_select "#animal-selector[style~='display:none']"
+  end
+
+  test "race page defines HORSE_CATALOG with all 6 horses" do
+    post guest_session_path, params: { username: "TestRider" }
+    get root_path
+    %w[Thunder Lightning Storm Blaze Shadow Spirit].each do |name|
+      assert_match name, response.body
+    end
+  end
 end
