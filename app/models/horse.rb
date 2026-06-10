@@ -15,12 +15,12 @@ class Horse
     { id: 19, name: "Filly Mignon"     }, { id: 20, name: "Stirrup Trouble"   },
     { id: 21, name: "Pasture Bedtime"  }, { id: 22, name: "Mane Event"        },
     { id: 23, name: "Bridle Party"     }, { id: 24, name: "Horsepower"        },
-    { id: 25, name: "Jockey McJockface"}, { id: 26, name: "El Pistolero"      },
+    { id: 25, name: "Jockey McJockface" }, { id: 26, name: "El Pistolero"      },
     { id: 27, name: "Turbo Caballo"    }, { id: 28, name: "Don Trote"         },
     { id: 29, name: "Señor Galope"     }, { id: 30, name: "Viento Loco"       },
     { id: 31, name: "El Relámpago"     }, { id: 32, name: "Pata de Lana"      },
     { id: 33, name: "El Último"        }, { id: 34, name: "Cuatro Patas"      },
-    { id: 35, name: "Don Comilón"      }, { id: 36, name: "El Mago"           },
+    { id: 35, name: "Don Comilón"      }, { id: 36, name: "El Mago"           }
   ].freeze
 
   def initialize(id:, name:)

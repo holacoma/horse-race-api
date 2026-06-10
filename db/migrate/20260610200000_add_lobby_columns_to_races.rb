@@ -18,7 +18,7 @@ class AddLobbyColumnsToRaces < ActiveRecord::Migration[8.1]
     change_column_null :races, :slug, false, ""
     change_column_default :races, :slug, ""
 
-    add_index  :races, :slug, unique: true
+    add_index :races, :slug, unique: true
     add_foreign_key :races, :users, column: :creator_id
   end
 
