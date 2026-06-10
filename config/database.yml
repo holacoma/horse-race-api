@@ -71,18 +71,10 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: horse_race_api_production
-    username: horse_race_api
-    password: <%= ENV["HORSE_RACE_API_DATABASE_PASSWORD"] %>
+    url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
-    database: horse_race_api_production_cache
-    migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: horse_race_api_production_queue
-    migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: horse_race_api_production_cable
-    migrations_paths: db/cable_migrate
