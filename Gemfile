@@ -34,6 +34,7 @@ gem "image_processing", "~> 1.2"
 
 gem "omniauth-google-oauth2"
 gem "omniauth-rails_csrf_protection"
+gem "dotenv-rails"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
