@@ -6,8 +6,8 @@ class CreateSolidCableTables < ActiveRecord::Migration[8.1]
       t.datetime "created_at", null: false
       t.integer "channel_hash", limit: 8, null: false
     end
-    add_index "solid_cable_messages", ["channel"], name: "index_solid_cable_messages_on_channel"
-    add_index "solid_cable_messages", ["channel_hash"], name: "index_solid_cable_messages_on_channel_hash"
-    add_index "solid_cable_messages", ["created_at"], name: "index_solid_cable_messages_on_created_at"
+    add_index "solid_cable_messages", [ "channel" ], name: "index_solid_cable_messages_on_channel"
+    add_index "solid_cable_messages", [ "channel_hash" ], name: "index_solid_cable_messages_on_channel_hash"
+    add_index "solid_cable_messages", [ "created_at" ], name: "index_solid_cable_messages_on_created_at"
   end
 end

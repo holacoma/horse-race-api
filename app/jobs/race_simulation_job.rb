@@ -11,7 +11,7 @@ class RaceSimulationJob < ApplicationJob
     horses = Horse.all
 
     loop do
-      horses.each { |h| h.position = [h.position + rand(1.0..8.0), FINISH_LINE].min }
+      horses.each { |h| h.position = [ h.position + rand(1.0..8.0), FINISH_LINE ].min }
 
       ActionCable.server.broadcast("race_#{race_id}", {
         type: "progress",

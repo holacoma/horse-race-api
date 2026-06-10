@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   post   "/sessions/guest",          to: "sessions#create_guest",  as: :guest_session
   delete "/logout",                  to: "sessions#destroy",       as: :logout
 
-  resources :races, only: [:create, :show] do
+  resources :races, only: [ :create, :show ] do
     member do
       post :start
     end
