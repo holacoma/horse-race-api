@@ -30,7 +30,12 @@ class ParticipantsController < WebController
 
     ActionCable.server.broadcast("race_#{race.id}", {
       type: "player_joined",
-      participant: { username: participant.display_name, horse_name: horse.name, horse_id: horse.id }
+      participant: {
+        username: participant.display_name,
+        horse_name: horse.name,
+        horse_id: horse.id,
+        profile_username: participant.user&.username
+      }
     })
 
     render json: { ok: true, participant: { horse_name: horse.name, display_name: participant.display_name } }
