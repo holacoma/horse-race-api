@@ -234,6 +234,7 @@
     horse: {
       label: "Caballos", emoji: "🐴",
       frameCount: 5,
+      basePath: "/images/horse/frame_",
       createElement: function(id, hue) {
         return '<img class="horse-sprite" id="horse-' + id + '"' +
                ' src="/images/horse/frame_1.png"' +
@@ -246,6 +247,7 @@
     guinea_pig: {
       label: "Cobayas", emoji: "🐹",
       frameCount: 4,
+      basePath: "/images/guinea_pig/frame_",
       createElement: function(id, hue) {
         return '<img class="horse-sprite" id="horse-' + id + '"' +
                ' src="/images/guinea_pig/frame_1.png"' +
@@ -256,6 +258,12 @@
       }
     }
   };
+
+  function preloadFrames(cfg) {
+    for (var i = 1; i <= cfg.frameCount; i++) {
+      (new Image()).src = cfg.basePath + i + ".png";
+    }
+  }
 
   var btnNew      = document.getElementById("btn-new");
   var btnStart    = document.getElementById("btn-start");
@@ -373,6 +381,7 @@
       .then(function(r) { return r.json(); })
       .then(function(raceData) {
         renderTrack(raceData.horses);
+        preloadFrames(ANIMALS[selectedAnimal]);
         connectToRace(raceId);
         setStatus("Carrera #" + raceId + " lista");
         btnStart.disabled = false;
