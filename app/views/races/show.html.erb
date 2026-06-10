@@ -70,14 +70,15 @@
 
     /* Horse picker */
     #horse-picker {
-      width: 100%; max-width: 560px;
+      width: 100%; max-width: 640px;
       display: flex; flex-direction: column; align-items: center;
       gap: 1.25rem; margin-bottom: 2rem;
     }
     #horse-picker h2 { font-size: 1.3rem; }
 
     .picker-cards {
-      display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+      display: flex; gap: 1rem; flex-wrap: nowrap; justify-content: center;
+      width: 100%;
     }
     .picker-card {
       background: #2a2a4a;
@@ -86,7 +87,7 @@
       padding: 1rem 1.25rem;
       cursor: pointer; text-align: center;
       transition: border-color 0.15s, transform 0.15s;
-      min-width: 130px;
+      flex: 1; min-width: 0;
     }
     .picker-card:hover { border-color: #fbbf24; transform: translateY(-3px); }
     .picker-card img {
@@ -109,6 +110,17 @@
       text-align: center;
     }
     #status-bar.ready { color: #4ade80; font-weight: 700; }
+
+    #btn-start {
+      margin-top: 1.5rem;
+      padding: 0.7rem 2rem;
+      background: #16a34a; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 1rem; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    #btn-start:hover { opacity: 0.85; }
+    #btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .back-link {
       margin-top: 2rem; font-size: 0.85rem;
@@ -171,6 +183,10 @@
       ¡Sala lista!
     <% end %>
   </div>
+
+  <% if @race.creator_id == current_user.id %>
+    <button id="btn-start" onclick="startRace()">🏁 Comenzar carrera</button>
+  <% end %>
 
   <div class="back-link"><%= link_to "← Volver a salas", root_path %></div>
 
@@ -261,6 +277,28 @@
     };
 
     socket.onerror = function() { console.error("WebSocket error"); };
+
+    function startRace() {
+      var btn = document.getElementById("btn-start");
+      btn.disabled = true;
+      btn.textContent = "Iniciando…";
+      fetch("/races/" + RACE_SLUG + "/start", {
+        method: "POST",
+        headers: { "X-CSRF-Token": csrfToken() }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          btn.disabled = false;
+          btn.textContent = "🏁 Comenzar carrera";
+          alert(data.error);
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.textContent = "🏁 Comenzar carrera";
+      });
+    }
   </script>
 </body>
 </html>
