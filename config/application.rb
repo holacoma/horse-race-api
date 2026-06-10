@@ -42,6 +42,7 @@ module HorseRaceApi
     config.api_only = true
 
     # Session middleware needed for OmniAuth and WebController views
+    config.middleware.use Rack::MethodOverride
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: "_horse_race_session"
     config.middleware.use ActionDispatch::Flash
