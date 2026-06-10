@@ -1,8 +1,8 @@
 require "test_helper"
 
 class HorseTest < ActiveSupport::TestCase
-  test "all returns 6 horses" do
-    assert_equal 6, Horse.all.length
+  test "all returns all horses from catalog" do
+    assert_equal Horse::CATALOG.length, Horse.all.length
   end
 
   test "all returns Horse instances with id and name" do
@@ -19,7 +19,7 @@ class HorseTest < ActiveSupport::TestCase
   test "find returns the correct horse" do
     horse = Horse.find(1)
     assert_equal 1, horse.id
-    assert_equal "Thunder", horse.name
+    assert_equal "Secretariat", horse.name
   end
 
   test "find returns nil for unknown id" do

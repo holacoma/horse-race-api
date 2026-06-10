@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horse Race — <%= @race.slug %></title>
+  <%= csrf_meta_tags %>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    #user-badge {
+      position: fixed; top: 1rem; right: 1.25rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; color: #aaa;
+    }
+    #user-badge .username { color: #eee; font-weight: 600; }
+
+    .lobby-header { text-align: center; margin-bottom: 1.5rem; }
+    .lobby-header h1 { font-size: 1.8rem; }
+    .lobby-header .players-count { color: #a5b4fc; font-size: 0.95rem; margin-top: 0.3rem; }
+
+    .share-row {
+      display: flex; gap: 0.5rem; align-items: center;
+      margin-bottom: 2rem; width: 100%; max-width: 520px;
+    }
+    .share-row input {
+      flex: 1; padding: 0.5rem 0.75rem;
+      background: #0f0f23; border: 1px solid #2a2a4a;
+      border-radius: 8px; color: #aaa; font-size: 0.85rem;
+    }
+    .share-row button {
+      padding: 0.5rem 0.9rem;
+      background: #2a2a4a; color: #eee;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .share-row button:hover { background: #3a3a5a; }
+
+    .section-title {
+      font-size: 0.8rem; font-weight: 700; color: #888;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 0.75rem; width: 100%; max-width: 520px;
+    }
+
+    #participants-list {
+      width: 100%; max-width: 520px;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .participant-row {
+      background: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .participant-row .p-username { font-weight: 600; flex: 1; }
+    .participant-row .p-horse { font-size: 0.85rem; color: #a5b4fc; }
+
+    /* Horse picker */
+    #horse-picker {
+      width: 100%; max-width: 640px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1.25rem; margin-bottom: 2rem;
+    }
+    #horse-picker h2 { font-size: 1.3rem; }
+
+    .picker-cards {
+      display: flex; gap: 1rem; flex-wrap: nowrap; justify-content: center;
+      width: 100%;
+    }
+    .picker-card {
+      background: #2a2a4a;
+      border: 2px solid #4f46e5;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      cursor: pointer; text-align: center;
+      transition: border-color 0.15s, transform 0.15s;
+      flex: 1; min-width: 0;
+    }
+    .picker-card:hover { border-color: #fbbf24; transform: translateY(-3px); }
+    .picker-card img {
+      width: 82px; height: 66px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .picker-card .card-name { font-weight: 700; margin-top: 0.5rem; font-size: 0.9rem; }
+
+    .picker-card.taken {
+      opacity: 0.3; cursor: not-allowed;
+      border-color: #555;
+    }
+    .picker-card.taken:hover { transform: none; border-color: #555; }
+
+    /* Status bar */
+    #status-bar {
+      margin-top: 1rem;
+      font-size: 0.95rem; color: #888;
+      text-align: center;
+    }
+    #status-bar.ready { color: #4ade80; font-weight: 700; }
+
+    /* ── Race track ── */
+    #race-section {
+      width: 100%; max-width: 820px;
+      display: none; flex-direction: column; align-items: center; gap: 1rem;
+    }
+    #countdown {
+      font-size: 5rem; font-weight: 900; color: #fbbf24;
+      text-align: center; min-height: 8rem; display: none;
+    }
+    #track { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+    .lane-row { display: flex; align-items: flex-end; gap: 10px; }
+    .lane-label {
+      width: 100px; font-size: 0.78rem; font-weight: 600;
+      text-align: right; flex-shrink: 0; color: #ccc;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      padding-bottom: 10px;
+    }
+    .track-wrap { flex: 1; position: relative; height: 132px; }
+    .track-bg {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 44px;
+      background: #a0784a; border-top: 7px solid #3d6b35;
+      border-bottom: 7px solid #3d6b35; overflow: hidden; border-radius: 3px;
+    }
+    .track-bg::after {
+      content: ""; position: absolute; inset: 0;
+      background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.07) 40px, rgba(0,0,0,0.07) 41px);
+    }
+    .track-bg::before {
+      content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 10px;
+      background: repeating-linear-gradient(180deg, #fff 0px, #fff 6px, #000 6px, #000 12px);
+      z-index: 2;
+    }
+    .horse-sprite {
+      position: absolute; bottom: 0; left: 0;
+      width: 164px; height: 132px;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+      transform: scaleX(-1); transition: left 0.28s linear; z-index: 1;
+    }
+    #winner-banner {
+      display: none; margin-top: 1rem;
+      background: #854d0e; border: 2px solid #fbbf24; border-radius: 12px;
+      padding: 1.25rem 2.5rem; text-align: center;
+      font-size: 1.5rem; font-weight: 700; color: #fef3c7;
+    }
+    @keyframes pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    #btn-start {
+      margin-top: 1.5rem;
+      padding: 0.7rem 2rem;
+      background: #16a34a; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 1rem; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    #btn-start:hover { opacity: 0.85; }
+    #btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .back-link {
+      margin-top: 2rem; font-size: 0.85rem;
+    }
+    .back-link a { color: #6366f1; text-decoration: none; }
+    .back-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="user-badge">
+    <span class="username"><%= current_user.username %></span>
+    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
+      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
+    <% end %>
+  </div>
+
+  <div class="lobby-header">
+    <h1><%= @race.animal_type == "guinea_pig" ? "🐹" : "🐴" %> <%= @race.slug %></h1>
+    <div class="players-count" id="players-count">
+      <%= @participants.size %>/<%= @race.capacity %> jugadores
+    </div>
+  </div>
+
+  <div class="share-row">
+    <input type="text" id="share-link" readonly value="<%= request.base_url %>/races/<%= @race.slug %>">
+    <button onclick="copyLink()">Copiar</button>
+  </div>
+
+  <div class="section-title">Participantes</div>
+  <div id="participants-list">
+    <% @participants.each do |p| %>
+      <div class="participant-row" id="participant-<%= p.user_id %>">
+        <span class="p-username"><%= p.user.username %></span>
+        <span class="p-horse">🐎 <%= p.horse_name %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @my_participant.nil? %>
+    <div id="horse-picker">
+      <h2>Elige tu caballo</h2>
+      <div id="picker-cards" class="picker-cards">
+        <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
+        <% @available_horses.each_with_index do |horse, i| %>
+          <div class="picker-card" data-horse-id="<%= horse.id %>" onclick="pickHorse(<%= horse.id %>)">
+            <img src="/images/<%= @race.animal_type %>/frame_1.png"
+                 style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
+            <div class="card-name"><%= horse.name %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div id="status-bar">
+    <% remaining = @race.capacity - @participants.size %>
+    <% if remaining > 0 %>
+      Esperando <%= remaining %> jugador<%= remaining == 1 ? "" : "es" %> más…
+    <% else %>
+      ¡Sala lista!
+    <% end %>
+  </div>
+
+  <% if @race.creator_id == current_user.id %>
+    <button id="btn-start" onclick="startRace()">🏁 Comenzar carrera</button>
+  <% end %>
+
+  <div id="race-section">
+    <div id="countdown"></div>
+    <div id="track"></div>
+    <div id="winner-banner"></div>
+  </div>
+
+  <div class="back-link"><%= link_to "← Volver a salas", root_path %></div>
+
+  <script>
+    var RACE_ID        = <%= @race.id %>;
+    var RACE_SLUG      = "<%= @race.slug %>";
+    var ANIMAL_TYPE    = "<%= @race.animal_type %>";
+    var CAPACITY       = <%= @race.capacity %>;
+    var participantCount = <%= @participants.size %>;
+
+    function copyLink() {
+      var input = document.getElementById("share-link");
+      input.select();
+      document.execCommand("copy");
+    }
+
+    function pickHorse(horseId) {
+      var card = document.querySelector('[data-horse-id="' + horseId + '"]');
+      if (!card || card.classList.contains("taken")) return;
+
+      fetch("/races/" + RACE_SLUG + "/participants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
+        body: JSON.stringify({ horse_id: horseId })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          document.getElementById("horse-picker").style.display = "none";
+        } else {
+          alert(data.error || "No se pudo elegir ese caballo");
+          card.classList.add("taken");
+        }
+      })
+      .catch(function() { alert("Error de red, intentá de nuevo"); });
+    }
+
+    function csrfToken() {
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.content : "";
+    }
+
+    function addParticipant(username, horseName, horseId) {
+      var list = document.getElementById("participants-list");
+      var div = document.createElement("div");
+      div.className = "participant-row";
+      div.innerHTML = '<span class="p-username">' + username + '</span>' +
+                      '<span class="p-horse">🐎 ' + horseName + '</span>';
+      list.appendChild(div);
+
+      // Remove horse from picker if visible
+      var card = document.querySelector('[data-horse-id="' + horseId + '"]');
+      if (card) card.classList.add("taken");
+
+      participantCount += 1;
+      document.getElementById("players-count").textContent =
+        participantCount + "/" + CAPACITY + " jugadores";
+
+      var remaining = CAPACITY - participantCount;
+      var bar = document.getElementById("status-bar");
+      if (remaining <= 0) {
+        bar.textContent = "¡Sala lista!";
+        bar.className = "ready";
+      } else {
+        bar.textContent = "Esperando " + remaining + " jugador" + (remaining === 1 ? "" : "es") + " más…";
+      }
+    }
+
+    // WebSocket subscription
+    var wsUrl = (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/cable";
+    var socket = new WebSocket(wsUrl);
+    var identifier = JSON.stringify({ channel: "RaceChannel", race_id: RACE_ID });
+
+    socket.onopen = function() {
+      socket.send(JSON.stringify({ command: "subscribe", identifier: identifier }));
+    };
+
+    socket.onmessage = function(event) {
+      var msg = JSON.parse(event.data);
+      if (msg.type === "welcome" || msg.type === "ping" || msg.type === "confirm_subscription") return;
+      var data = msg.message;
+      if (!data) return;
+
+      if (data.type === "player_joined") {
+        var p = data.participant;
+        addParticipant(p.username, p.horse_name, p.horse_id);
+      } else if (data.type === "race_started") {
+        onRaceStarted(data.participants);
+      } else if (data.type === "progress") {
+        onProgress(data.participants);
+      } else if (data.type === "finished") {
+        onFinished(data.winner);
+      }
+    };
+
+    socket.onerror = function() { console.error("WebSocket error"); };
+
+    // ── Race track ──────────────────────────────────────────────────────────
+    var HUE_ROTATIONS = [0, 55, 110, 170, 220, 285];
+    var frameIndex   = 0;
+    var animInterval = null;
+
+    var ANIMAL_CFG = {
+      horse: {
+        frameCount: 5,
+        basePath: "/images/horse/frame_",
+        spriteStyle: "transform: scaleX(-1);",
+        spriteHeight: "132px"
+      },
+      guinea_pig: {
+        frameCount: 4,
+        basePath: "/images/guinea_pig/frame_",
+        spriteStyle: "transform: scaleX(1); height: auto;",
+        spriteHeight: "auto"
+      }
+    };
+
+    function preloadFrames() {
+      var cfg = ANIMAL_CFG[ANIMAL_TYPE] || ANIMAL_CFG.horse;
+      for (var i = 1; i <= cfg.frameCount; i++) {
+        (new Image()).src = cfg.basePath + i + ".png";
+      }
+    }
+
+    function renderTrack(participants) {
+      var cfg = ANIMAL_CFG[ANIMAL_TYPE] || ANIMAL_CFG.horse;
+      var trackEl = document.getElementById("track");
+      trackEl.innerHTML = participants.map(function(p, i) {
+        var hue = HUE_ROTATIONS[i % HUE_ROTATIONS.length];
+        return (
+          '<div class="lane-row">' +
+            '<span class="lane-label" title="' + p.username + ' — ' + p.name + '">' + p.username + '</span>' +
+            '<div class="track-wrap" id="wrap-' + p.id + '">' +
+              '<div class="track-bg"></div>' +
+              '<img class="horse-sprite" id="horse-' + p.id + '"' +
+                   ' src="' + cfg.basePath + '1.png"' +
+                   ' style="filter: hue-rotate(' + hue + 'deg); ' + cfg.spriteStyle + '">' +
+            '</div>' +
+          '</div>'
+        );
+      }).join("");
+    }
+
+    function startAnimation() {
+      if (animInterval) return;
+      var cfg = ANIMAL_CFG[ANIMAL_TYPE] || ANIMAL_CFG.horse;
+      animInterval = setInterval(function() {
+        frameIndex = (frameIndex + 1) % cfg.frameCount;
+        document.querySelectorAll(".horse-sprite").forEach(function(el) {
+          el.src = cfg.basePath + (frameIndex + 1) + ".png";
+        });
+      }, 110);
+    }
+
+    function stopAnimation() {
+      clearInterval(animInterval);
+      animInterval = null;
+    }
+
+    function moveHorse(horseId, position) {
+      var img  = document.getElementById("horse-" + horseId);
+      var wrap = document.getElementById("wrap-" + horseId);
+      if (!img || !wrap) return;
+      var maxLeft = wrap.offsetWidth - img.offsetWidth;
+      img.style.left = Math.max(0, position / 100 * maxLeft) + "px";
+    }
+
+    function showCountdown(callback) {
+      var el = document.getElementById("countdown");
+      el.style.display = "block";
+      var steps = ["3", "2", "1", "🏁 GO!"];
+      var i = 0;
+      el.textContent = steps[0];
+      var interval = setInterval(function() {
+        i++;
+        if (i < steps.length) {
+          el.textContent = steps[i];
+        } else {
+          clearInterval(interval);
+          el.style.display = "none";
+          callback();
+        }
+      }, 1000);
+    }
+
+    function onRaceStarted(participants) {
+      // Ocultar lobby UI
+      var picker = document.getElementById("horse-picker");
+      if (picker) picker.style.display = "none";
+      var btnStart = document.getElementById("btn-start");
+      if (btnStart) btnStart.style.display = "none";
+      document.getElementById("status-bar").style.display = "none";
+
+      // Mostrar sección de carrera
+      var section = document.getElementById("race-section");
+      section.style.display = "flex";
+
+      preloadFrames();
+      showCountdown(function() {
+        renderTrack(participants);
+        startAnimation();
+      });
+    }
+
+    function onProgress(participants) {
+      participants.forEach(function(p) { moveHorse(p.id, p.position); });
+    }
+
+    function onFinished(winner) {
+      stopAnimation();
+      var banner = document.getElementById("winner-banner");
+      banner.textContent = "🏆 Ganador: " + winner.username + " (" + winner.name + ")";
+      banner.style.display = "block";
+      banner.style.animation = "pop 0.3s ease-out";
+    }
+
+    function startRace() {
+      var btn = document.getElementById("btn-start");
+      btn.disabled = true;
+      btn.textContent = "Iniciando…";
+      fetch("/races/" + RACE_SLUG + "/start", {
+        method: "POST",
+        headers: { "X-CSRF-Token": csrfToken() }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          btn.disabled = false;
+          btn.textContent = "🏁 Comenzar carrera";
+          alert(data.error);
+        }
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.textContent = "🏁 Comenzar carrera";
+      });
+    }
+  </script>
+</body>
+</html>

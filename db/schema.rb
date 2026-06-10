@@ -10,17 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_100002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "races", force: :cascade do |t|
+  create_table "participants", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "horse_id", null: false
+    t.string "horse_name", null: false
+    t.bigint "race_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["race_id", "horse_id"], name: "index_participants_on_race_id_and_horse_id", unique: true
+    t.index ["race_id", "user_id"], name: "index_participants_on_race_id_and_user_id", unique: true
+    t.index ["race_id"], name: "index_participants_on_race_id"
+    t.index ["user_id"], name: "index_participants_on_user_id"
+  end
+
+  create_table "races", force: :cascade do |t|
+    t.string "animal_type", default: "horse", null: false
+    t.integer "capacity", default: 6, null: false
+    t.datetime "created_at", null: false
+    t.bigint "creator_id"
     t.datetime "finished_at"
+    t.boolean "is_public", default: true, null: false
+    t.string "slug", default: "", null: false
     t.datetime "started_at"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.string "winner_name"
+    t.index ["slug"], name: "index_races_on_slug", unique: true
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -176,6 +195,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_100002) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end
 
+  add_foreign_key "participants", "races"
+  add_foreign_key "participants", "users"
+  add_foreign_key "races", "users", column: "creator_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

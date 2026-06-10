@@ -7,6 +7,12 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore vendored gems (installed locally via bundle install --path vendor/bundle).
+/vendor/bundle/
+
+# Ignore Claude Code local session files.
+/.claude/
+
 # Ignore all environment files.
 /.env*
 
