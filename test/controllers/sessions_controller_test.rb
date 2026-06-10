@@ -29,6 +29,18 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
+  # Sends POST with _method=DELETE as the browser form does (Rack::MethodOverride must be wired up)
+  test "POST /logout with _method=DELETE logs out via form submission" do
+    post guest_session_path, params: { username: "FormUser" }
+    assert_redirected_to root_path
+
+    post logout_path, params: { "_method" => "DELETE" }
+    assert_redirected_to login_path
+
+    get root_path
+    assert_redirected_to login_path
+  end
+
   test "DELETE /logout clears session and redirects to login" do
     post guest_session_path, params: { username: "TempUser" }
     assert_redirected_to root_path
