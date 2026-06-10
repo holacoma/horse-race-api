@@ -21,9 +21,9 @@ class RaceTest < ActiveSupport::TestCase
   end
 
   test "build_with_participants filters by horse_ids" do
-    race = Race.build_with_participants(horse_ids: [1, 3])
+    race = Race.build_with_participants(horse_ids: [ 1, 3 ])
     participants = race.instance_variable_get(:@participants)
     assert_equal 2, participants.length
-    assert_equal [1, 3], participants.map(&:id)
+    assert_equal [ 1, 3 ], participants.map(&:id)
   end
 end

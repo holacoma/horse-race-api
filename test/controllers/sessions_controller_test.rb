@@ -40,5 +40,4 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_redirected_to login_path
   end
-
 end
