@@ -103,6 +103,11 @@
     }
     .picker-card.taken:hover { transform: none; border-color: #555; }
 
+    .picker-card.favorite {
+      border-color: #fbbf24;
+    }
+    .picker-card.favorite:hover { border-color: #f59e0b; }
+
     /* Status bar */
     #status-bar {
       margin-top: 1rem;
@@ -196,7 +201,7 @@
 </head>
 <body>
   <div id="user-badge">
-    <span class="username"><%= current_user.username %></span>
+    <%= link_to current_user.username, profile_path(current_user.username), class: "username", style: "text-decoration:none;color:#eee;" %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
       <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
     <% end %>
@@ -230,10 +235,11 @@
       <div id="picker-cards" class="picker-cards">
         <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
         <% @available_horses.each_with_index do |horse, i| %>
-          <div class="picker-card" data-horse-id="<%= horse.id %>" onclick="pickHorse(<%= horse.id %>)">
+          <% is_fav = @favorite_horse_ids.include?(horse.id) %>
+          <div class="picker-card<%= is_fav ? ' favorite' : '' %>" data-horse-id="<%= horse.id %>" onclick="pickHorse(<%= horse.id %>)">
             <img src="/images/<%= @race.animal_type %>/frame_1.png"
                  style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
-            <div class="card-name"><%= horse.name %></div>
+            <div class="card-name"><%= is_fav ? '⭐ ' : '' %><%= horse.name %></div>
           </div>
         <% end %>
       </div>
@@ -286,6 +292,7 @@
     var ANIMAL_TYPE    = "<%= @race.animal_type %>";
     var CAPACITY       = <%= @race.capacity %>;
     var participantCount = <%= @participants.size %>;
+    var FAVORITE_IDS   = <%= @favorite_horse_ids.to_json %>;
 
     function copyLink() {
       var input = document.getElementById("share-link");

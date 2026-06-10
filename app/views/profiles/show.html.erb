@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — <%= @profile_user.username %></title>
+  <%= csrf_meta_tags %>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    #user-badge {
+      position: fixed; top: 1rem; right: 1.25rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; color: #aaa;
+    }
+    #user-badge .username { color: #eee; font-weight: 600; }
+
+    .profile-header {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2rem; width: 100%; max-width: 700px;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid #4f46e5; object-fit: cover;
+      flex-shrink: 0;
+    }
+    .profile-avatar-placeholder {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #2a2a4a; border: 2px solid #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 700; color: #a5b4fc;
+      flex-shrink: 0;
+    }
+    .profile-info h1 { font-size: 1.5rem; }
+    .profile-info .subtitle { color: #888; font-size: 0.85rem; margin-top: 0.2rem; }
+
+    .back-link { margin-bottom: 1.5rem; width: 100%; max-width: 700px; }
+    .back-link a { color: #6366f1; text-decoration: none; font-size: 0.85rem; }
+    .back-link a:hover { text-decoration: underline; }
+
+    .section-title {
+      font-size: 0.8rem; font-weight: 700; color: #888;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 0.75rem; width: 100%; max-width: 700px;
+    }
+
+    /* Favorites grid */
+    .favorites-grid {
+      width: 100%; max-width: 700px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.75rem; margin-bottom: 2rem;
+    }
+    .fav-card {
+      background: #2a2a4a; border: 2px solid #4f46e5;
+      border-radius: 10px; padding: 0.75rem 0.5rem;
+      text-align: center; cursor: default;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .fav-card.is-fav {
+      border-color: #fbbf24;
+    }
+    .fav-card.clickable { cursor: pointer; }
+    .fav-card.clickable:hover { transform: translateY(-2px); }
+    .fav-card .fav-name { font-size: 0.78rem; font-weight: 600; margin-top: 0.4rem; line-height: 1.3; }
+
+    .empty-note { color: #666; font-size: 0.9rem; width: 100%; max-width: 700px; margin-bottom: 2rem; }
+
+    /* Race history table */
+    .history-table {
+      width: 100%; max-width: 700px;
+      border-collapse: collapse; margin-bottom: 2rem;
+    }
+    .history-table th {
+      text-align: left; font-size: 0.75rem; font-weight: 700;
+      color: #888; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.5rem 0.75rem; border-bottom: 1px solid #2a2a4a;
+    }
+    .history-table td {
+      padding: 0.65rem 0.75rem; font-size: 0.88rem;
+      border-bottom: 1px solid #1e1e3a; vertical-align: middle;
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .result-win  { color: #4ade80; font-weight: 700; }
+    .result-loss { color: #f87171; }
+    .horse-name  { color: #a5b4fc; }
+    .race-slug   { font-family: monospace; color: #c4b5fd; }
+    .race-date   { color: #666; font-size: 0.82rem; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div id="user-badge">
+    <span class="username"><%= current_user.username %></span>
+    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
+      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
+    <% end %>
+  </div>
+
+  <div class="back-link">
+    <%= link_to "← Volver a salas", root_path %>
+  </div>
+
+  <div class="profile-header">
+    <% if @profile_user.avatar_url.present? %>
+      <img src="<%= @profile_user.avatar_url %>" class="profile-avatar" alt="<%= @profile_user.username %>">
+    <% else %>
+      <div class="profile-avatar-placeholder"><%= @profile_user.username[0].upcase %></div>
+    <% end %>
+    <div class="profile-info">
+      <h1><%= @profile_user.username %></h1>
+      <div class="subtitle"><%= @race_history.size %> carrera<%= @race_history.size == 1 ? "" : "s" %> completada<%= @race_history.size == 1 ? "" : "s" %></div>
+    </div>
+  </div>
+
+  <div class="section-title">Caballos favoritos</div>
+
+  <% all_horses = Horse.all %>
+  <% is_own_profile = current_user == @profile_user %>
+
+  <div class="favorites-grid">
+    <% all_horses.each do |horse| %>
+      <% fav = @my_favorites.include?(horse.id) %>
+      <div class="fav-card <%= fav ? 'is-fav' : '' %> <%= is_own_profile ? 'clickable' : '' %>"
+           data-horse-id="<%= horse.id %>"
+           <% if is_own_profile %>onclick="toggleFavorite(<%= horse.id %>, this)"<% end %>>
+        <div class="fav-name"><%= fav ? '⭐ ' : '' %><%= horse.name %></div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="section-title">Historial de carreras</div>
+
+  <% if @race_history.empty? %>
+    <p class="empty-note">Aún no hay carreras en el historial.</p>
+  <% else %>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Sala</th>
+          <th>Mi caballo</th>
+          <th>Resultado</th>
+          <th>Ganador</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @race_history.each do |p| %>
+          <% won = p.race.winner_name == p.horse_name %>
+          <tr>
+            <td><span class="race-slug"><%= p.race.slug %></span></td>
+            <td><span class="horse-name"><%= p.horse_name %></span></td>
+            <td>
+              <% if won %>
+                <span class="result-win">🏆 Ganador</span>
+              <% else %>
+                <span class="result-loss">💀 Perdedor</span>
+              <% end %>
+            </td>
+            <td><%= p.race.winner_name %></td>
+            <td class="race-date"><%= p.race.finished_at.strftime("%d/%m/%Y %H:%M") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <script>
+    function csrfToken() {
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.content : "";
+    }
+
+    function toggleFavorite(horseId, card) {
+      fetch("/horse_favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
+        body: JSON.stringify({ horse_id: horseId })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var nameEl = card.querySelector(".fav-name");
+        if (data.favorited) {
+          card.classList.add("is-fav");
+          nameEl.textContent = "⭐ " + nameEl.textContent.replace(/^⭐\s*/, "");
+        } else {
+          card.classList.remove("is-fav");
+          nameEl.textContent = nameEl.textContent.replace(/^⭐\s*/, "");
+        }
+      })
+      .catch(function() { alert("Error al actualizar favorito"); });
+    }
+  </script>
+</body>
+</html>
