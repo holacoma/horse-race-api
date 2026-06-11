@@ -196,9 +196,9 @@
   <% end %>
 
   <script>
-    var IS_OWN_PROFILE = <%= (current_user == @profile_user).to_json %>;
-    var HORSES_CATALOG = <%= Horse.all.map { |h| { id: h.id, name: h.name } }.to_json %>;
-    var favoritedIds   = new Set(<%= @my_favorites.to_json %>);
+    var IS_OWN_PROFILE = <%= raw (current_user == @profile_user).to_json %>;
+    var HORSES_CATALOG = <%= raw Horse.all.map { |h| { id: h.id, name: h.name } }.to_json %>;
+    var favoritedIds   = new Set(<%= raw @my_favorites.to_json %>);
 
     function csrfToken() {
       var meta = document.querySelector('meta[name="csrf-token"]');
