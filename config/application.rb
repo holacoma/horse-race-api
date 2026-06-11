@@ -41,9 +41,12 @@ module HorseRaceApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    # api_only has no asset pipeline; serve app/javascript/ and vendor/javascript/ directly
-    config.middleware.insert_before ActionDispatch::Static, ActionDispatch::Static, Rails.root.join("vendor/javascript").to_s
-    config.middleware.insert_before ActionDispatch::Static, ActionDispatch::Static, Rails.root.join("app/javascript").to_s
+    # api_only has no asset pipeline; serve app/javascript/ as static files via Rack::Static.
+    # ActionDispatch::Static doesn't reliably serve from arbitrary roots in this context,
+    # so we use Rack::Static inserted before all other middleware.
+    config.middleware.insert_before 0, Rack::Static,
+      urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /controllers],
+      root: Rails.root.join("app/javascript").to_s
 
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride
