@@ -38,6 +38,11 @@ class ParticipantsController < WebController
       }
     })
 
+    if race.reload.full? && race.pending?
+      race.update!(status: :running, started_at: Time.current)
+      RaceSimulationJob.perform_later(race.id)
+    end
+
     render json: { ok: true, participant: { horse_name: horse.name, display_name: participant.display_name } }
   end
 end
