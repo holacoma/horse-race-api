@@ -41,9 +41,6 @@ module HorseRaceApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    # api_only skips ActionDispatch::Static; re-add it so public/css/ is served
-    config.middleware.insert_before 0, ActionDispatch::Static, Rails.root.join("public").to_s
-
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride
     config.middleware.use ActionDispatch::Cookies
