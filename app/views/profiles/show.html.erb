@@ -152,7 +152,7 @@
   <div class="section-title">Caballos favoritos</div>
   <div id="favorites-list"></div>
 
-  <% if current_user == @profile_user %>
+  <% if @is_own_profile %>
     <div id="search-section">
       <input id="horse-search" type="text" placeholder="Buscar caballo por nombre…" autocomplete="off">
       <div id="search-results"></div>
@@ -196,7 +196,7 @@
   <% end %>
 
   <script>
-    var IS_OWN_PROFILE = <%= raw (current_user == @profile_user).to_json %>;
+    var IS_OWN_PROFILE = <%= raw @is_own_profile.to_json %>;
     var HORSES_CATALOG = <%= raw Horse.all.map { |h| { id: h.id, name: h.name } }.to_json %>;
     var favoritedIds   = new Set(<%= raw @my_favorites.to_json %>);
 
