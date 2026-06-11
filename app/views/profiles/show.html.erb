@@ -154,7 +154,7 @@
 
   <% if current_user == @profile_user %>
     <div id="search-section">
-      <input id="horse-search" type="text" placeholder="Buscar caballo por nombre…" oninput="renderSearch(this.value)" autocomplete="off">
+      <input id="horse-search" type="text" placeholder="Buscar caballo por nombre…" autocomplete="off">
       <div id="search-results"></div>
     </div>
   <% end %>
@@ -217,7 +217,7 @@
       var horses = HORSES_CATALOG.filter(function(h) { return favoritedIds.has(h.id); });
       list.innerHTML = horses.map(function(h) {
         var removeBtn = IS_OWN_PROFILE
-          ? '<button class="remove-btn" onclick="removeFavorite(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Quitar favorito">✕</button>'
+          ? '<button class="remove-btn" onclick="removeFavorite(' + h.id + ')" title="Quitar favorito">✕</button>'
           : '';
         return '<div class="fav-pill">⭐ ' + h.name + removeBtn + '</div>';
       }).join("");
@@ -228,29 +228,39 @@
       if (!el) return;
       var q = (query || "").trim().toLowerCase();
 
-      if (!q) {
-        el.innerHTML = '';
+      var available = HORSES_CATALOG.filter(function(h) { return !favoritedIds.has(h.id); });
+
+      var matches = q
+        ? available.filter(function(h) { return h.name.toLowerCase().includes(q); })
+        : available;
+
+      matches = matches.slice(0, 5);
+
+      if (available.length === 0) {
+        el.innerHTML = '<div class="search-hint">Ya tenés todos los caballos como favoritos.</div>';
         return;
       }
 
-      var matches = HORSES_CATALOG
-        .filter(function(h) { return h.name.toLowerCase().includes(q) && !favoritedIds.has(h.id); })
-        .slice(0, 5);
-
       if (matches.length === 0) {
-        el.innerHTML = '<div class="search-hint">Sin resultados.</div>';
+        el.innerHTML = '<div class="search-hint">Sin resultados para "' + query + '".</div>';
         return;
       }
 
       el.innerHTML = matches.map(function(h) {
         return '<div class="search-result">' +
           '<span>' + h.name + '</span>' +
-          '<button class="add-btn" onclick="addFavorite(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')">+ Agregar</button>' +
+          '<button class="add-btn" onclick="addFavorite(' + h.id + ')">+ Agregar</button>' +
           '</div>';
       }).join("");
     }
 
-    function addFavorite(id, name) {
+    function refreshBoth() {
+      renderFavorites();
+      var input = document.getElementById("horse-search");
+      renderSearch(input ? input.value : "");
+    }
+
+    function addFavorite(id) {
       fetch("/horse_favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
@@ -258,17 +268,12 @@
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.favorited) {
-          favoritedIds.add(id);
-          renderFavorites();
-          var input = document.getElementById("horse-search");
-          renderSearch(input ? input.value : "");
-        }
+        if (data.favorited) { favoritedIds.add(id); refreshBoth(); }
       })
       .catch(function() { alert("Error al agregar favorito"); });
     }
 
-    function removeFavorite(id, name) {
+    function removeFavorite(id) {
       fetch("/horse_favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
@@ -276,17 +281,15 @@
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (!data.favorited) {
-          favoritedIds.delete(id);
-          renderFavorites();
-          var input = document.getElementById("horse-search");
-          renderSearch(input ? input.value : "");
-        }
+        if (!data.favorited) { favoritedIds.delete(id); refreshBoth(); }
       })
       .catch(function() { alert("Error al quitar favorito"); });
     }
 
-    renderFavorites();
+    refreshBoth();
+
+    var searchInput = document.getElementById("horse-search");
+    if (searchInput) { searchInput.addEventListener("input", function() { renderSearch(this.value); }); }
   </script>
 </body>
 </html>
