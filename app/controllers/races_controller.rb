@@ -1,5 +1,4 @@
 class RacesController < WebController
-  layout false
   before_action :require_login
   before_action :set_race, only: [ :show, :start ]
 

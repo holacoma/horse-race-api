@@ -1,0 +1,37 @@
+<div id="favorites-section">
+  <div id="favorites-list">
+    <% if favorites.empty? %>
+      <span class="empty-favs">Sin favoritos aún.</span>
+    <% else %>
+      <% favorites.each do |horse| %>
+        <div class="fav-pill">
+          ⭐ <%= horse.name %>
+          <% if is_own_profile %>
+            <button class="remove-btn"
+                    hx-post="/horse_favorites"
+                    hx-vals='{"horse_id": <%= horse.id %>}'
+                    hx-include="#horse-search"
+                    hx-target="#favorites-section"
+                    hx-swap="outerHTML"
+                    title="Quitar favorito">✕</button>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if is_own_profile %>
+    <div id="search-section">
+      <input id="horse-search" name="q" type="text"
+             placeholder="Buscar caballo por nombre…" autocomplete="off"
+             value="<%= query %>"
+             hx-get="/horses/search"
+             hx-trigger="input changed delay:200ms"
+             hx-target="#search-results"
+             hx-swap="innerHTML">
+      <div id="search-results">
+        <%= render "horses/search_results", horses: search_results, query: query, favorited_all: favorited_all %>
+      </div>
+    </div>
+  <% end %>
+</div>

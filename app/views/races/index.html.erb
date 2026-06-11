@@ -1,130 +1,39 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horse Race — Salas</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: #1a1a2e;
-      color: #eee;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
-    }
-    h1 { font-size: 2rem; margin-bottom: 0.25rem; }
-    .subtitle { color: #888; margin-bottom: 2rem; font-size: 0.9rem; }
+<% content_for :title, "Horse Race — Salas" %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/races-list.css">
+<% end %>
 
-    #user-badge {
-      position: fixed; top: 1rem; right: 1.25rem;
-      display: flex; align-items: center; gap: 0.6rem;
-      font-size: 0.85rem; color: #aaa;
-    }
-    #user-badge .username { color: #eee; font-weight: 600; text-decoration: none; }
-    #user-badge .username:hover { text-decoration: underline; }
+<div id="user-badge">
+  <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
+  <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
+    <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
+  <% end %>
+</div>
 
-    .btn-primary {
-      padding: 0.6rem 1.5rem;
-      background: #4f46e5; color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 1rem; cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: opacity 0.2s;
-    }
-    .btn-primary:hover { opacity: 0.85; }
+<h1>🏇 Horse Race</h1>
+<p class="subtitle">Multijugador en línea</p>
 
-    .header-row {
-      width: 100%; max-width: 760px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    .header-row h2 { font-size: 1.2rem; color: #ccc; }
+<div class="header-row">
+  <h2>Salas abiertas</h2>
+  <%= link_to "＋ Crear sala", new_race_path, class: "btn-primary" %>
+</div>
 
-    .rooms-grid {
-      width: 100%; max-width: 760px;
-      display: flex; flex-direction: column; gap: 0.75rem;
-    }
-
-    .room-card {
-      background: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .room-card .room-slug {
-      font-weight: 700; font-size: 1rem; flex: 1;
-      color: #eee;
-    }
-    .room-card .room-meta {
-      font-size: 0.82rem; color: #888;
-      display: flex; flex-direction: column; gap: 0.2rem;
-      min-width: 100px;
-    }
-    .room-card .room-players {
-      font-size: 0.9rem; color: #a5b4fc;
-      min-width: 60px; text-align: right;
-    }
-    .room-card .btn-join {
-      padding: 0.45rem 1rem;
-      background: #16a34a; color: #fff;
-      border: none; border-radius: 6px;
-      font-size: 0.9rem; cursor: pointer;
-      text-decoration: none;
-      transition: opacity 0.2s;
-    }
-    .room-card .btn-join:hover { opacity: 0.85; }
-
-    .empty-state {
-      color: #555; font-size: 0.95rem; margin-top: 2rem; text-align: center;
-    }
-
-    .animal-emoji { font-size: 1.2rem; }
-  </style>
-</head>
-<body>
-
-  <div id="user-badge">
-    <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
-    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
-      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
-    <% end %>
-  </div>
-
-  <h1>🏇 Horse Race</h1>
-  <p class="subtitle">Multijugador en línea</p>
-
-  <div class="header-row">
-    <h2>Salas abiertas</h2>
-    <%= link_to "＋ Crear sala", new_race_path, class: "btn-primary" %>
-  </div>
-
-  <div class="rooms-grid">
-    <% if @races.empty? %>
-      <p class="empty-state">No hay salas abiertas. ¡Creá la primera!</p>
-    <% else %>
-      <% @races.each do |race| %>
-        <div class="room-card">
-          <span class="animal-emoji"><%= race.animal_type == "guinea_pig" ? "🐹" : "🐴" %></span>
-          <div>
-            <div class="room-slug"><%= race.slug %></div>
-            <div class="room-meta">
-              <span>Creado por <%= race.creator&.username || "anónimo" %></span>
-            </div>
+<div class="rooms-grid">
+  <% if @races.empty? %>
+    <p class="empty-state">No hay salas abiertas. ¡Creá la primera!</p>
+  <% else %>
+    <% @races.each do |race| %>
+      <div class="room-card">
+        <span class="animal-emoji"><%= race.animal_type == "guinea_pig" ? "🐹" : "🐴" %></span>
+        <div>
+          <div class="room-slug"><%= race.slug %></div>
+          <div class="room-meta">
+            <span>Creado por <%= race.creator&.username || "anónimo" %></span>
           </div>
-          <div class="room-players"><%= race.participants.size %>/<%= race.capacity %></div>
-          <%= link_to "Unirse", race_path(race), class: "btn-join" %>
         </div>
-      <% end %>
+        <div class="room-players"><%= race.participants.size %>/<%= race.capacity %></div>
+        <%= link_to "Unirse", race_path(race), class: "btn-join" %>
+      </div>
     <% end %>
-  </div>
-
-</body>
-</html>
+  <% end %>
+</div>
