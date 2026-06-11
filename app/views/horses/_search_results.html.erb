@@ -1,0 +1,17 @@
+<% if favorited_all %>
+  <div class="search-hint">Ya tenés todos los caballos como favoritos.</div>
+<% elsif horses.empty? && query.present? %>
+  <div class="search-hint">Sin resultados para "<%= query %>".</div>
+<% else %>
+  <% horses.each do |h| %>
+    <div class="search-result">
+      <span><%= h.name %></span>
+      <button class="add-btn"
+              hx-post="/horse_favorites"
+              hx-vals='{"horse_id": <%= h.id %>}'
+              hx-include="#horse-search"
+              hx-target="#favorites-section"
+              hx-swap="outerHTML">+ Agregar</button>
+    </div>
+  <% end %>
+<% end %>

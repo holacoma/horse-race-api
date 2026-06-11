@@ -18,5 +18,7 @@ Rails.application.routes.draw do
   resources :profiles, param: :username, only: [ :show ]
   resources :horse_favorites, only: [ :create, :destroy ]
 
+  get "/horses/search", to: "horses#search"
+
   mount ActionCable.server => "/cable"
 end
