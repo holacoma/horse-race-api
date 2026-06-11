@@ -41,6 +41,10 @@ module HorseRaceApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # api_only has no asset pipeline; serve app/javascript/ and vendor/javascript/ directly
+    config.middleware.insert_before ActionDispatch::Static, ActionDispatch::Static, Rails.root.join("vendor/javascript").to_s
+    config.middleware.insert_before ActionDispatch::Static, ActionDispatch::Static, Rails.root.join("app/javascript").to_s
+
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride
     config.middleware.use ActionDispatch::Cookies
