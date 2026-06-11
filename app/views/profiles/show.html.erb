@@ -23,7 +23,7 @@
     is_own_profile: @is_own_profile,
     query: "",
     search_results: (@is_own_profile ? available_horses : []),
-    favorited_all: (@is_own_profile ? @my_favorites.size >= Horse.count : false) %>
+    favorited_all: (@is_own_profile ? @my_favorites.size >= Horse::CATALOG.size : false) %>
 
 <div class="section-title">Historial de carreras</div>
 
