@@ -32,15 +32,13 @@
     }
     .profile-avatar {
       width: 64px; height: 64px; border-radius: 50%;
-      border: 2px solid #4f46e5; object-fit: cover;
-      flex-shrink: 0;
+      border: 2px solid #4f46e5; object-fit: cover; flex-shrink: 0;
     }
     .profile-avatar-placeholder {
       width: 64px; height: 64px; border-radius: 50%;
       background: #2a2a4a; border: 2px solid #4f46e5;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 700; color: #a5b4fc;
-      flex-shrink: 0;
+      font-size: 1.5rem; font-weight: 700; color: #a5b4fc; flex-shrink: 0;
     }
     .profile-info h1 { font-size: 1.5rem; }
     .profile-info .subtitle { color: #888; font-size: 0.85rem; margin-top: 0.2rem; }
@@ -55,24 +53,53 @@
       margin-bottom: 0.75rem; width: 100%; max-width: 700px;
     }
 
-    /* Favorites grid */
-    .favorites-grid {
+    /* Favorites pills */
+    #favorites-list {
       width: 100%; max-width: 700px;
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 0.75rem; margin-bottom: 2rem;
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 1.5rem; min-height: 2rem;
     }
-    .fav-card {
-      background: #2a2a4a; border: 2px solid #4f46e5;
-      border-radius: 10px; padding: 0.75rem 0.5rem;
-      text-align: center; cursor: default;
-      transition: border-color 0.15s, transform 0.15s;
+    .fav-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: #2a2a4a; border: 1.5px solid #fbbf24;
+      border-radius: 999px; padding: 0.35rem 0.75rem;
+      font-size: 0.85rem; font-weight: 600; color: #fef3c7;
     }
-    .fav-card.is-fav {
-      border-color: #fbbf24;
+    .fav-pill .remove-btn {
+      background: none; border: none; cursor: pointer;
+      color: #888; font-size: 0.85rem; line-height: 1;
+      padding: 0; transition: color 0.15s;
     }
-    .fav-card.clickable { cursor: pointer; }
-    .fav-card.clickable:hover { transform: translateY(-2px); }
-    .fav-card .fav-name { font-size: 0.78rem; font-weight: 600; margin-top: 0.4rem; line-height: 1.3; }
+    .fav-pill .remove-btn:hover { color: #f87171; }
+    .empty-favs { color: #555; font-size: 0.88rem; width: 100%; max-width: 700px; margin-bottom: 1.5rem; }
+
+    /* Search */
+    #search-section {
+      width: 100%; max-width: 700px; margin-bottom: 2rem;
+    }
+    #horse-search {
+      width: 100%; padding: 0.6rem 0.9rem;
+      background: #0f0f23; border: 1px solid #2a2a4a;
+      border-radius: 8px; color: #eee; font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    #horse-search:focus { outline: none; border-color: #4f46e5; }
+    #search-results {
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .search-result {
+      background: #16213e; border: 1px solid #2a2a4a;
+      border-radius: 8px; padding: 0.6rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.9rem;
+    }
+    .search-result .add-btn {
+      background: #4f46e5; color: #fff; border: none;
+      border-radius: 6px; padding: 0.3rem 0.8rem;
+      font-size: 0.82rem; cursor: pointer; transition: opacity 0.15s;
+    }
+    .search-result .add-btn:hover { opacity: 0.85; }
+    .search-hint { color: #555; font-size: 0.85rem; margin-top: 0.5rem; }
 
     .empty-note { color: #666; font-size: 0.9rem; width: 100%; max-width: 700px; margin-bottom: 2rem; }
 
@@ -123,20 +150,14 @@
   </div>
 
   <div class="section-title">Caballos favoritos</div>
+  <div id="favorites-list"></div>
 
-  <% all_horses = Horse.all %>
-  <% is_own_profile = current_user == @profile_user %>
-
-  <div class="favorites-grid">
-    <% all_horses.each do |horse| %>
-      <% fav = @my_favorites.include?(horse.id) %>
-      <div class="fav-card <%= fav ? 'is-fav' : '' %> <%= is_own_profile ? 'clickable' : '' %>"
-           data-horse-id="<%= horse.id %>"
-           <% if is_own_profile %>onclick="toggleFavorite(<%= horse.id %>, this)"<% end %>>
-        <div class="fav-name"><%= fav ? '⭐ ' : '' %><%= horse.name %></div>
-      </div>
-    <% end %>
-  </div>
+  <% if current_user == @profile_user %>
+    <div id="search-section">
+      <input id="horse-search" type="text" placeholder="Buscar caballo por nombre…" oninput="renderSearch(this.value)" autocomplete="off">
+      <div id="search-results"></div>
+    </div>
+  <% end %>
 
   <div class="section-title">Historial de carreras</div>
 
@@ -175,30 +196,97 @@
   <% end %>
 
   <script>
+    var IS_OWN_PROFILE = <%= (current_user == @profile_user).to_json %>;
+    var HORSES_CATALOG = <%= Horse.all.map { |h| { id: h.id, name: h.name } }.to_json %>;
+    var favoritedIds   = new Set(<%= @my_favorites.to_json %>);
+
     function csrfToken() {
       var meta = document.querySelector('meta[name="csrf-token"]');
       return meta ? meta.content : "";
     }
 
-    function toggleFavorite(horseId, card) {
+    function renderFavorites() {
+      var list = document.getElementById("favorites-list");
+      if (!list) return;
+
+      if (favoritedIds.size === 0) {
+        list.innerHTML = '<span class="empty-favs">Sin favoritos aún.</span>';
+        return;
+      }
+
+      var horses = HORSES_CATALOG.filter(function(h) { return favoritedIds.has(h.id); });
+      list.innerHTML = horses.map(function(h) {
+        var removeBtn = IS_OWN_PROFILE
+          ? '<button class="remove-btn" onclick="removeFavorite(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Quitar favorito">✕</button>'
+          : '';
+        return '<div class="fav-pill">⭐ ' + h.name + removeBtn + '</div>';
+      }).join("");
+    }
+
+    function renderSearch(query) {
+      var el = document.getElementById("search-results");
+      if (!el) return;
+      var q = (query || "").trim().toLowerCase();
+
+      if (!q) {
+        el.innerHTML = '';
+        return;
+      }
+
+      var matches = HORSES_CATALOG
+        .filter(function(h) { return h.name.toLowerCase().includes(q) && !favoritedIds.has(h.id); })
+        .slice(0, 5);
+
+      if (matches.length === 0) {
+        el.innerHTML = '<div class="search-hint">Sin resultados.</div>';
+        return;
+      }
+
+      el.innerHTML = matches.map(function(h) {
+        return '<div class="search-result">' +
+          '<span>' + h.name + '</span>' +
+          '<button class="add-btn" onclick="addFavorite(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')">+ Agregar</button>' +
+          '</div>';
+      }).join("");
+    }
+
+    function addFavorite(id, name) {
       fetch("/horse_favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
-        body: JSON.stringify({ horse_id: horseId })
+        body: JSON.stringify({ horse_id: id })
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var nameEl = card.querySelector(".fav-name");
         if (data.favorited) {
-          card.classList.add("is-fav");
-          nameEl.textContent = "⭐ " + nameEl.textContent.replace(/^⭐\s*/, "");
-        } else {
-          card.classList.remove("is-fav");
-          nameEl.textContent = nameEl.textContent.replace(/^⭐\s*/, "");
+          favoritedIds.add(id);
+          renderFavorites();
+          var input = document.getElementById("horse-search");
+          renderSearch(input ? input.value : "");
         }
       })
-      .catch(function() { alert("Error al actualizar favorito"); });
+      .catch(function() { alert("Error al agregar favorito"); });
     }
+
+    function removeFavorite(id, name) {
+      fetch("/horse_favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
+        body: JSON.stringify({ horse_id: id })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.favorited) {
+          favoritedIds.delete(id);
+          renderFavorites();
+          var input = document.getElementById("horse-search");
+          renderSearch(input ? input.value : "");
+        }
+      })
+      .catch(function() { alert("Error al quitar favorito"); });
+    }
+
+    renderFavorites();
   </script>
 </body>
 </html>
