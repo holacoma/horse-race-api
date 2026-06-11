@@ -23,7 +23,8 @@
       display: flex; align-items: center; gap: 0.6rem;
       font-size: 0.85rem; color: #aaa;
     }
-    #user-badge .username { color: #eee; font-weight: 600; }
+    #user-badge .username { color: #eee; font-weight: 600; text-decoration: none; }
+    #user-badge .username:hover { text-decoration: underline; }
 
     .lobby-header { text-align: center; margin-bottom: 1.5rem; }
     .lobby-header h1 { font-size: 1.8rem; }
@@ -260,7 +261,7 @@
 </head>
 <body>
   <div id="user-badge">
-    <%= link_to current_user.username, profile_path(current_user.username), class: "username", style: "text-decoration:none;color:#eee;" %>
+    <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
       <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
     <% end %>
