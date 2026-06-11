@@ -5,13 +5,6 @@
 
 <div data-controller="race-page">
 
-  <div id="user-badge">
-    <span class="username"><%= current_user.username %></span>
-    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
-      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
-    <% end %>
-  </div>
-
   <h1>Horse Race</h1>
   <p class="subtitle">WebSocket powered</p>
 

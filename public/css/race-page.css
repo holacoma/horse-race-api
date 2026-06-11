@@ -1,47 +1,54 @@
-h1 { margin-bottom: 0.25rem; }
-.subtitle { margin-bottom: 2rem; }
-
 #controls {
-  margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;
-}
-button {
-  padding: 0.6rem 1.5rem; border: none; border-radius: 6px;
-  font-size: 1rem; cursor: pointer; transition: opacity 0.2s;
-}
-button:disabled { opacity: 0.4; cursor: not-allowed; }
-#btn-new   { background: #4f46e5; color: #fff; }
-#btn-start { background: #16a34a; color: #fff; }
-#status-text { font-size: 0.9rem; color: #aaa; }
-
-#winner-banner { margin-top: 2rem; animation: pop 0.3s ease-out; }
-
-#animal-selector { margin-bottom: 1.5rem; }
-#animal-selector select {
-  padding: 0.5rem 1rem; border: 2px solid #4f46e5;
-  border-radius: 8px; background: #2a2a4a; color: #fff;
-  font-size: 1rem; cursor: pointer;
+  margin-bottom: 2rem;
+  display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
 }
 
-#horse-picker {
-  width: 100%; max-width: 820px;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 1.5rem; margin-bottom: 2rem;
+#controls button {
+  padding: 0.6rem 1.25rem;
+  background: var(--color-surface); color: var(--color-text);
+  border: 3px solid var(--color-border);
+  box-shadow: 3px 3px 0 var(--color-primary);
+  font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
+  transition: box-shadow 0.08s;
 }
-#horse-picker h2 { font-size: 1.4rem; }
-.picker-card { min-width: 130px; }
-.picker-card .card-name { font-size: 0.95rem; }
+#controls button:hover:not(:disabled) { box-shadow: 1px 1px 0 var(--color-primary); }
+#controls button:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+#btn-new {
+  background: var(--color-primary) !important;
+  color: var(--color-bg) !important;
+  border-color: var(--color-text) !important;
+}
+
+#status-text { font-size: 9px; color: var(--color-muted); }
+
+#animal-selector {
+  margin-bottom: 1.5rem;
+  display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
+}
+#animal-selector button {
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: var(--color-text); font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
+}
+#animal-selector button.selected {
+  background: var(--color-primary); color: var(--color-bg);
+  border-color: var(--color-text);
+}
 
 #picker-timer-wrap {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 0.4rem; width: 100%; max-width: 300px;
+  width: 100%; max-width: 480px;
+  display: flex; flex-direction: column; gap: 0.4rem;
 }
 #picker-timer-bar {
-  width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden;
+  height: 16px; background: var(--color-surface); border: 2px solid var(--color-border);
+  overflow: hidden;
 }
 #picker-timer-fill {
-  height: 100%; width: 100%; background: #4f46e5;
-  border-radius: 4px; transition: width 1s linear;
+  height: 100%; background: var(--color-primary);
+  transition: width 1s linear;
 }
-#picker-timer-text { font-size: 0.85rem; color: #aaa; }
+#picker-timer-text { font-size: 8px; color: var(--color-muted); text-align: right; }
 
-.lane-label.my-horse { color: #fbbf24; }
+.lane-label.my-horse { color: var(--color-primary); }

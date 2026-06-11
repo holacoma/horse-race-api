@@ -28,6 +28,18 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
+  test "GET show own profile renders when user has no favorites" do
+    get profile_path(@user.username)
+    assert_response :ok
+    assert_select "body"
+  end
+
+  test "GET show own profile renders when user has favorited all horses" do
+    Horse::CATALOG.each { |h| HorseFavorite.create!(user: @user, horse_id: h[:id]) }
+    get profile_path(@user.username)
+    assert_response :ok
+  end
+
   test "profile shows race history" do
     race = Race.create!(creator: @user, status: :finished, winner_name: "Secretariat", finished_at: Time.current)
     Participant.create!(race: race, user: @user, horse_id: 1, horse_name: "Secretariat")

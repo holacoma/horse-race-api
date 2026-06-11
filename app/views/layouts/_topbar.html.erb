@@ -1,0 +1,9 @@
+<header class="pixel-topbar">
+  <span class="topbar-title"><%= content_for?(:page_title) ? yield(:page_title) : "" %></span>
+  <div class="topbar-user">
+    <%= link_to current_user.username, profile_path(current_user.username) %>
+    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
+      <button type="submit" class="nes-btn is-error" style="font-size:8px;padding:4px 10px;height:auto;line-height:1.4;">SALIR</button>
+    <% end %>
+  </div>
+</header>

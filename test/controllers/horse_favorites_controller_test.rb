@@ -28,6 +28,23 @@ class HorseFavoritesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "POST via htmx adds favorite and returns partial" do
+    post horse_favorites_path,
+         params: { horse_id: 1 },
+         headers: { "HX-Request" => "true" }
+    assert_response :ok
+    assert_match "Secretariat", response.body
+  end
+
+  test "POST via htmx removes favorite and returns partial" do
+    HorseFavorite.create!(user: @user, horse_id: 1)
+    post horse_favorites_path,
+         params: { horse_id: 1 },
+         headers: { "HX-Request" => "true" }
+    assert_response :ok
+    assert_equal 0, HorseFavorite.where(user: @user, horse_id: 1).count
+  end
+
   test "POST without session redirects to login" do
     delete logout_path
     post horse_favorites_path, params: { horse_id: 1 }, as: :json

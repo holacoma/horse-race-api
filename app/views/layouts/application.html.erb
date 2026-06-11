@@ -7,10 +7,24 @@
   <%= csrf_meta_tags %>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous" defer></script>
   <%= javascript_importmap_tags %>
+  <link rel="stylesheet" href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css">
+  <link rel="stylesheet" href="/css/pixel-theme.css">
   <link rel="stylesheet" href="/css/base.css">
   <%= yield :head %>
 </head>
 <body>
-  <%= yield %>
+<% if logged_in? %>
+  <div class="pixel-wrapper">
+    <%= render "layouts/sidebar" %>
+    <div class="pixel-content">
+      <%= render "layouts/topbar" %>
+      <main class="pixel-main"><%= yield %></main>
+    </div>
+  </div>
+<% else %>
+  <div class="pixel-login-wrapper">
+    <%= yield %>
+  </div>
+<% end %>
 </body>
 </html>
