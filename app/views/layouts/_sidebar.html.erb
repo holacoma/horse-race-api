@@ -1,0 +1,7 @@
+<aside class="pixel-sidebar">
+  <div class="sidebar-logo">🏇 PIXEL RACE</div>
+  <%= link_to "🏠 HOME",   root_path,                                   class: "nav-item" %>
+  <%= link_to "🏟 SALAS",  races_path,                                  class: "nav-item" %>
+  <%= link_to "👤 PERFIL", profile_path(current_user.username),         class: "nav-item" %>
+  <%= link_to "＋ CREAR",  new_race_path,                               class: "nav-item" %>
+</aside>

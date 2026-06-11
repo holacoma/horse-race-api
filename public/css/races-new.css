@@ -1,41 +1,71 @@
-body { justify-content: center; }
-.card { max-width: 420px; }
+.new-race-wrap { max-width: 480px; }
 
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
-label { font-size: 0.85rem; color: #aaa; font-weight: 600; }
-input[type="text"], select {
-  width: 100%; padding: 0.6rem 0.9rem;
-  background: #0f0f23; border: 1px solid #2a2a4a;
-  border-radius: 8px; color: #eee; font-size: 1rem;
+.new-race-wrap h1 { margin-bottom: 0.25rem; }
+.new-race-wrap .subtitle { margin-bottom: 2rem; }
+
+.pixel-form {
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  box-shadow: 4px 4px 0 var(--color-primary);
+  padding: 1.75rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
 }
-input[type="text"]:focus, select:focus { outline: none; border-color: #4f46e5; }
-select option { background: #0f0f23; }
 
-.toggle-row { display: flex; align-items: center; justify-content: space-between; }
-.toggle-label { font-size: 0.85rem; color: #aaa; font-weight: 600; }
-.toggle { position: relative; width: 44px; height: 24px; }
-.toggle input { opacity: 0; width: 0; height: 0; }
+.field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.field label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.field input[type="text"],
+.field select {
+  padding: 0.6rem 0.85rem;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  color: var(--color-text); font-family: var(--font-pixel); font-size: 9px;
+  width: 100%;
+}
+.field input[type="text"]:focus,
+.field select:focus { outline: none; border-color: var(--color-primary); }
+.field select option { background: var(--color-bg); }
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--color-border);
+}
+.toggle-label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.toggle { position: relative; display: inline-block; width: 44px; height: 22px; }
+.toggle input { display: none; }
 .toggle-slider {
-  position: absolute; inset: 0; background: #2a2a4a; border-radius: 24px;
-  cursor: pointer; transition: background 0.2s;
+  position: absolute; inset: 0;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  cursor: pointer; transition: background 0.1s;
 }
-.toggle-slider::before {
+.toggle input:checked + .toggle-slider { background: var(--color-green); border-color: var(--color-green); }
+.toggle-slider::after {
   content: ""; position: absolute;
-  height: 18px; width: 18px; left: 3px; bottom: 3px;
-  background: #eee; border-radius: 50%; transition: transform 0.2s;
+  top: 2px; left: 2px; width: 14px; height: 14px;
+  background: var(--color-muted); transition: left 0.1s;
 }
-.toggle input:checked + .toggle-slider { background: #4f46e5; }
-.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle input:checked + .toggle-slider::after {
+  left: 22px; background: var(--color-bg);
+}
 
 .error-list {
-  background: #450a0a; border: 1px solid #b91c1c; color: #fca5a5;
-  border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.85rem;
-  list-style: none; display: flex; flex-direction: column; gap: 0.25rem;
+  list-style: none;
+  background: #2d0a0a;
+  border: 2px solid var(--color-accent);
+  padding: 0.6rem 0.85rem; font-size: 9px; color: #f87171;
+  display: flex; flex-direction: column; gap: 0.25rem;
 }
+
 .btn-submit {
-  width: 100%; padding: 0.65rem 1rem; background: #4f46e5; color: #fff;
-  border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
-  transition: opacity 0.2s;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-primary); color: var(--color-bg);
+  border: 3px solid var(--color-text);
+  box-shadow: 4px 4px 0 var(--color-border);
+  font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
+  align-self: flex-start; transition: box-shadow 0.08s;
 }
-.btn-submit:hover { opacity: 0.85; }
-.back-link { text-align: center; margin-top: 0; }
+.btn-submit:hover { box-shadow: 2px 2px 0 var(--color-border); }

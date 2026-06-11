@@ -1,4 +1,5 @@
 <% content_for :title, "Horse Race — #{@race.slug}" %>
+<% content_for :page_title, @race.slug.upcase %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/race-lobby.css">
 <% end %>
@@ -10,13 +11,6 @@
      data-race-lobby-capacity-value="<%= @race.capacity %>"
      data-race-lobby-participant-count-value="<%= @participants.size %>"
      data-race-lobby-favorite-ids-value="<%= @favorite_horse_ids.to_json %>">
-
-  <div id="user-badge">
-    <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
-    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
-      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
-    <% end %>
-  </div>
 
   <div class="lobby-header">
     <h1><%= @race.animal_type == "guinea_pig" ? "🐹" : "🐴" %> <%= @race.slug %></h1>

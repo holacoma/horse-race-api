@@ -1,12 +1,14 @@
 <% content_for :title, "Horse Race — Nueva sala" %>
+<% content_for :page_title, "NUEVA SALA" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/races-new.css">
 <% end %>
 
-<h1>🏇 Nueva sala</h1>
+<div class="new-race-wrap">
+<h1>＋ Nueva sala</h1>
 <p class="subtitle">Configurá tu carrera multijugador</p>
 
-<%= form_with model: @race, url: races_path, method: :post, class: "card" do |f| %>
+<%= form_with model: @race, url: races_path, method: :post, class: "pixel-form" do |f| %>
 
   <% if @race.errors.any? %>
     <ul class="error-list">
@@ -46,3 +48,4 @@
   </div>
 
 <% end %>
+</div>
