@@ -15,5 +15,8 @@ Rails.application.routes.draw do
     resources :participants, only: [ :create ]
   end
 
+  resources :profiles, param: :username, only: [ :show ]
+  resources :horse_favorites, only: [ :create, :destroy ]
+
   mount ActionCable.server => "/cable"
 end

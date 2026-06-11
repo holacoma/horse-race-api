@@ -26,10 +26,16 @@ class RacesController < WebController
 
   def show
     @participants         = @race.participants.includes(:user)
-    @available_horses     = @race.available_horses.sample(4)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
     @all_available_horses = @race.available_horses.sample(@race.capacity) if @is_creator
+
+    favorite_ids   = current_user.favorite_horse_ids
+    available      = @race.available_horses
+    fav_available  = available.select { |h| favorite_ids.include?(h.id) }
+    others         = available.reject { |h| favorite_ids.include?(h.id) }.sample(4 - fav_available.size)
+    @available_horses    = fav_available + others
+    @favorite_horse_ids  = favorite_ids
   end
 
   def start

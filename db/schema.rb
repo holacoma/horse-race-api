@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_224820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "horse_favorites", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "horse_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "horse_id"], name: "index_horse_favorites_on_user_id_and_horse_id", unique: true
+    t.index ["user_id"], name: "index_horse_favorites_on_user_id"
+  end
 
   create_table "participants", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -196,6 +205,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_210000) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end
 
+  add_foreign_key "horse_favorites", "users"
   add_foreign_key "participants", "races"
   add_foreign_key "participants", "users"
   add_foreign_key "races", "users", column: "creator_id"

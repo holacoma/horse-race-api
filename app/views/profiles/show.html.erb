@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil — <%= @profile_user.username %></title>
+  <%= csrf_meta_tags %>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    #user-badge {
+      position: fixed; top: 1rem; right: 1.25rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; color: #aaa;
+    }
+    #user-badge .username { color: #eee; font-weight: 600; text-decoration: none; }
+    #user-badge .username:hover { text-decoration: underline; }
+
+    .profile-header {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2rem; width: 100%; max-width: 700px;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid #4f46e5; object-fit: cover; flex-shrink: 0;
+    }
+    .profile-avatar-placeholder {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #2a2a4a; border: 2px solid #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 700; color: #a5b4fc; flex-shrink: 0;
+    }
+    .profile-info h1 { font-size: 1.5rem; }
+    .profile-info .subtitle { color: #888; font-size: 0.85rem; margin-top: 0.2rem; }
+
+    .back-link { margin-bottom: 1.5rem; width: 100%; max-width: 700px; }
+    .back-link a { color: #6366f1; text-decoration: none; font-size: 0.85rem; }
+    .back-link a:hover { text-decoration: underline; }
+
+    .section-title {
+      font-size: 0.8rem; font-weight: 700; color: #888;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 0.75rem; width: 100%; max-width: 700px;
+    }
+
+    /* Favorites pills */
+    #favorites-list {
+      width: 100%; max-width: 700px;
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 1.5rem; min-height: 2rem;
+    }
+    .fav-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: #2a2a4a; border: 1.5px solid #fbbf24;
+      border-radius: 999px; padding: 0.35rem 0.75rem;
+      font-size: 0.85rem; font-weight: 600; color: #fef3c7;
+    }
+    .fav-pill .remove-btn {
+      background: none; border: none; cursor: pointer;
+      color: #888; font-size: 0.85rem; line-height: 1;
+      padding: 0; transition: color 0.15s;
+    }
+    .fav-pill .remove-btn:hover { color: #f87171; }
+    .empty-favs { color: #555; font-size: 0.88rem; width: 100%; max-width: 700px; margin-bottom: 1.5rem; }
+
+    /* Search */
+    #search-section {
+      width: 100%; max-width: 700px; margin-bottom: 2rem;
+    }
+    #horse-search {
+      width: 100%; padding: 0.6rem 0.9rem;
+      background: #0f0f23; border: 1px solid #2a2a4a;
+      border-radius: 8px; color: #eee; font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    #horse-search:focus { outline: none; border-color: #4f46e5; }
+    #search-results {
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .search-result {
+      background: #16213e; border: 1px solid #2a2a4a;
+      border-radius: 8px; padding: 0.6rem 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.9rem;
+    }
+    .search-result .add-btn {
+      background: #4f46e5; color: #fff; border: none;
+      border-radius: 6px; padding: 0.3rem 0.8rem;
+      font-size: 0.82rem; cursor: pointer; transition: opacity 0.15s;
+    }
+    .search-result .add-btn:hover { opacity: 0.85; }
+    .search-hint { color: #555; font-size: 0.85rem; margin-top: 0.5rem; }
+
+    .empty-note { color: #666; font-size: 0.9rem; width: 100%; max-width: 700px; margin-bottom: 2rem; }
+
+    /* Race history table */
+    .history-table {
+      width: 100%; max-width: 700px;
+      border-collapse: collapse; margin-bottom: 2rem;
+    }
+    .history-table th {
+      text-align: left; font-size: 0.75rem; font-weight: 700;
+      color: #888; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.5rem 0.75rem; border-bottom: 1px solid #2a2a4a;
+    }
+    .history-table td {
+      padding: 0.65rem 0.75rem; font-size: 0.88rem;
+      border-bottom: 1px solid #1e1e3a; vertical-align: middle;
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .result-win  { color: #4ade80; font-weight: 700; }
+    .result-loss { color: #f87171; }
+    .horse-name  { color: #a5b4fc; }
+    .race-slug   { font-family: monospace; color: #c4b5fd; }
+    .race-date   { color: #666; font-size: 0.82rem; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div id="user-badge">
+    <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
+    <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
+      <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
+    <% end %>
+  </div>
+
+  <div class="back-link">
+    <%= link_to "← Volver a salas", root_path %>
+  </div>
+
+  <div class="profile-header">
+    <% if @profile_user.avatar_url.present? %>
+      <img src="<%= @profile_user.avatar_url %>" class="profile-avatar" alt="<%= @profile_user.username %>">
+    <% else %>
+      <div class="profile-avatar-placeholder"><%= @profile_user.username[0].upcase %></div>
+    <% end %>
+    <div class="profile-info">
+      <h1><%= @profile_user.username %></h1>
+      <div class="subtitle"><%= @race_history.size %> carrera<%= @race_history.size == 1 ? "" : "s" %> completada<%= @race_history.size == 1 ? "" : "s" %></div>
+    </div>
+  </div>
+
+  <div class="section-title">Caballos favoritos</div>
+  <div id="favorites-list"></div>
+
+  <% if @is_own_profile %>
+    <div id="search-section">
+      <input id="horse-search" type="text" placeholder="Buscar caballo por nombre…" autocomplete="off">
+      <div id="search-results"></div>
+    </div>
+  <% end %>
+
+  <div class="section-title">Historial de carreras</div>
+
+  <% if @race_history.empty? %>
+    <p class="empty-note">Aún no hay carreras en el historial.</p>
+  <% else %>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Sala</th>
+          <th>Mi caballo</th>
+          <th>Resultado</th>
+          <th>Ganador</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @race_history.each do |p| %>
+          <% won = p.race.winner_name == p.horse_name %>
+          <tr>
+            <td><span class="race-slug"><%= p.race.slug %></span></td>
+            <td><span class="horse-name"><%= p.horse_name %></span></td>
+            <td>
+              <% if won %>
+                <span class="result-win">🏆 Ganador</span>
+              <% else %>
+                <span class="result-loss">💀 Perdedor</span>
+              <% end %>
+            </td>
+            <td><%= p.race.winner_name %></td>
+            <td class="race-date"><%= p.race.finished_at.strftime("%d/%m/%Y %H:%M") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <script>
+    var IS_OWN_PROFILE = <%= raw @is_own_profile.to_json %>;
+    var HORSES_CATALOG = <%= raw Horse.all.map { |h| { id: h.id, name: h.name } }.to_json %>;
+    var favoritedIds   = new Set(<%= raw @my_favorites.to_json %>);
+
+    function csrfToken() {
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.content : "";
+    }
+
+    function renderFavorites() {
+      var list = document.getElementById("favorites-list");
+      if (!list) return;
+
+      if (favoritedIds.size === 0) {
+        list.innerHTML = '<span class="empty-favs">Sin favoritos aún.</span>';
+        return;
+      }
+
+      var horses = HORSES_CATALOG.filter(function(h) { return favoritedIds.has(h.id); });
+      list.innerHTML = horses.map(function(h) {
+        var removeBtn = IS_OWN_PROFILE
+          ? '<button class="remove-btn" onclick="removeFavorite(' + h.id + ')" title="Quitar favorito">✕</button>'
+          : '';
+        return '<div class="fav-pill">⭐ ' + h.name + removeBtn + '</div>';
+      }).join("");
+    }
+
+    function renderSearch(query) {
+      var el = document.getElementById("search-results");
+      if (!el) return;
+      var q = (query || "").trim().toLowerCase();
+
+      var available = HORSES_CATALOG.filter(function(h) { return !favoritedIds.has(h.id); });
+
+      var matches = q
+        ? available.filter(function(h) { return h.name.toLowerCase().includes(q); })
+        : available;
+
+      matches = matches.slice(0, 5);
+
+      if (available.length === 0) {
+        el.innerHTML = '<div class="search-hint">Ya tenés todos los caballos como favoritos.</div>';
+        return;
+      }
+
+      if (matches.length === 0) {
+        el.innerHTML = '<div class="search-hint">Sin resultados para "' + query + '".</div>';
+        return;
+      }
+
+      el.innerHTML = matches.map(function(h) {
+        return '<div class="search-result">' +
+          '<span>' + h.name + '</span>' +
+          '<button class="add-btn" onclick="addFavorite(' + h.id + ')">+ Agregar</button>' +
+          '</div>';
+      }).join("");
+    }
+
+    function refreshBoth() {
+      renderFavorites();
+      var input = document.getElementById("horse-search");
+      renderSearch(input ? input.value : "");
+    }
+
+    function addFavorite(id) {
+      fetch("/horse_favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
+        body: JSON.stringify({ horse_id: id })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.favorited) { favoritedIds.add(id); refreshBoth(); }
+      })
+      .catch(function() { alert("Error al agregar favorito"); });
+    }
+
+    function removeFavorite(id) {
+      fetch("/horse_favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken() },
+        body: JSON.stringify({ horse_id: id })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.favorited) { favoritedIds.delete(id); refreshBoth(); }
+      })
+      .catch(function() { alert("Error al quitar favorito"); });
+    }
+
+    refreshBoth();
+
+    var searchInput = document.getElementById("horse-search");
+    if (searchInput) { searchInput.addEventListener("input", function() { renderSearch(this.value); }); }
+  </script>
+</body>
+</html>

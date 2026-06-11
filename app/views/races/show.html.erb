@@ -23,7 +23,8 @@
       display: flex; align-items: center; gap: 0.6rem;
       font-size: 0.85rem; color: #aaa;
     }
-    #user-badge .username { color: #eee; font-weight: 600; }
+    #user-badge .username { color: #eee; font-weight: 600; text-decoration: none; }
+    #user-badge .username:hover { text-decoration: underline; }
 
     .lobby-header { text-align: center; margin-bottom: 1.5rem; }
     .lobby-header h1 { font-size: 1.8rem; }
@@ -102,6 +103,11 @@
       border-color: #555;
     }
     .picker-card.taken:hover { transform: none; border-color: #555; }
+
+    .picker-card.favorite {
+      border-color: #fbbf24;
+    }
+    .picker-card.favorite:hover { border-color: #f59e0b; }
 
     /* Status bar */
     #status-bar {
@@ -192,11 +198,70 @@
     }
     .back-link a { color: #6366f1; text-decoration: none; }
     .back-link a:hover { text-decoration: underline; }
+
+    .profile-btn {
+      background: none; border: none; cursor: pointer;
+      color: #6366f1; font-size: 1rem; padding: 0 0.25rem;
+      line-height: 1; opacity: 0.7; transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .profile-btn:hover { opacity: 1; }
+
+    #profile-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    #profile-overlay.open { display: flex; }
+
+    #profile-popup {
+      background: #16213e; border: 1px solid #2a2a4a;
+      border-radius: 16px; padding: 1.5rem;
+      width: 100%; max-width: 320px; position: relative;
+      animation: pop 0.18s ease-out;
+    }
+    #profile-popup .pp-close {
+      position: absolute; top: 0.75rem; right: 0.9rem;
+      background: none; border: none; cursor: pointer;
+      color: #888; font-size: 1.2rem; line-height: 1;
+    }
+    #profile-popup .pp-close:hover { color: #eee; }
+    .pp-header {
+      display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;
+    }
+    .pp-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 2px solid #4f46e5; object-fit: cover; flex-shrink: 0;
+    }
+    .pp-avatar-placeholder {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #2a2a4a; border: 2px solid #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 700; color: #a5b4fc; flex-shrink: 0;
+    }
+    .pp-username { font-weight: 700; font-size: 1.05rem; }
+    .pp-link { font-size: 0.78rem; color: #6366f1; text-decoration: none; }
+    .pp-link:hover { text-decoration: underline; }
+    .pp-stats {
+      display: flex; gap: 1.25rem; margin-bottom: 1rem;
+      font-size: 0.85rem;
+    }
+    .pp-stat-val { font-size: 1.15rem; font-weight: 700; color: #a5b4fc; }
+    .pp-stat-lbl { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .pp-favs-title { font-size: 0.72rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+    .pp-favs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .pp-fav-chip {
+      background: #2a2a4a; border: 1px solid #fbbf24;
+      border-radius: 6px; padding: 0.2rem 0.5rem;
+      font-size: 0.78rem; color: #fef3c7;
+    }
+    .pp-no-favs { font-size: 0.82rem; color: #555; }
+    #profile-popup.loading { opacity: 0.5; pointer-events: none; }
   </style>
 </head>
 <body>
   <div id="user-badge">
-    <span class="username"><%= current_user.username %></span>
+    <%= link_to current_user.username, profile_path(current_user.username), class: "username" %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
       <button type="submit" style="background:none;border:none;cursor:pointer;color:#6366f1;font-size:0.8rem;padding:0;">Salir</button>
     <% end %>
@@ -220,8 +285,36 @@
       <div class="participant-row" id="participant-<%= p.id %>">
         <span class="p-username"><%= p.display_name %></span>
         <span class="p-horse">🐎 <%= p.horse_name %></span>
+        <% if p.user_id.present? %>
+          <button class="profile-btn" onclick="openProfilePopup('<%= p.user.username %>')" title="Ver perfil">👤</button>
+        <% end %>
       </div>
     <% end %>
+  </div>
+
+  <div id="profile-overlay" onclick="closeProfilePopup(event)">
+    <div id="profile-popup">
+      <button class="pp-close" onclick="closeProfilePopup()">✕</button>
+      <div class="pp-header">
+        <div id="pp-avatar-wrap"></div>
+        <div>
+          <div class="pp-username" id="pp-username"></div>
+          <a class="pp-link" id="pp-profile-link" href="#">Ver perfil completo →</a>
+        </div>
+      </div>
+      <div class="pp-stats">
+        <div>
+          <div class="pp-stat-val" id="pp-races">—</div>
+          <div class="pp-stat-lbl">Carreras</div>
+        </div>
+        <div>
+          <div class="pp-stat-val" id="pp-wins">—</div>
+          <div class="pp-stat-lbl">Victorias</div>
+        </div>
+      </div>
+      <div class="pp-favs-title">Caballos favoritos</div>
+      <div class="pp-favs" id="pp-favs"></div>
+    </div>
   </div>
 
   <% if @my_participant.nil? %>
@@ -230,10 +323,11 @@
       <div id="picker-cards" class="picker-cards">
         <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
         <% @available_horses.each_with_index do |horse, i| %>
-          <div class="picker-card" data-horse-id="<%= horse.id %>" onclick="pickHorse(<%= horse.id %>)">
+          <% is_fav = @favorite_horse_ids.include?(horse.id) %>
+          <div class="picker-card<%= is_fav ? ' favorite' : '' %>" data-horse-id="<%= horse.id %>" onclick="pickHorse(<%= horse.id %>)">
             <img src="/images/<%= @race.animal_type %>/frame_1.png"
                  style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
-            <div class="card-name"><%= horse.name %></div>
+            <div class="card-name"><%= is_fav ? '⭐ ' : '' %><%= horse.name %></div>
           </div>
         <% end %>
       </div>
@@ -286,6 +380,7 @@
     var ANIMAL_TYPE    = "<%= @race.animal_type %>";
     var CAPACITY       = <%= @race.capacity %>;
     var participantCount = <%= @participants.size %>;
+    var FAVORITE_IDS   = <%= @favorite_horse_ids.to_json %>;
 
     function copyLink() {
       var input = document.getElementById("share-link");
@@ -319,12 +414,16 @@
       return meta ? meta.content : "";
     }
 
-    function addParticipant(username, horseName, horseId) {
+    function addParticipant(username, horseName, horseId, profileUsername) {
       var list = document.getElementById("participants-list");
       var div = document.createElement("div");
       div.className = "participant-row";
+      var profileBtn = profileUsername
+        ? '<button class="profile-btn" onclick="openProfilePopup(\'' + profileUsername + '\')" title="Ver perfil">👤</button>'
+        : '';
       div.innerHTML = '<span class="p-username">' + username + '</span>' +
-                      '<span class="p-horse">🐎 ' + horseName + '</span>';
+                      '<span class="p-horse">🐎 ' + horseName + '</span>' +
+                      profileBtn;
       list.appendChild(div);
 
       // Remove horse from picker and apostador picker
@@ -390,7 +489,7 @@
 
       if (data.type === "player_joined") {
         var p = data.participant;
-        addParticipant(p.username, p.horse_name, p.horse_id);
+        addParticipant(p.username, p.horse_name, p.horse_id, p.profile_username);
       } else if (data.type === "race_started") {
         onRaceStarted(data.participants);
       } else if (data.type === "progress") {
@@ -519,6 +618,52 @@
       banner.textContent = "🏆 Ganador: " + winner.username + " (" + winner.name + ")";
       banner.style.display = "block";
       banner.style.animation = "pop 0.3s ease-out";
+    }
+
+    function openProfilePopup(username) {
+      var popup = document.getElementById("profile-popup");
+      var overlay = document.getElementById("profile-overlay");
+      popup.classList.add("loading");
+      overlay.classList.add("open");
+
+      document.getElementById("pp-username").textContent = username;
+      document.getElementById("pp-profile-link").href = "/profiles/" + username;
+      document.getElementById("pp-races").textContent = "—";
+      document.getElementById("pp-wins").textContent = "—";
+      document.getElementById("pp-favs").innerHTML = "";
+      document.getElementById("pp-avatar-wrap").innerHTML = "";
+
+      fetch("/profiles/" + username + ".json", {
+        headers: { "X-CSRF-Token": csrfToken() }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        popup.classList.remove("loading");
+        document.getElementById("pp-races").textContent = data.total_races;
+        document.getElementById("pp-wins").textContent = data.wins;
+
+        var avatarWrap = document.getElementById("pp-avatar-wrap");
+        if (data.avatar_url) {
+          avatarWrap.innerHTML = '<img class="pp-avatar" src="' + data.avatar_url + '" alt="' + username + '">';
+        } else {
+          avatarWrap.innerHTML = '<div class="pp-avatar-placeholder">' + username[0].toUpperCase() + '</div>';
+        }
+
+        var favsEl = document.getElementById("pp-favs");
+        if (data.favorites && data.favorites.length > 0) {
+          favsEl.innerHTML = data.favorites.map(function(name) {
+            return '<span class="pp-fav-chip">⭐ ' + name + '</span>';
+          }).join("");
+        } else {
+          favsEl.innerHTML = '<span class="pp-no-favs">Sin favoritos aún</span>';
+        }
+      })
+      .catch(function() { popup.classList.remove("loading"); });
+    }
+
+    function closeProfilePopup(event) {
+      if (event && event.target !== document.getElementById("profile-overlay")) return;
+      document.getElementById("profile-overlay").classList.remove("open");
     }
 
     function startRace() {
