@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
-  --color-bg:      #0f0f23;
-  --color-surface: #1a1a3e;
-  --color-primary: #f5c518;
-  --color-accent:  #e03030;
-  --color-green:   #18c918;
-  --color-text:    #f8f8f8;
-  --color-muted:   #6060a0;
-  --color-border:  #3030a0;
+  --color-bg:      #fff8f0;
+  --color-surface: #ffe8d6;
+  --color-primary: #d4782a;
+  --color-accent:  #4a9fd4;
+  --color-green:   #6abf69;
+  --color-text:    #2a1f14;
+  --color-muted:   #b09070;
+  --color-border:  #e8c8a8;
   --font-pixel:    'Press Start 2P', cursive;
 }
 

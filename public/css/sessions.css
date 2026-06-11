@@ -50,9 +50,9 @@
 }
 
 .login-error {
-  background: #2d0a0a;
-  border: 2px solid var(--color-accent);
-  color: #f87171;
+  background: #fde8e8;
+  border: 2px solid #c0392b;
+  color: #7a1010;
   padding: 0.5rem 0.75rem;
   font-size: 9px;
   margin-bottom: 0.75rem;
