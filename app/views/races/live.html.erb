@@ -1,0 +1,17 @@
+<% content_for :title, "#{@race.slug} — En carrera" %>
+<% content_for :page_title, @race.slug.upcase %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/race-live.css">
+<% end %>
+
+<script id="race-participants-data" type="application/json"><%= raw @participants_json.to_json %></script>
+
+<div data-controller="race-live"
+     data-race-live-race-id-value="<%= @race.id %>"
+     data-race-live-animal-type-value="<%= @race.animal_type %>">
+
+  <div id="countdown" data-race-live-target="countdown"></div>
+  <div id="track"     data-race-live-target="track"></div>
+  <div id="winner-banner" data-race-live-target="winnerBanner" style="display:none"></div>
+
+</div>

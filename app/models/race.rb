@@ -18,6 +18,13 @@ class Race < ApplicationRecord
 
   def full? = participants.count >= capacity
 
+  def start!
+    return false unless pending?
+    update!(status: :running, started_at: Time.current)
+    RaceSimulationJob.perform_later(id)
+    true
+  end
+
   def available_horses
     taken = participants.pluck(:horse_id)
     Horse.all.reject { |h| taken.include?(h.id) }

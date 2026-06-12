@@ -1,6 +1,6 @@
 class RacesController < WebController
   before_action :require_login
-  before_action :set_race, only: [ :show, :start ]
+  before_action :set_race, only: [ :show, :start, :live ]
 
   def index
     @races = Race.where(is_public: true, status: :pending)
@@ -24,6 +24,7 @@ class RacesController < WebController
   end
 
   def show
+    redirect_to live_race_path(@race) and return if @race.running?
     @participants         = @race.participants.includes(:user)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
@@ -37,11 +38,16 @@ class RacesController < WebController
     @favorite_horse_ids  = favorite_ids
   end
 
+  def live
+    redirect_to race_path(@race) and return unless @race.running? || @race.finished?
+    @participants    = @race.participants.includes(:user).order(:created_at)
+    @my_participant  = @race.participants.find_by(user: current_user)
+    @participants_json = @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } }
+  end
+
   def start
-    if @race.pending?
-      @race.update!(status: :running, started_at: Time.current)
-      RaceSimulationJob.perform_later(@race.id)
-      render json: { id: @race.id, status: @race.status }
+    if @race.start!
+      render json: { id: @race.id, status: @race.status, race_started: true }
     else
       render json: { error: "Race already #{@race.status}" }, status: :unprocessable_entity
     end

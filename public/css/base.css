@@ -15,6 +15,7 @@
   width: 82px; height: 66px;
   image-rendering: pixelated; image-rendering: crisp-edges;
   display: block; margin: 0 auto;
+  mix-blend-mode: multiply;
 }
 .picker-card .card-name { font-size: 9px; margin-top: 0.5rem; color: var(--color-text); }
 
@@ -57,6 +58,7 @@
   width: 164px; height: 132px;
   image-rendering: pixelated; image-rendering: crisp-edges;
   transform: scaleX(-1); transition: left 0.28s linear; z-index: 1;
+  mix-blend-mode: multiply;
 }
 
 /* ── Winner & countdown ───────────────────── */

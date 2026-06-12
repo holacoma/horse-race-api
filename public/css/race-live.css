@@ -1,0 +1,35 @@
+#countdown {
+  font-size: 96px;
+  color: var(--color-primary);
+  text-align: center;
+  min-height: 10rem;
+  animation: blink 0.5s step-end infinite;
+  margin-bottom: 1.5rem;
+}
+
+#track {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#winner-banner {
+  margin-top: 2rem;
+  background: var(--color-surface);
+  border: 3px solid var(--color-primary);
+  box-shadow: 6px 6px 0 var(--color-primary);
+  padding: 1.5rem 3rem;
+  text-align: center;
+  font-size: 16px;
+  color: var(--color-primary);
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lane-label.my-horse {
+  color: var(--color-primary);
+  font-weight: bold;
+}
