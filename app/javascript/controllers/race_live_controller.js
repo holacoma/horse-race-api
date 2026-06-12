@@ -50,9 +50,12 @@ export default class extends Controller {
         <span class="lane-label" title="${p.username} — ${p.name}">${p.username}</span>
         <div class="track-wrap" id="wrap-${p.id}">
           <div class="track-bg"></div>
-          <img class="horse-sprite" id="horse-${p.id}"
-               src="${cfg.basePath}1.png"
-               style="filter:hue-rotate(${hue}deg);${cfg.spriteStyle}">
+          <div class="horse-unit" id="horse-${p.id}">
+            <span class="horse-name-label">${p.name}</span>
+            <img class="horse-sprite"
+                 src="${cfg.basePath}1.png"
+                 style="filter:hue-rotate(${hue}deg);${cfg.spriteStyle}">
+          </div>
         </div>
       </div>`
     }).join("")
@@ -88,19 +91,28 @@ export default class extends Controller {
   }
 
   moveHorse(horseId, position) {
-    const img = document.getElementById("horse-" + horseId)
-    if (!img) return
-    // calc(P% - P*1.64px) maps 0→left:0, 100→left:calc(100%-164px)
-    // without reading offsetWidth at all
-    img.style.left = `calc(${position}% - ${(position * 1.64).toFixed(2)}px)`
+    const unit = document.getElementById("horse-" + horseId)
+    if (!unit) return
+    // Scale positions 0-100 to 0-85% of track so pos=100 lands exactly at the finish stripe (right:15%)
+    unit.style.left = `calc(${(position * 0.85).toFixed(2)}% - ${(position * 1.64).toFixed(2)}px)`
   }
 
   onFinished(winner) {
-    clearInterval(this.animInterval)
-    this.animInterval = null
+    // Banner appears exactly as winner's nose crosses the finish stripe (pos 100 = finish line)
     const banner = this.winnerBannerTarget
     banner.textContent = `🏆 Ganador: ${winner.username} (${winner.name})`
     banner.style.display = "block"
     banner.style.animation = "pop 0.3s ease-out"
+
+    // Coast winner through the remaining 15% of track, then stop
+    const winnerUnit = document.getElementById("horse-" + winner.id)
+    if (winnerUnit) {
+      winnerUnit.style.transition = "left 1.2s ease-out"
+      winnerUnit.style.left = "calc(100% - 164px)"
+    }
+    setTimeout(() => {
+      clearInterval(this.animInterval)
+      this.animInterval = null
+    }, 1400)
   }
 }

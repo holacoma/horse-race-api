@@ -8,11 +8,11 @@
 }
 
 #track {
-  max-width: 900px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 #winner-banner {
@@ -24,12 +24,47 @@
   text-align: center;
   font-size: 16px;
   color: var(--color-primary);
-  max-width: 900px;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
+}
+
+.track-wrap {
+  height: 152px;
 }
 
 .lane-label.my-horse {
   color: var(--color-primary);
   font-weight: bold;
 }
+
+.horse-unit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 164px;
+  transition: left 0.28s linear;
+  z-index: 1;
+}
+
+.horse-name-label {
+  display: block;
+  text-align: center;
+  font-size: 8px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-bottom: 2px;
+}
+
+.horse-unit .horse-sprite {
+  position: relative;
+  transition: none;
+  z-index: auto;
+}
+
+.track-bg::before {
+  right: 15%;
+}
+
