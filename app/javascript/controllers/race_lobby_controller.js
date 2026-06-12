@@ -114,7 +114,9 @@ export default class extends Controller {
     })
       .then(r => r.json())
       .then(data => {
-        if (data.ok) {
+        if (data.race_started) {
+          window.location.href = "/races/" + this.raceSlugValue + "/live"
+        } else if (data.ok) {
           this.horsePickerTarget.style.display = "none"
         } else {
           alert(data.error || "No se pudo elegir ese caballo")
@@ -162,7 +164,9 @@ export default class extends Controller {
     })
       .then(r => r.json())
       .then(data => {
-        if (data.error) {
+        if (data.race_started) {
+          window.location.href = "/races/" + this.raceSlugValue + "/live"
+        } else if (data.error) {
           btn.disabled = false
           btn.textContent = "🏁 Comenzar carrera"
           alert(data.error)
@@ -212,17 +216,8 @@ export default class extends Controller {
     this.profileOverlayTarget.classList.remove("open")
   }
 
-  onRaceStarted(participants) {
-    if (this.hasHorsePickerTarget) this.horsePickerTarget.style.display = "none"
-    if (this.hasBtnStartTarget) this.btnStartTarget.style.display = "none"
-    this.statusBarTarget.style.display = "none"
-    this.raceSectionTarget.style.display = "flex"
-
-    this.preloadFrames()
-    this.showCountdown(() => {
-      this.renderTrack(participants)
-      this.startAnimation()
-    })
+  onRaceStarted(_participants) {
+    window.location.href = "/races/" + this.raceSlugValue + "/live"
   }
 
   onFinished(winner) {

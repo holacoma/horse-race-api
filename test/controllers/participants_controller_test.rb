@@ -53,4 +53,26 @@ class ParticipantsControllerTest < ActionDispatch::IntegrationTest
     post race_participants_path(@race), params: { horse_id: 1, guest_name: "Juan" }, as: :json
     assert_response :forbidden
   end
+
+  test "joining as last player returns race_started true and starts race" do
+    @race.update!(capacity: 2)
+    other = User.create_guest!("OtherRider")
+    Participant.create!(race: @race, user: other, horse_id: 2, horse_name: "Man o' War")
+
+    post race_participants_path(@race), params: { horse_id: 1 }, as: :json
+
+    assert_response :ok
+    assert response.parsed_body["race_started"]
+    assert @race.reload.running?
+  end
+
+  test "joining when lobby not full returns race_started false" do
+    @race.update!(capacity: 3)
+
+    post race_participants_path(@race), params: { horse_id: 1 }, as: :json
+
+    assert_response :ok
+    assert_not response.parsed_body["race_started"]
+    assert @race.reload.pending?
+  end
 end
