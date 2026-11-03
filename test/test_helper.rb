@@ -7,6 +7,7 @@ OmniAuth.config.test_mode = true
 
 module ActiveSupport
   class TestCase
-    parallelize(workers: :number_of_processors)
+    # fork-based parallelization is not available on Windows
+    parallelize(workers: Gem.win_platform? ? 1 : :number_of_processors)
   end
 end
