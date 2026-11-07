@@ -1,5 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
+const PICK_ANIMATION_MS = 300
+const CLOSE_ANIMATION_MS = 150
+
 export default class extends Controller {
   static values = {
     raceId: Number,
@@ -7,7 +10,8 @@ export default class extends Controller {
     animalType: String,
     capacity: Number,
     participantCount: Number,
-    favoriteIds: Array
+    favoriteIds: Array,
+    bettorNames: Array
   }
 
   static targets = ["participantsList", "playersCount", "statusBar", "horsePicker",
@@ -41,6 +45,8 @@ export default class extends Controller {
   disconnect() {
     if (this.socket) this.socket.close()
     if (this.animInterval) clearInterval(this.animInterval)
+    clearInterval(this.typingInterval)
+    clearTimeout(this.typingPause)
   }
 
   setupWebSocket() {
@@ -77,7 +83,7 @@ export default class extends Controller {
     const div = document.createElement("div")
     div.className = "participant-row"
     const profileBtn = profileUsername
-      ? `<button class="profile-btn" data-action="click->race-lobby#openProfilePopup" data-username="${profileUsername}" title="Ver perfil">👤</button>`
+      ? `<button class="profile-btn" data-fx="profile" data-action="click->race-lobby#openProfilePopup" data-username="${profileUsername}" title="Ver perfil">👤</button>`
       : ""
     div.innerHTML = `<span class="p-username">${username}</span><span class="p-horse">🐎 ${horseName}</span>${profileBtn}`
     this.participantsListTarget.appendChild(div)
@@ -96,17 +102,29 @@ export default class extends Controller {
     }
   }
 
-  copyLink() {
+  copyLink(event) {
+    const button = event.currentTarget
     const input = document.getElementById("share-link")
     input.select()
     document.execCommand("copy")
+
+    button.dataset.label ||= button.textContent
+    button.textContent = "¡Copiado!"
+    clearTimeout(this.copiedTimeout)
+    this.copiedTimeout = setTimeout(() => { button.textContent = button.dataset.label }, 1200)
   }
 
   pickHorse(event) {
     const horseId = event.currentTarget.dataset.horseId
     const card = event.currentTarget
-    if (card.classList.contains("taken")) return
+    if (card.classList.contains("taken") || this.pickingHorse) return
+    this.pickingHorse = true
 
+    // La tarjeta desaparece al confirmarse: se espera a que termine su animación de clic.
+    setTimeout(() => this.submitHorse(card, horseId), PICK_ANIMATION_MS)
+  }
+
+  submitHorse(card, horseId) {
     fetch(`/races/${this.raceSlugValue}/participants`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
@@ -124,24 +142,58 @@ export default class extends Controller {
         }
       })
       .catch(() => alert("Error de red, intentá de nuevo"))
+      .finally(() => { this.pickingHorse = false })
   }
 
   addApostador(event) {
-    const horseId = event.currentTarget.dataset.horseId
+    if (this.addingApostador) return
+
+    const card = event.currentTarget
     const nameInput = document.getElementById("apostador-name-input")
     if (!nameInput) return
-    const name = nameInput.value.trim()
-    if (!name) {
-      nameInput.focus()
-      nameInput.style.borderColor = "#b91c1c"
-      setTimeout(() => { nameInput.style.borderColor = "" }, 1500)
-      return
-    }
 
+    this.addingApostador = true
+    card.classList.add("picking")
+    nameInput.readOnly = true
+
+    const submit = name => this.submitApostador(card, nameInput, name)
+    const typedName = nameInput.value.trim()
+    const defaultName = typedName ? null : this.nextBettorName()
+
+    if (defaultName) {
+      this.typeName(nameInput, defaultName, () => submit(defaultName))
+    } else {
+      // Con nombre escrito se usa ese; si no quedara ninguno, lo asigna el servidor.
+      submit(typedName)
+    }
+  }
+
+  nextBettorName() {
+    this.bettorNames ||= [...this.bettorNamesValue]
+    return this.bettorNames.shift()
+  }
+
+  typeName(input, name, done) {
+    const letters = Array.from(name)
+    let shown = 0
+
+    input.classList.add("typing")
+    this.typingInterval = setInterval(() => {
+      shown += 1
+      input.value = letters.slice(0, shown).join("")
+      if (shown < letters.length) return
+
+      clearInterval(this.typingInterval)
+      // Pausa breve para que el nombre completo alcance a leerse.
+      this.typingPause = setTimeout(done, 350)
+    }, 60)
+  }
+
+  submitApostador(card, nameInput, name) {
     fetch(`/races/${this.raceSlugValue}/participants`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
-      body: JSON.stringify({ horse_id: horseId, guest_name: name })
+      body: JSON.stringify({ horse_id: card.dataset.horseId, guest_name: name })
     })
       .then(r => r.json())
       .then(data => {
@@ -152,6 +204,12 @@ export default class extends Controller {
         }
       })
       .catch(() => alert("Error de red, intentá de nuevo"))
+      .finally(() => {
+        this.addingApostador = false
+        card.classList.remove("picking")
+        nameInput.classList.remove("typing")
+        nameInput.readOnly = false
+      })
   }
 
   startRace() {
@@ -213,7 +271,8 @@ export default class extends Controller {
   }
 
   closePopupBtn() {
-    this.profileOverlayTarget.classList.remove("open")
+    // Se cierra después de la animación de clic de la cruz, que si no queda oculta antes de empezar.
+    setTimeout(() => this.profileOverlayTarget.classList.remove("open"), CLOSE_ANIMATION_MS)
   }
 
   onRaceStarted(_participants) {

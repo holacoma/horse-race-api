@@ -1,6 +1,7 @@
 <% content_for :title, "Horse Race — Ingresar" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/sessions.css">
+  <link rel="stylesheet" href="/css/slot-machine.css">
 <% end %>
 
 <div class="login-logo">
@@ -15,7 +16,7 @@
   <% end %>
 
   <%= form_with url: "/auth/google_oauth2", method: :post do |f| %>
-    <button type="submit" class="btn-google-pixel">
+    <button type="submit" class="btn-google-pixel" data-fx="enter" data-fx-hold>
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -28,11 +29,12 @@
 
   <div class="divider">O</div>
 
-  <%= form_with url: guest_session_path, method: :post, class: "guest-form" do |f| %>
-    <%= f.text_field :username, placeholder: "NOMBRE DE USUARIO", class: "nes-input is-dark" %>
-    <%= f.submit "▶ ENTRAR COMO INVITADO", class: "nes-btn is-primary" %>
+  <%= form_with url: guest_session_path, method: :post, class: "guest-form",
+                data: { controller: "slot-machine",
+                        action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
+    <%= render "shared/slot_machine", reels: User::GUEST_NAME_REELS %>
+    <%= f.hidden_field :username, data: { slot_machine_target: "field" } %>
+    <%= f.submit "▶ ENTRAR COMO INVITADO", class: "nes-btn is-primary", data: { slot_machine_target: "button", fx: "enter" } %>
   <% end %>
 
 </div>
-
-<p class="login-footer">INSERT COIN TO CONTINUE</p>

@@ -1,0 +1,58 @@
+html, body { margin: 0; height: 100%; background: #0d0614; overflow: hidden; font-family: system-ui, sans-serif; }
+canvas { display: block; position: fixed; inset: 0; }
+
+.hud { position: fixed; color: #fff; pointer-events: none; font-weight: 800; }
+
+.hud-rank {
+  left: 14px; top: 14px; width: 210px;
+  display: flex; flex-direction: column; gap: 3px;
+  font-size: 12px;
+}
+.hud-rank div {
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 8px; border-radius: 7px;
+  background: rgba(16, 8, 28, .68);
+  overflow: hidden; white-space: nowrap;
+}
+.hud-rank b { width: 14px; text-align: right; font-size: 11px; opacity: .75; }
+.hud-rank i { width: 10px; height: 10px; border-radius: 50%; flex: none; border: 1px solid #fff; }
+.hud-rank span { overflow: hidden; text-overflow: ellipsis; }
+.hud-rank .mine { background: #ffc61a; color: #1a1020; }
+
+.hud-meter {
+  right: 16px; top: 14px; padding: 8px 14px; border-radius: 10px;
+  background: rgba(16, 8, 28, .68);
+  font: 900 20px system-ui, sans-serif;
+}
+
+.hud-count {
+  inset: 0; display: grid; place-items: center;
+  font: 900 clamp(90px, 22vw, 240px) system-ui, sans-serif;
+  color: #ffc61a; -webkit-text-stroke: 6px #1a1020; paint-order: stroke fill;
+  text-shadow: 0 10px 0 #1a1020;
+}
+
+.hud-win {
+  left: 50%; top: 9%; transform: translateX(-50%) rotate(-3deg) scale(.5);
+  padding: 12px 34px; opacity: 0;
+  background: #ffc61a; color: #1a1020; border: 5px solid #1a1020; border-radius: 6px;
+  box-shadow: 9px 9px 0 #ff2d6f;
+  font: 900 clamp(22px, 4.6vw, 54px) system-ui, sans-serif; text-align: center; white-space: nowrap;
+  transition: opacity .15s, transform .35s cubic-bezier(.2, 1.9, .4, 1);
+}
+.hud-win small { display: block; font-size: .42em; font-weight: 800; }
+.hud-win.show { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }
+
+.hud-fps { right: 16px; bottom: 14px; font: 700 12px monospace; opacity: .7; }
+
+.controls { position: fixed; left: 14px; bottom: 14px; display: flex; gap: 8px; }
+.controls button, .controls a {
+  padding: 9px 14px; border: 3px solid #1a1020; border-radius: 10px;
+  background: #ffc61a; color: #1a1020; font: 800 14px system-ui, sans-serif; cursor: pointer;
+  box-shadow: 0 4px 0 #1a1020; text-decoration: none;
+}
+.controls button:active, .controls a:active { transform: translateY(3px); box-shadow: 0 1px 0 #1a1020; }
+
+@media (max-width: 600px) {
+  .hud-rank { width: 150px; font-size: 10px; }
+}

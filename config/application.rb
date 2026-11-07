@@ -46,7 +46,9 @@ module HorseRaceApi
     # so we use Rack::Static inserted before all other middleware.
     config.middleware.insert_before 0, Rack::Static,
       urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /controllers],
-      root: Rails.root.join("app/javascript").to_s
+      root: Rails.root.join("app/javascript").to_s,
+      # Las URLs no llevan digest: el navegador tiene que revalidar para ver los cambios.
+      header_rules: [ [ :all, { "cache-control" => "no-cache" } ] ]
 
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride

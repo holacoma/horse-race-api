@@ -8,11 +8,12 @@
           ⭐ <%= horse.name %>
           <% if is_own_profile %>
             <button class="remove-btn"
+                    data-fx="remove"
                     hx-post="/horse_favorites"
                     hx-vals='{"horse_id": <%= horse.id %>}'
                     hx-include="#horse-search"
                     hx-target="#favorites-section"
-                    hx-swap="outerHTML"
+                    hx-swap="outerHTML swap:280ms"
                     title="Quitar favorito">✕</button>
           <% end %>
         </div>

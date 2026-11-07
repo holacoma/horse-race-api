@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_224820) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_06_230000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224820) do
 
   create_table "participants", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "final_rank"
     t.integer "horse_id", null: false
     t.string "horse_name", null: false
     t.string "name"
@@ -42,6 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224820) do
     t.integer "capacity", default: 6, null: false
     t.datetime "created_at", null: false
     t.bigint "creator_id"
+    t.integer "distance", default: 2000, null: false
     t.datetime "finished_at"
     t.boolean "is_public", default: true, null: false
     t.string "slug", default: "", null: false

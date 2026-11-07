@@ -7,12 +7,12 @@ class ParticipantsController < WebController
 
     return render json: { error: "Caballo no encontrado" }, status: :not_found unless horse
 
-    if params[:guest_name].present?
+    if params.key?(:guest_name)
       return render json: { error: "Solo el creador puede agregar apostadores" }, status: :forbidden \
         unless race.creator_id == current_user.id
 
       participant = race.participants.build(
-        name: params[:guest_name].strip,
+        name: params[:guest_name].to_s.strip.presence || race.random_bettor_name,
         horse_id: horse.id,
         horse_name: horse.name
       )

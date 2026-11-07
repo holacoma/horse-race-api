@@ -1,0 +1,19 @@
+<%# Requiere un form con data-controller="slot-machine". results: la palabra en que frena cada carrete; sin results, al azar. %>
+<% results = local_assigns.fetch(:results, []) %>
+<div class="slot-machine" data-slot-machine-target="machine">
+  <div class="slot-cabinet">
+    <div class="slot-display" data-slot-machine-target="display" aria-live="polite">TIRÁ DE LA PALANCA</div>
+    <div class="slot-reels">
+      <% reels.each_with_index do |words, i| %>
+        <%= tag.div class: "slot-reel", data: { slot_machine_target: "reel", words: words, result: results[i] } do %>
+          <div class="slot-strip">
+            <% words.sample(3).each do |word| %>
+              <div class="slot-cell"><%= word %></div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <button type="submit" class="slot-lever" aria-label="Tirar de la palanca"><span class="slot-lever-stick"></span></button>
+</div>

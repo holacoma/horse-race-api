@@ -5,7 +5,6 @@
 .login-logo h1 {
   font-size: 20px;
   color: var(--color-primary);
-  animation: blink 1.5s step-end infinite;
   letter-spacing: 0.05em;
 }
 .login-logo .subtitle {
@@ -41,13 +40,6 @@
 
 /* Guest form */
 .guest-form { display: flex; flex-direction: column; gap: 0.75rem; }
-
-.login-footer {
-  margin-top: 2rem; font-size: 8px; color: var(--color-muted);
-  text-align: center;
-  animation: blink 2s step-end infinite;
-  letter-spacing: 0.08em;
-}
 
 .login-error {
   background: #fde8e8;

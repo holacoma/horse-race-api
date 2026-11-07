@@ -1,0 +1,170 @@
+/* Reacción de los botones, por tipo de acción: data-fx="<tipo>" da la misma animación a todos los
+   botones que hacen lo mismo. Sin ::before/::after, porque algunos son <input type="submit">.
+   .fx-click la pone button_fx_controller al hacer clic. */
+
+.topbar-user a[data-fx],
+.back-link a[data-fx],
+a.pp-link[data-fx] { display: inline-block; }
+
+/* NES.css pone azul y subrayado todo enlace bajo el mouse. */
+a[data-fx]:hover { text-decoration: none; }
+a.btn-join:hover,
+a.btn-primary:hover { color: var(--color-bg); }
+
+/* ── Al pasar el mouse ────────────────────── */
+@media (hover: hover) {
+  [data-fx="enter"]:hover {
+    background-image: linear-gradient(100deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%);
+    background-repeat: no-repeat;
+    background-size: 300% 100%;
+    animation: fx-enter-hover 0.9s steps(9) infinite;
+  }
+  [data-fx="create"]:hover { animation: fx-create-hover 0.5s steps(3) infinite; }
+  [data-fx="join"]:hover   { animation: fx-join-hover 0.44s steps(2) infinite; }
+  [data-fx="start"]:hover  { animation: fx-start-hover 0.16s steps(1) infinite; }
+  [data-fx="add"]:hover    { animation: fx-add-hover 0.3s steps(3); }
+  [data-fx="remove"]:hover { animation: fx-remove-hover 0.18s steps(1) infinite; }
+  [data-fx="profile"]:hover { animation: fx-profile-hover 0.45s steps(3); }
+  [data-fx="nav"]:hover    { animation: fx-nav-hover 0.16s steps(3) forwards; }
+  [data-fx="back"]:hover   { animation: fx-back-hover 0.5s steps(2) infinite; }
+  [data-fx="copy"]:hover   { animation: fx-copy-hover 0.15s steps(2) forwards; }
+  [data-fx="exit"]:hover   { animation: fx-exit-hover 0.4s steps(2) infinite; }
+  [data-fx="close"]:hover  { animation: fx-close-hover 0.2s steps(3) forwards; }
+}
+
+/* ── Al hacer clic ────────────────────────── */
+[data-fx="enter"].fx-click  { animation: fx-enter-click 0.32s steps(4) forwards; }
+[data-fx="create"].fx-click { animation: fx-create-click 0.36s steps(3) forwards; }
+[data-fx="join"].fx-click   { animation: fx-join-click 0.34s steps(6) forwards; }
+[data-fx="start"].fx-click  { animation: fx-start-click 0.5s steps(1) forwards; }
+[data-fx="add"].fx-click    { animation: fx-add-click 0.34s steps(3) forwards; }
+[data-fx="remove"].fx-click { animation: fx-remove-click 0.28s steps(5) forwards; }
+[data-fx="profile"].fx-click { animation: fx-profile-click 0.28s steps(3) forwards; }
+[data-fx="nav"].fx-click    { animation: fx-nav-click 0.32s steps(3) forwards; }
+[data-fx="back"].fx-click   { animation: fx-back-click 0.32s steps(5) forwards; }
+[data-fx="copy"].fx-click   { animation: fx-copy-click 0.3s steps(3) forwards; }
+[data-fx="exit"].fx-click   { animation: fx-exit-click 0.32s steps(6) forwards; }
+[data-fx="close"].fx-click  { animation: fx-close-click 0.15s steps(2) forwards; }
+
+/* Un botón deshabilitado no reacciona, salvo para terminar el clic que lo deshabilitó. */
+[data-fx]:disabled:not(.fx-click),
+[data-fx].is-disabled:not(.fx-click),
+[data-fx].taken { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fx] { animation: none !important; }
+}
+
+/* Entrar: un brillo recorre el botón y al clic se hunde. */
+@keyframes fx-enter-hover {
+  from { background-position: 100% 0; }
+  to   { background-position: 0 0; }
+}
+@keyframes fx-enter-click {
+  40%  { transform: translateY(4px) scale(0.97); filter: brightness(0.8); }
+  100% { transform: none; filter: none; }
+}
+
+/* Crear: late y al clic estampa una onda hacia afuera. */
+@keyframes fx-create-hover {
+  50% { transform: scale(1.05); }
+}
+@keyframes fx-create-click {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 var(--color-primary); }
+  35%  { transform: scale(1.1); box-shadow: 0 0 0 6px var(--color-primary); }
+  100% { transform: scale(1); box-shadow: 0 0 0 22px transparent; }
+}
+
+/* Unirse: trota en el lugar y al clic sale al galope hacia la derecha. */
+@keyframes fx-join-hover {
+  25% { transform: translateY(-5px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(-2px); }
+}
+@keyframes fx-join-click {
+  20%  { transform: translateX(-5px); }
+  100% { transform: translateX(26px) skewX(-14deg); opacity: 0; }
+}
+
+/* Comenzar: vibra como motor en marcha y al clic da dos fogonazos. */
+@keyframes fx-start-hover {
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+@keyframes fx-start-click {
+  0%, 50%  { transform: scale(1.08); filter: brightness(1.8); }
+  25%, 75% { transform: scale(1); filter: none; }
+  100%     { transform: none; filter: none; }
+}
+
+/* Agregar: se aplasta y al clic cae con rebote, como algo que entra en la lista. */
+@keyframes fx-add-hover {
+  50% { transform: scale(1.1, 0.9); }
+}
+@keyframes fx-add-click {
+  30%  { transform: translateY(-10px) scale(0.95, 1.08); }
+  65%  { transform: translateY(0) scale(1.15, 0.82); }
+  100% { transform: none; }
+}
+
+/* Quitar: tiembla y al clic gira hasta desaparecer. */
+@keyframes fx-remove-hover {
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+@keyframes fx-remove-click {
+  to { transform: rotate(180deg) scale(0); }
+}
+
+/* Perfil: asiente una vez y al clic se ilumina. */
+@keyframes fx-profile-hover {
+  30% { transform: translateY(-3px); }
+  65% { transform: translateY(1px); }
+}
+@keyframes fx-profile-click {
+  40% { transform: scale(1.08); filter: brightness(1.3); }
+}
+
+/* Navegar: el texto avanza y al clic avanza más con un destello. */
+@keyframes fx-nav-hover {
+  to { padding-left: 1.5rem; }
+}
+@keyframes fx-nav-click {
+  from { padding-left: 1.5rem; }
+  50%  { filter: brightness(1.3); }
+  to   { padding-left: 2.25rem; }
+}
+
+/* Volver: la flecha tira hacia atrás y al clic se va por la izquierda. */
+@keyframes fx-back-hover {
+  50% { transform: translateX(-5px); }
+}
+@keyframes fx-back-click {
+  to { transform: translateX(-22px); opacity: 0; }
+}
+
+/* Copiar: se levanta y al clic se da vuelta como una ficha. */
+@keyframes fx-copy-hover {
+  to { transform: translateY(-3px); }
+}
+@keyframes fx-copy-click {
+  50%  { transform: perspective(200px) rotateX(90deg); }
+  100% { transform: perspective(200px) rotateX(0); }
+}
+
+/* Salir: se inclina hacia la salida y al clic se va por la derecha. */
+@keyframes fx-exit-hover {
+  50% { transform: translateX(3px) skewX(-8deg); }
+}
+@keyframes fx-exit-click {
+  to { transform: translateX(34px); opacity: 0; }
+}
+
+/* Cerrar: la cruz gira un cuarto y al clic se encoge. */
+@keyframes fx-close-hover {
+  to { transform: rotate(90deg); }
+}
+@keyframes fx-close-click {
+  to { transform: scale(0.6); }
+}

@@ -46,6 +46,34 @@ class ParticipantsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Juan", Participant.last.display_name
   end
 
+  test "apostador without a name gets a default joke name" do
+    [ "", "   " ].each_with_index do |blank, i|
+      post race_participants_path(@race), params: { horse_id: i + 1, guest_name: blank }, as: :json
+      assert_response :ok
+      assert_includes Race::BETTOR_NAMES, Participant.last.display_name
+      assert_nil Participant.last.user
+    end
+  end
+
+  test "default apostador name is not repeated in the room" do
+    last_free = Race::BETTOR_NAMES.last
+    Race::BETTOR_NAMES.without(last_free).each_with_index do |name, i|
+      @race.participants.create!(name: name, horse_id: i + 2, horse_name: "Caballo #{i}")
+    end
+
+    post race_participants_path(@race), params: { horse_id: 1, guest_name: "" }, as: :json
+
+    assert_equal last_free, Participant.last.display_name
+  end
+
+  test "non-creator cannot add an apostador with the default name" do
+    delete logout_path
+    post guest_session_path, params: { username: "OtherRider" }
+
+    post race_participants_path(@race), params: { horse_id: 1, guest_name: "" }, as: :json
+    assert_response :forbidden
+  end
+
   test "non-creator cannot add guest apostador" do
     delete logout_path
     post guest_session_path, params: { username: "OtherRider" }

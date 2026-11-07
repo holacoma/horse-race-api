@@ -38,8 +38,19 @@
   gap: 1.25rem; margin-bottom: 1.5rem;
 }
 #horse-picker h2 { font-size: 12px; }
-#horse-picker .picker-cards { flex-wrap: nowrap; }
-.picker-card { flex: 1; min-width: 0; }
+/* Ancho mínimo para que entren el sprite (82px) y la palabra más larga del catálogo. */
+#horse-picker .picker-cards,
+#apostador-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+}
+#horse-picker .picker-card,
+#apostador-cards .picker-card {
+  padding: 0.85rem 0.5rem;
+  overflow-wrap: anywhere;
+}
+.picker-card.picking { border-color: var(--color-primary); background: var(--color-bg); }
+#apostador-name-input.typing { border-color: var(--color-primary); color: var(--color-primary); }
 .picker-card.taken { opacity: 0.3; cursor: not-allowed; }
 .picker-card.taken:hover { box-shadow: 4px 4px 0 var(--color-primary); }
 .picker-card.favorite { border-color: var(--color-primary); }

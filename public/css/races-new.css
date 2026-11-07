@@ -13,9 +13,11 @@
 
 .field { display: flex; flex-direction: column; gap: 0.5rem; }
 
-.field label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.field label,
+.field-label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
 .field input[type="text"],
+.field input[type="number"],
 .field select {
   padding: 0.6rem 0.85rem;
   background: var(--color-bg);
@@ -24,6 +26,7 @@
   width: 100%;
 }
 .field input[type="text"]:focus,
+.field input[type="number"]:focus,
 .field select:focus { outline: none; border-color: var(--color-primary); }
 .field select option { background: var(--color-bg); }
 
@@ -69,3 +72,14 @@
   align-self: flex-start; transition: box-shadow 0.08s;
 }
 .btn-submit:hover { box-shadow: 2px 2px 0 var(--color-border); }
+.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* En teléfono el formulario deja carretes angostos: que entre la palabra más larga. */
+@media (max-width: 480px) {
+  .pixel-form { padding: 1rem; }
+  .pixel-form .slot-cabinet { padding: 0.4rem; }
+  .pixel-form .slot-cell { font-size: 8px; }
+}
+@media (max-width: 360px) {
+  .pixel-form .slot-cell { font-size: 7px; }
+}

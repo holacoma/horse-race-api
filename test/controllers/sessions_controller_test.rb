@@ -7,6 +7,16 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "form"
   end
 
+  test "GET /login offers the guest slot machine instead of a name field" do
+    get login_path
+
+    assert_select ".guest-form .slot-reel", User::GUEST_NAME_REELS.size
+    assert_select ".guest-form input[type=hidden][name=username]"
+    assert_select ".guest-form input[type=text]", 0
+    assert_equal User::GUEST_NAME_REELS,
+                 css_select(".slot-reel").map { |reel| JSON.parse(reel["data-words"]) }
+  end
+
   test "GET /login redirects to root if already logged in" do
     post guest_session_path, params: { username: "Already" }
     get login_path

@@ -1,7 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
+const GALLOP_FRAME_MS = 60
+const RESULTS_DELAY_MS = 3000 // deja ver al ganador cruzar la meta y leer el cartel
+
 export default class extends Controller {
-  static values  = { raceId: Number, animalType: String }
+  static values  = { raceId: Number, animalType: String, resultsUrl: String }
   static targets = ["countdown", "track", "winnerBanner"]
 
   connect() {
@@ -14,12 +17,22 @@ export default class extends Controller {
     }
     this.setupWebSocket()
     this.renderTrack(this.loadParticipants())
+    this.fitTrack()
     this.showCountdown()
+  }
+
+  // El alto de los carriles descuenta lo que la página ocupa arriba y abajo de la pista (ver race-live.css).
+  fitTrack() {
+    const track = this.trackTarget
+    const above = track.getBoundingClientRect().top + window.scrollY
+    const below = parseFloat(getComputedStyle(track.closest(".pixel-main")).paddingBottom)
+    track.style.setProperty("--page-chrome", `${above + below}px`)
   }
 
   disconnect() {
     if (this.socket) this.socket.close()
     clearInterval(this.animInterval)
+    clearTimeout(this.resultsTimeout)
   }
 
   loadParticipants() {
@@ -44,14 +57,14 @@ export default class extends Controller {
 
   renderTrack(participants) {
     const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
+    this.trackTarget.style.setProperty("--lanes", participants.length)
     this.trackTarget.innerHTML = participants.map((p, i) => {
       const hue = this.hueRotations[i % this.hueRotations.length]
       return `<div class="lane-row">
-        <span class="lane-label" title="${p.username} — ${p.name}">${p.username}</span>
+        <span class="lane-label" title="${p.username} — ${p.name}"><b>${p.username}</b><small>${p.name}</small></span>
         <div class="track-wrap" id="wrap-${p.id}">
           <div class="track-bg"></div>
           <div class="horse-unit" id="horse-${p.id}">
-            <span class="horse-name-label">${p.name}</span>
             <img class="horse-sprite"
                  src="${cfg.basePath}1.png"
                  style="filter:hue-rotate(${hue}deg);${cfg.spriteStyle}">
@@ -84,17 +97,18 @@ export default class extends Controller {
     const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
     this.animInterval = setInterval(() => {
       this.frameIndex = (this.frameIndex + 1) % cfg.frameCount
-      document.querySelectorAll(".horse-sprite").forEach(el => {
-        el.src = cfg.basePath + (this.frameIndex + 1) + ".png"
+      // Cada caballo en su propio paso: sincronizados parecen un solo caballo repetido.
+      document.querySelectorAll(".horse-sprite").forEach((el, i) => {
+        el.src = cfg.basePath + ((this.frameIndex + i) % cfg.frameCount + 1) + ".png"
       })
-    }, 110)
+    }, GALLOP_FRAME_MS)
   }
 
   moveHorse(horseId, position) {
     const unit = document.getElementById("horse-" + horseId)
     if (!unit) return
     // Scale positions 0-100 to 0-85% of track so pos=100 lands exactly at the finish stripe (right:15%)
-    unit.style.left = `calc(${(position * 0.85).toFixed(2)}% - ${(position * 1.64).toFixed(2)}px)`
+    unit.style.left = `calc(${(position * 0.85).toFixed(2)}% - ${(position / 100).toFixed(4)} * var(--horse-w))`
   }
 
   onFinished(winner) {
@@ -108,11 +122,12 @@ export default class extends Controller {
     const winnerUnit = document.getElementById("horse-" + winner.id)
     if (winnerUnit) {
       winnerUnit.style.transition = "left 1.2s ease-out"
-      winnerUnit.style.left = "calc(100% - 164px)"
+      winnerUnit.style.left = "calc(100% - var(--horse-w))"
     }
     setTimeout(() => {
       clearInterval(this.animInterval)
       this.animInterval = null
     }, 1400)
+    this.resultsTimeout = setTimeout(() => window.location.assign(this.resultsUrlValue), RESULTS_DELAY_MS)
   }
 }

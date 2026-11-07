@@ -1,6 +1,6 @@
 class RacesController < WebController
   before_action :require_login
-  before_action :set_race, only: [ :show, :start, :live ]
+  before_action :set_race, only: [ :show, :start, :live, :live3d, :results ]
 
   def index
     @races = Race.where(is_public: true, status: :pending)
@@ -10,7 +10,7 @@ class RacesController < WebController
 
   def new
     @race = Race.new
-    @race.generate_slug
+    @room_name = Race.pick_room_name
   end
 
   def create
@@ -19,12 +19,14 @@ class RacesController < WebController
     if @race.save
       redirect_to race_path(@race)
     else
+      @room_name = Race.pick_room_name
       render :new, status: :unprocessable_entity
     end
   end
 
   def show
     redirect_to live_race_path(@race) and return if @race.running?
+    redirect_to results_race_path(@race) and return if @race.finished?
     @participants         = @race.participants.includes(:user)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
@@ -39,10 +41,30 @@ class RacesController < WebController
   end
 
   def live
-    redirect_to race_path(@race) and return unless @race.running? || @race.finished?
+    redirect_to results_race_path(@race) and return if @race.finished?
+    redirect_to race_path(@race) and return unless @race.running?
     @participants    = @race.participants.includes(:user).order(:created_at)
     @my_participant  = @race.participants.find_by(user: current_user)
     @participants_json = @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } }
+  end
+
+  # Prototipo: la misma carrera real que `live`, dibujada en 3D.
+  def live3d
+    redirect_to results_race_path(@race) and return if @race.finished?
+    redirect_to race_path(@race) and return unless @race.running?
+    participants = @race.participants.includes(:user).order(:created_at)
+    @participants_json = participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } }
+    @my_horse_id = participants.find { |p| p.user_id == current_user.id }&.horse_id
+    @seconds_to_start = [ @race.started_at + RaceSimulationJob::PRELUDE_SEC - Time.current, 0 ].max
+    render layout: false
+  end
+
+  def results
+    redirect_to race_path(@race) and return unless @race.finished?
+    @results        = @race.results
+    @my_participant = @results.find { |participant| participant.user_id == current_user.id }
+    # Mismo color que en la pista, que los asigna por orden de llegada a la sala.
+    @lane_index     = @results.sort_by(&:created_at).each_with_index.to_h
   end
 
   def start
@@ -60,6 +82,6 @@ class RacesController < WebController
   end
 
   def race_params
-    params.require(:race).permit(:slug, :capacity, :animal_type, :is_public)
+    params.require(:race).permit(:slug, :capacity, :distance, :animal_type, :is_public)
   end
 end

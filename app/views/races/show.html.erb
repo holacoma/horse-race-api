@@ -1,7 +1,7 @@
 <% content_for :title, "Horse Race — #{@race.slug}" %>
 <% content_for :page_title, @race.slug.upcase %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-lobby.css">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=2">
 <% end %>
 
 <div data-controller="race-lobby"
@@ -10,7 +10,8 @@
      data-race-lobby-animal-type-value="<%= @race.animal_type %>"
      data-race-lobby-capacity-value="<%= @race.capacity %>"
      data-race-lobby-participant-count-value="<%= @participants.size %>"
-     data-race-lobby-favorite-ids-value="<%= @favorite_horse_ids.to_json %>">
+     data-race-lobby-favorite-ids-value="<%= @favorite_horse_ids.to_json %>"
+     data-race-lobby-bettor-names-value="<%= (@is_creator ? @race.available_bettor_names.shuffle : []).to_json %>">
 
   <div class="lobby-header">
     <h1><%= @race.animal_type == "guinea_pig" ? "🐹" : "🐴" %> <%= @race.slug %></h1>
@@ -21,7 +22,7 @@
 
   <div class="share-row">
     <input type="text" id="share-link" readonly value="<%= request.base_url %>/races/<%= @race.slug %>">
-    <button data-action="click->race-lobby#copyLink">Copiar</button>
+    <button data-fx="copy" data-action="click->race-lobby#copyLink">Copiar</button>
   </div>
 
   <div class="section-title">Participantes</div>
@@ -32,6 +33,7 @@
         <span class="p-horse">🐎 <%= p.horse_name %></span>
         <% if p.user_id.present? %>
           <button class="profile-btn"
+                  data-fx="profile"
                   data-action="click->race-lobby#openProfilePopup"
                   data-username="<%= p.user.username %>"
                   title="Ver perfil">👤</button>
@@ -44,12 +46,12 @@
        data-race-lobby-target="profileOverlay"
        data-action="click->race-lobby#closeProfilePopup">
     <div id="profile-popup" data-race-lobby-target="profilePopup">
-      <button class="pp-close" data-action="click->race-lobby#closePopupBtn">✕</button>
+      <button class="pp-close" data-fx="close" data-action="click->race-lobby#closePopupBtn">✕</button>
       <div class="pp-header">
         <div data-race-lobby-target="ppAvatarWrap"></div>
         <div>
           <div class="pp-username" data-race-lobby-target="ppUsername"></div>
-          <a class="pp-link" data-race-lobby-target="ppProfileLink" href="#">Ver perfil completo →</a>
+          <a class="pp-link" data-fx="profile" data-race-lobby-target="ppProfileLink" href="#">Ver perfil completo →</a>
         </div>
       </div>
       <div class="pp-stats">
@@ -76,6 +78,7 @@
           <% is_fav = @favorite_horse_ids.include?(horse.id) %>
           <div class="picker-card<%= is_fav ? ' favorite' : '' %>"
                data-horse-id="<%= horse.id %>"
+               data-fx="join"
                data-action="click->race-lobby#pickHorse">
             <img src="/images/<%= @race.animal_type %>/frame_1.png"
                  style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
@@ -98,13 +101,14 @@
   <% if @is_creator && @race.pending? %>
     <div id="apostador-section" data-race-lobby-target="apostadorSection">
       <h3>Agregar apostador</h3>
-      <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (ej. Juan)">
+      <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (opcional)">
       <div id="apostador-cards" class="picker-cards">
         <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
         <% @all_available_horses.each_with_index do |horse, i| %>
           <div class="picker-card"
                id="apostador-card-<%= horse.id %>"
                data-horse-id="<%= horse.id %>"
+               data-fx="add"
                data-action="click->race-lobby#addApostador">
             <img src="/images/<%= @race.animal_type %>/frame_1.png"
                  style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
@@ -117,6 +121,7 @@
 
   <% if @race.creator_id == current_user.id %>
     <button id="btn-start"
+            data-fx="start"
             data-race-lobby-target="btnStart"
             data-action="click->race-lobby#startRace">🏁 Comenzar carrera</button>
   <% end %>
@@ -127,6 +132,6 @@
     <div id="winner-banner" data-race-lobby-target="winnerBanner"></div>
   </div>
 
-  <div class="back-link"><%= link_to "← Volver a salas", root_path %></div>
+  <div class="back-link"><%= link_to "← Volver a salas", root_path, data: { fx: "back" } %></div>
 
 </div>

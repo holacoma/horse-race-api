@@ -2,15 +2,22 @@ class RaceSimulationJob < ApplicationJob
   queue_as :default
 
   TICK_INTERVAL = 0.3
-  FINISH_LINE   = 100.0
+  # Aceleran como naves hasta unos 430 km/h: lo que dura la carrera sale de su distancia.
+  ACCELERATION  = (14.0..20.0)
+  TOP_SPEED     = (112.0..128.0)
+  CATCH_UP      = 0.05         # los de atrás recuperan algo, para que haya pelea hasta el final
+  SURGE         = (-14.0..14.0)
+  MAX_SLOWDOWN  = 8.0
   COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
+  PRELUDE_SEC   = 13 # vista 3D: presentación de la pista y 3-2-1
 
-  def perform(race_id)
+  def perform(race_id, countdown = COUNTDOWN_SEC)
     race = Race.find(race_id)
     return unless race.running?
 
     entries = race.participants.includes(:user).map do |p|
-      { horse: Horse.find(p.horse_id), username: p.display_name }
+      { participant: p, horse: Horse.find(p.horse_id), username: p.display_name,
+        speed: 0.0, acceleration: rand(ACCELERATION), top_speed: rand(TOP_SPEED) }
     end
 
     return if entries.empty?
@@ -20,20 +27,26 @@ class RaceSimulationJob < ApplicationJob
       participants: entries.map { |e| { id: e[:horse].id, name: e[:horse].name, username: e[:username] } }
     })
 
-    sleep COUNTDOWN_SEC
+    sleep countdown
+
+    distance = race.distance.to_f
 
     loop do
-      entries.each { |e| e[:horse].position = [ e[:horse].position + rand(1.0..8.0), FINISH_LINE ].min }
+      advance(entries, distance)
 
+      # Por el canal va el porcentaje recorrido: las vistas no dependen de la distancia.
       ActionCable.server.broadcast("race_#{race_id}", {
         type: "progress",
-        participants: entries.map { |e| { id: e[:horse].id, position: e[:horse].position.round(2) } }
+        participants: entries.map { |e| { id: e[:horse].id, position: (e[:horse].position / distance * 100).round(2) } }
       })
 
-      winner = entries.find { |e| e[:horse].position >= FINISH_LINE }
+      winner = entries.find { |e| e[:horse].position >= distance }
 
       if winner
-        race.update!(status: :finished, winner_name: winner[:horse].name, finished_at: Time.current)
+        Race.transaction do
+          save_final_ranks(entries, winner)
+          race.update!(status: :finished, winner_name: winner[:horse].name, finished_at: Time.current)
+        end
 
         ActionCable.server.broadcast("race_#{race_id}", {
           type: "finished",
@@ -45,5 +58,22 @@ class RaceSimulationJob < ApplicationJob
 
       sleep TICK_INTERVAL
     end
+  end
+
+  private
+
+  def advance(entries, distance)
+    leader = entries.map { |e| e[:horse].position }.max
+    entries.each do |e|
+      target = e[:top_speed] + (leader - e[:horse].position) * CATCH_UP + rand(SURGE)
+      e[:speed] += (target - e[:speed]).clamp(-MAX_SLOWDOWN, e[:acceleration] * TICK_INTERVAL)
+      e[:horse].position = [ e[:horse].position + e[:speed] * TICK_INTERVAL, distance ].min
+    end
+  end
+
+  # Varios pueden llegar a la meta en el mismo tick: el ganador anunciado siempre queda primero.
+  def save_final_ranks(entries, winner)
+    others = (entries - [ winner ]).sort_by { |e| -e[:horse].position }
+    [ winner, *others ].each.with_index(1) { |e, rank| e[:participant].update!(final_rank: rank) }
   end
 end

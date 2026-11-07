@@ -12,6 +12,8 @@ Rails.application.routes.draw do
     member do
       post :start
       get  :live
+      get  :results
+      get  :live3d unless Rails.env.production?
     end
     resources :participants, only: [ :create ]
   end
@@ -20,6 +22,11 @@ Rails.application.routes.draw do
   resources :horse_favorites, only: [ :create, :destroy ]
 
   get "/horses/search", to: "horses#search"
+
+  unless Rails.env.production?
+    get  "/prototipo3d", to: "prototipos#carrera3d", as: :prototipo3d
+    post "/prototipo3d", to: "prototipos#crear_carrera"
+  end
 
   mount ActionCable.server => "/cable"
 end
