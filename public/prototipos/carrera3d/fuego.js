@@ -15,9 +15,30 @@ const EMIT_PER_SECOND = 720
 // El frente de la línea se pasa un poco de los extremos para cubrir todo el cuerpo.
 const frontOf = burn => burn * 1.3 - 0.15
 
+// Los colores del caballo de fuego, en espacio lineal. Los demás elementos arden con su propio color.
+const FIRE = {
+  deep: [1.0, 0.12, 0.006], core: [1.0, 0.6, 0.12], ember: [0.075, 0.009, 0.003], glow: [1.0, 0.22, 0.02],
+  eye: [1.0, 0.72, 0.24], line: [1.0, 0.84, 0.5], spark: [1.0, 0.72, 0.3], flame: [1.0, 0.28, 0.03], smoke: [0.55, 0.04, 0.006]
+}
+
+// Mismo tono que el color del elemento, con el brillo de cada parte del fuego original: los azules y violetas
+// tienen poca luminancia y sin compensar se verían apagados al lado del naranja.
+function paletteOf(element) {
+  if (element.name === "Fuego") return Object.fromEntries(Object.entries(FIRE).map(([k, v]) => [k, new THREE.Color(...v)]))
+  const hsl = new THREE.Color(element.outer).getHSL({}, THREE.SRGBColorSpace)
+  const saturation = Math.max(0.55, hsl.s)
+  const lightness = { deep: 0.5, core: 0.74, ember: 0.42, glow: 0.56, eye: 0.82, line: 0.9, spark: 0.8, flame: 0.56, smoke: 0.36 }
+  const luminance = c => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+  return Object.fromEntries(Object.entries(FIRE).map(([k, v]) => {
+    const c = new THREE.Color().setHSL(hsl.h, saturation, lightness[k], THREE.SRGBColorSpace)
+    return [k, c.multiplyScalar(Math.min(2.5, luminance(new THREE.Color(...v)) / Math.max(1e-4, luminance(c))))]
+  }))
+}
+
 const FIRE_GLSL = `
   uniform float uBurn, uFade, uPulse, uFireT, uUnit, uHead, uTail;
   uniform vec3 uEyes[2];
+  uniform vec3 uDeep, uCore, uEmber, uGlow, uEye, uLine;
   varying vec3 vBase;
   vec3 h33(vec3 p) {
     p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -58,17 +79,17 @@ const FIRE_APPLY = `
   float core = (1.0 - smoothstep(0.0, width * 0.34, edge)) * open;
   float beat = 0.5 + 1.15 * uPulse;
   float flow = 0.62 + 0.38 * sin(m.z * 8.0 + uFireT * 8.0 + vn(m * 3.0) * 6.0);
-  vec3 hot = mix(vec3(1.0, 0.12, 0.006) * 2.7, vec3(1.0, 0.6, 0.12) * 7.5, core) * crack * beat * flow;
-  vec3 ember = vec3(0.075, 0.009, 0.003) * (0.2 + 1.5 * vn(m * 13.0)) * (0.45 + 0.7 * uPulse);
+  vec3 hot = mix(uDeep * 2.7, uCore * 7.5, core) * crack * beat * flow;
+  vec3 ember = uEmber * (0.2 + 1.5 * vn(m * 13.0)) * (0.45 + 0.7 * uPulse);
   float fresnel = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 2.4);
-  vec3 burned = ember + hot + vec3(1.0, 0.22, 0.02) * fresnel * (1.1 + 1.4 * uPulse);
+  vec3 burned = ember + hot + uGlow * fresnel * (1.1 + 1.4 * uPulse);
   outgoingLight = mix(outgoingLight, burned, lit * uFade);
-  // La línea de luz que transforma, blanca y con mucho brillo.
+  // La línea de luz que transforma, casi blanca y con mucho brillo.
   float line = exp(-pow((span - front) / 0.032, 2.0)) * step(0.001, uBurn) * (1.0 - step(0.999, uBurn));
-  outgoingLight += vec3(1.0, 0.84, 0.5) * line * 16.0 * uFade;
+  outgoingLight += uLine * line * 16.0 * uFade;
   // Ojos: se encienden cuando pasa la línea.
   float eye = 1.0 - smoothstep(${(EYE_RADIUS * 0.42).toFixed(2)}, ${EYE_RADIUS.toFixed(2)}, min(distance(vBase, uEyes[0]), distance(vBase, uEyes[1])));
-  outgoingLight = mix(outgoingLight, vec3(1.0, 0.72, 0.24) * 11.0, eye * lit * uFade);
+  outgoingLight = mix(outgoingLight, uEye * 11.0, eye * lit * uFade);
 `
 
 // Los puntos de la malla que arden: la cresta del cuello por tramos y la cola entera.
@@ -96,7 +117,7 @@ function findAnchors(position, head, tail) {
   return anchors
 }
 
-function buildFlames(model, head, tail) {
+function buildFlames(model, head, tail, palette) {
   const geometry = new THREE.BufferGeometry()
   const positions = new Float32Array(PARTICLES * 3)
   const lifes = new Float32Array(PARTICLES).fill(1)
@@ -107,7 +128,10 @@ function buildFlames(model, head, tail) {
 
   const points = new THREE.Points(geometry, new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { uViewHeight: shared.uViewHeight },
+    uniforms: {
+      uViewHeight: shared.uViewHeight,
+      uSpark: { value: palette.spark }, uFlame: { value: palette.flame }, uSmoke: { value: palette.smoke }
+    },
     vertexShader: `
       attribute float aLife, aSize; varying float vLife; uniform float uViewHeight;
       void main() {
@@ -120,18 +144,20 @@ function buildFlames(model, head, tail) {
       }`,
     fragmentShader: `
       varying float vLife;
+      uniform vec3 uSpark, uFlame, uSmoke;
       void main() {
         float d = length(gl_PointCoord - 0.5);
         if (d > 0.5 || vLife >= 1.0) discard;
         float a = pow(1.0 - d * 2.0, 1.8) * (1.0 - vLife * vLife) * 0.62;
-        vec3 color = mix(vec3(1.0, 0.72, 0.3) * 2.3, vec3(1.0, 0.28, 0.03) * 1.5, smoothstep(0.0, 0.3, vLife));
-        color = mix(color, vec3(0.55, 0.04, 0.006) * 0.7, smoothstep(0.3, 0.82, vLife));
+        vec3 color = mix(uSpark * 2.3, uFlame * 1.5, smoothstep(0.0, 0.3, vLife));
+        color = mix(color, uSmoke * 0.7, smoothstep(0.3, 0.82, vLife));
         gl_FragColor = vec4(color, a);
       }`
   }))
   points.frustumCulled = false
 
-  const anchors = findAnchors(model.geometry.attributes.position, head, tail)
+  // Las zonas se eligen sobre la pose original; dónde están ahora sale de la pose de pie más el galope.
+  const anchors = findAnchors(model.geometry.attributes.aRef, head, tail)
   const base = model.geometry.attributes.position.array
   const deltas = model.geometry.morphAttributes.position.map(attribute => attribute.array)
   const velocity = new Float32Array(PARTICLES * 3)
@@ -200,11 +226,14 @@ function buildFlames(model, head, tail) {
 }
 
 export function buildFire(model, element, rim) {
-  const box = new THREE.Box3().setFromBufferAttribute(model.geometry.attributes.position)
+  const box = new THREE.Box3().setFromBufferAttribute(model.geometry.attributes.aRef)
   const head = box.max.z, tail = box.min.z
+  const palette = paletteOf(element)
   const uniforms = {
     uBurn: { value: 0 }, uFade: { value: 1 }, uPulse: { value: 0 }, uFireT: shared.uTime,
-    uUnit: { value: model.scale }, uHead: { value: head }, uTail: { value: tail }, uEyes: { value: EYES }
+    uUnit: { value: model.scale }, uHead: { value: head }, uTail: { value: tail }, uEyes: { value: EYES },
+    uDeep: { value: palette.deep }, uCore: { value: palette.core }, uEmber: { value: palette.ember },
+    uGlow: { value: palette.glow }, uEye: { value: palette.eye }, uLine: { value: palette.line }
   }
 
   const material = toon(element.inner, { rim })
@@ -213,15 +242,15 @@ export function buildFire(model, element, rim) {
     patchToon(shader)
     Object.assign(shader.uniforms, uniforms)
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vBase;")
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvBase = position;")
+      .replace("#include <common>", "#include <common>\nattribute vec3 aRef;\nvarying vec3 vBase;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvBase = aRef;")
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", `#include <common>\n${FIRE_GLSL}`)
       .replace("#include <opaque_fragment>", `${FIRE_APPLY}\n#include <opaque_fragment>`)
   }
   material.customProgramCacheKey = () => "toon-fuego"
 
-  const flames = buildFlames(model, head, tail)
+  const flames = buildFlames(model, head, tail, palette)
   let burn = 0, fade = 1
 
   return {

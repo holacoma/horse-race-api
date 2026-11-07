@@ -11,6 +11,7 @@ const OPENING_SECONDS = 3.2
 const SHOT_SECONDS = 4.5 // una toma cada varios segundos: a esta velocidad, cortes por metros serían un parpadeo
 const FIRE_DELAY = 0.25 // la transformación arranca justo después del ¡YA!
 const FIRE_SECONDS = 2
+const FIRE_CASCADE = 0.14 // segundos entre un carril y el siguiente
 const ARRIVAL_SECONDS = 2.4 // antes de cruzar, la cámara se planta pasando la meta
 // En estas tomas importa ver a todos: sin árboles en cuadro, y los efectos que deforman y barren la imagen bajan mucho.
 const WIDE_SHOTS = new Set(["peloton", "recta", "llegada"])
@@ -133,7 +134,8 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     return h
   })
   const mine = horses.find(h => h.id === myId)
-  const fireHorse = horses.find(h => h.setFire)
+  // Todos arden; la cámara de la transformación va con el tuyo.
+  const fireHorse = mine?.setFire ? mine : horses.find(h => h.setFire)
   // Tomas que se turnan durante la carrera: una general, una de cerca, y así.
   const SHOTS = ["peloton", "heroe", "tele", "peloton", "arco", "peloton", "cola"]
 
@@ -280,7 +282,9 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
 
     const fireSince = state.countdownEnd === null ? -1 : state.clock - state.countdownEnd - FIRE_DELAY
     state.fireFade = damp(state.fireFade, stage === "festejo" ? 0 : 1, 14, realDt)
-    horses.forEach(h => h.setFire?.(clamp(fireSince / FIRE_SECONDS, 0, 1), state.fireFade))
+    // En cascada: primero el tuyo, después los de al lado, carril por carril.
+    const fireLane = horses.indexOf(fireHorse)
+    horses.forEach((h, i) => h.setFire?.(clamp((fireSince - Math.abs(i - fireLane) * FIRE_CASCADE) / FIRE_SECONDS, 0, 1), state.fireFade))
 
     if (state.winner && racing && state.winner.x >= FINISH - 0.4) {
       state.crossedAt = state.clock

@@ -3,11 +3,11 @@
 import * as THREE from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { buildFire } from "./fuego.js"
-import { outline, toon } from "./caballo.js"
+import { outline } from "./caballo.js"
 
-// Cada caballo es un elemento, con un color adentro y otro afuera. Por ahora, solo color.
+// Cada caballo es un elemento, con un color adentro y otro afuera. Al largar, todos arden con el color de afuera.
 export const ELEMENTS = [
-  { name: "Fuego", inner: 0x3a0800, outer: 0xff7a14, fire: true },
+  { name: "Fuego", inner: 0x3a0800, outer: 0xff7a14 },
   { name: "Hielo", inner: 0x0a2c5c, outer: 0x86ecff },
   { name: "Electricidad", inner: 0x170838, outer: 0xb78cff },
   { name: "Agua", inner: 0x00284a, outer: 0x2fa0ff },
@@ -24,6 +24,71 @@ export const ELEMENTS = [
 const HEIGHT = 2.5 // metros, de los cascos a las orejas
 const LEVELS = 2
 const HEADING = Math.PI / 2 // el modelo mira hacia +z; la carrera corre hacia +x
+const LEG_CUT = 75 // altura de la panza en unidades del modelo
+
+// Reposo, en unidades del modelo sobre la pose original: dónde gira el cuello y dónde nace la cola.
+const REST = {
+  neck: { fromZ: 45, toZ: 85, aboveY: 85, pivotY: 120, pivotZ: 50 },
+  tail: { fromZ: -118, toZ: -150, aboveY: 100, pivotY: 140, pivotZ: -122 }
+}
+
+// Parado, el caballo no se queda quieto: sube y baja la cabeza, mira a los lados y a veces la sacude;
+// la cola cuelga y espanta moscas; cada tanto patea el suelo con una mano. Pesos por zona en aRest.
+const REST_GLSL = `
+  attribute vec3 aRest;
+  uniform float uRest, uRestT;
+  uniform vec2 uNeck, uTailRoot;
+  uniform vec4 uPaw; // codo (y, z) y rodilla (y, z)
+  vec2 restTurn(vec2 v, float a) { float c = cos(a), s = sin(a); return vec2(c * v.x - s * v.y, s * v.x + c * v.y); }
+  // point: 1 para posiciones, 0 para normales (solo giran).
+  vec3 restBend(vec3 p, float point) {
+    if (uRest <= 0.0) return p;
+    float t = uRestT;
+    float paw = uRest * aRest.z * smoothstep(0.45, 1.0, sin(t * 0.43)) * (0.5 - 0.5 * cos(t * 6.0));
+    if (paw > 0.0) {
+      float lower = smoothstep(uPaw.z + 6.0, uPaw.z - 6.0, position.y);
+      vec2 knee = uPaw.zw * point;
+      p.yz = knee + restTurn(p.yz - knee, 1.3 * paw * lower);
+      vec2 elbow = uPaw.xy * point;
+      p.yz = elbow + restTurn(p.yz - elbow, -0.45 * paw);
+    }
+    float head = uRest * aRest.x;
+    if (head > 0.0) {
+      float down = 0.1 + 0.07 * sin(t * 1.1) + 0.38 * smoothstep(0.3, 1.0, sin(t * 0.19 + 2.0));
+      float shake = 0.16 * pow(max(0.0, sin(t * 0.57 + 1.0)), 40.0) * sin(t * 17.0);
+      float look = 0.32 * sin(t * 0.31) + 0.06 * sin(t * 1.7);
+      vec2 neck = uNeck * point;
+      p.yz = neck + restTurn(p.yz - neck, (down + shake) * head);
+      vec2 neckXZ = vec2(0.0, uNeck.y) * point;
+      p.xz = neckXZ + restTurn(p.xz - neckXZ, look * head);
+    }
+    float tail = uRest * aRest.y;
+    if (tail > 0.0) {
+      float swish = 0.55 * sin(t * 2.3 + 1.5 * sin(t * 0.7)) * (0.5 + 0.5 * sin(t * 0.37));
+      vec2 root = uTailRoot * point;
+      p.yz = root + restTurn(p.yz - root, -1.05 * tail);
+      vec2 rootXZ = vec2(0.0, uTailRoot.y) * point;
+      p.xz = rootXZ + restTurn(p.xz - rootXZ, swish * tail);
+    }
+    return p;
+  }
+`
+
+// Se suma a lo que ya hace el material (fuego, contorno), después de aplicar el galope.
+function withRest(material, uniforms) {
+  const previous = material.onBeforeCompile
+  const key = material.customProgramCacheKey
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer)
+    Object.assign(shader.uniforms, uniforms)
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", `#include <common>\n${REST_GLSL}`)
+      .replace("#include <morphnormal_vertex>", "#include <morphnormal_vertex>\nobjectNormal = restBend(objectNormal, 0.0);")
+      .replace("#include <morphtarget_vertex>", "#include <morphtarget_vertex>\ntransformed = restBend(transformed, 1.0);")
+  }
+  material.customProgramCacheKey = () => `${key.call(material)}-reposo`
+  return material
+}
 
 // Une los vértices repetidos: si no, la subdivisión abre grietas en las costuras.
 function weld(poses, index) {
@@ -134,26 +199,34 @@ export async function loadHorseModel(url = "/prototipos/modelos/Horse.glb") {
 
   let mesh = weld(poses, geo.index.array)
 
-  // Pose de reposo: el cuadro del galope con las patas más juntas. Parado no se queda a mitad de un salto.
-  const stride = pose => {
-    let min = Infinity, max = -Infinity
-    for (let i = 2; i < pose.length; i += 3) { min = Math.min(min, pose[i]); max = Math.max(max, pose[i]) }
-    return max - min
+  // La pose base pasa a ser la de pie: parado, con el galope apagado, queda así. La original se guarda como
+  // referencia (aRef): las zonas del fuego y del reposo se ubican sobre ella.
+  const ref = mesh.poses[0]
+  const stand = standingPose(mesh.poses, mesh.index)
+  const restWeights = new Float32Array(ref.length)
+  for (let i = 0; i < ref.length / 3; i++) {
+    const y = ref[i * 3 + 1], z = ref[i * 3 + 2]
+    restWeights[i * 3] = smoothstep(REST.neck.fromZ, REST.neck.toZ, z) * smoothstep(REST.neck.aboveY, REST.neck.aboveY + 25, y)
+    restWeights[i * 3 + 1] = smoothstep(REST.tail.fromZ, REST.tail.toZ, z) * smoothstep(REST.tail.aboveY, REST.tail.aboveY + 18, y)
   }
-  const lengths = mesh.poses.map(stride)
-  const idle = lengths.indexOf(Math.min(...lengths)) - 1 // -1 es la pose base, que no es un cuadro
+  stand.paw.weights.forEach((w, i) => { restWeights[i * 3 + 2] = w })
+  mesh.poses = [stand.pose, ...mesh.poses.slice(1), ref, restWeights]
 
   for (let level = 0; level < LEVELS; level++) mesh = loopSubdivide(mesh)
+  const weights = mesh.poses.pop()
+  const reference = mesh.poses.pop()
   const normals = mesh.poses.map(pose => vertexNormals(pose, mesh.index))
 
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute("position", new THREE.BufferAttribute(mesh.poses[0], 3))
   geometry.setAttribute("normal", new THREE.BufferAttribute(normals[0], 3))
+  geometry.setAttribute("aRef", new THREE.BufferAttribute(reference, 3))
+  geometry.setAttribute("aRest", new THREE.BufferAttribute(weights, 3))
   geometry.setIndex(mesh.index)
   geometry.morphTargetsRelative = true
-  const delta = (pose, reference) => {
+  const delta = (pose, from) => {
     const out = new Float32Array(pose.length)
-    for (let i = 0; i < pose.length; i++) out[i] = pose[i] - reference[i]
+    for (let i = 0; i < pose.length; i++) out[i] = pose[i] - from[i]
     return new THREE.BufferAttribute(out, 3)
   }
   geometry.morphAttributes.position = mesh.poses.slice(1).map(pose => delta(pose, mesh.poses[0]))
@@ -161,17 +234,108 @@ export async function loadHorseModel(url = "/prototipos/modelos/Horse.glb") {
   geometry.computeBoundingSphere()
   geometry.boundingSphere.radius *= 1.3 // las patas salen de la pose base al galopar
 
-  // Medido sobre la pose base: el cálculo de three suma las deformaciones de la animación y da de más.
-  const box = new THREE.Box3().setFromBufferAttribute(geometry.attributes.position)
+  // Medido sobre la pose original: el cálculo de three suma las deformaciones de la animación y da de más.
+  const box = new THREE.Box3().setFromBufferAttribute(geometry.attributes.aRef)
   // La animación apunta a la malla original del archivo; sin esto, en las mallas nuevas no mueve nada.
   const clip = gltf.animations[0]
   clip.tracks.forEach(track => { track.name = ".morphTargetInfluences" })
   return {
     geometry,
     clip,
-    idle,
+    joints: {
+      uNeck: { value: new THREE.Vector2(REST.neck.pivotY, REST.neck.pivotZ) },
+      uTailRoot: { value: new THREE.Vector2(REST.tail.pivotY, REST.tail.pivotZ) },
+      uPaw: { value: stand.paw.joints }
+    },
+    stand: stand.report,
     scale: HEIGHT / (box.max.y - box.min.y),
     centerZ: (box.max.z + box.min.z) / 2
+  }
+}
+
+const smoothstep = (a, b, x) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
+  return t * t * (3 - 2 * t)
+}
+
+// Debajo de la panza cada pata es una pieza aparte de la malla.
+function legPieces(ref, index) {
+  const count = ref.length / 3
+  const parent = Int32Array.from({ length: count }, (_, i) => i)
+  const find = i => {
+    while (parent[i] !== i) i = parent[i] = parent[parent[i]]
+    return i
+  }
+  const low = i => ref[i * 3 + 1] < LEG_CUT
+  for (let t = 0; t < index.length; t += 3) {
+    const tri = [index[t], index[t + 1], index[t + 2]]
+    for (let k = 0; k < 3; k++) {
+      const a = tri[k], b = tri[(k + 1) % 3]
+      if (low(a) && low(b)) parent[find(a)] = find(b)
+    }
+  }
+  const groups = new Map()
+  for (let i = 0; i < count; i++) {
+    if (!low(i)) continue
+    const root = find(i)
+    if (!groups.has(root)) groups.set(root, [])
+    groups.get(root).push(i)
+  }
+  return [...groups.values()].sort((a, b) => b.length - a.length).slice(0, 4)
+}
+
+// Ningún cuadro del galope tiene las cuatro patas apoyadas. La pose de pie usa el cuerpo de la pose original y
+// cada pata del cuadro en que queda más vertical y llega al suelo, corrida para que siga pegada al cuerpo.
+function standingPose(poses, index) {
+  const ref = poses[0]
+  const out = Float32Array.from(ref)
+  const y = (pose, i) => pose[i * 3 + 1]
+  let ground = Infinity
+  for (let i = 1; i < ref.length; i += 3) ground = Math.min(ground, ref[i])
+  const mean = (pose, ids) => [0, 1, 2].map(axis => ids.reduce((s, i) => s + pose[i * 3 + axis], 0) / ids.length)
+  const report = []
+  const legs = legPieces(ref, index).map(leg => {
+    const topY = Math.max(...leg.map(i => y(ref, i)))
+    const top = leg.filter(i => y(ref, i) > topY - 12)
+    const anchor = mean(ref, top)
+    let best = null
+    poses.forEach((pose, frame) => {
+      const hoof = leg.reduce((a, b) => (y(pose, b) < y(pose, a) ? b : a))
+      const at = mean(pose, top)
+      const shift = anchor.map((v, axis) => v - at[axis])
+      const reach = ground - (y(pose, hoof) + shift[1]) // cuánto hay que estirarla (+) o encogerla (-) para que apoye
+      const lean = Math.atan2(pose[hoof * 3 + 2] - at[2], at[1] - y(pose, hoof)) * 57.3
+      const score = Math.abs(lean) + Math.abs(reach) * 1.5
+      if (!best || score < best.score) best = { score, pose, frame, hoof, at, shift, reach, lean }
+    })
+    const { pose, hoof, at, shift, reach } = best
+    const span = Math.max(1, at[1] - y(pose, hoof))
+    const blend = []
+    leg.forEach(i => {
+      const along = Math.min(1, Math.max(0, (y(pose, i) - y(pose, hoof)) / span)) // 0 en el casco, 1 arriba
+      const keep = smoothstep(topY - 22, topY - 4, y(ref, i)) // pegada al cuerpo, sin costura
+      blend.push(1 - keep)
+      for (let axis = 0; axis < 3; axis++) {
+        const moved = pose[i * 3 + axis] + shift[axis] + (axis === 1 ? reach * (1 - along) : 0)
+        out[i * 3 + axis] = moved + (ref[i * 3 + axis] - moved) * keep
+      }
+    })
+    report.push(`cuadro ${best.frame} inclinación ${best.lean.toFixed(0)}° ajuste ${reach.toFixed(1)}`)
+    return { leg, blend, z: mean(ref, leg)[2], x: mean(ref, leg)[0] }
+  })
+
+  // La mano que patea: la delantera izquierda. Codo arriba de la pata y rodilla a 4 de 10 desde el casco.
+  const front = legs.filter(l => l.z > 0).sort((a, b) => b.x - a.x)[0]
+  const elbow = mean(out, front.leg.filter(i => y(ref, i) > Math.max(...front.leg.map(j => y(ref, j))) - 12))
+  const hoofY = Math.min(...front.leg.map(i => y(out, i)))
+  const kneeY = hoofY + (elbow[1] - hoofY) * 0.4
+  const nearKnee = front.leg.filter(i => Math.abs(y(out, i) - kneeY) < 6)
+  const weights = new Float32Array(ref.length / 3)
+  front.leg.forEach((i, k) => { weights[i] = front.blend[k] })
+  return {
+    pose: out,
+    report,
+    paw: { weights, joints: new THREE.Vector4(elbow[1], elbow[2], kneeY, mean(out, nearKnee)[2]) }
   }
 }
 
@@ -185,12 +349,13 @@ export function buildProHorse(model, index) {
   holder.position.x = -model.centerZ * model.scale
   root.add(holder)
 
-  const fire = element.fire ? buildFire(model, element, outer) : null
-  const mesh = new THREE.Mesh(model.geometry, fire ? fire.material : toon(element.inner, { rim: outer }))
+  const fire = buildFire(model, element, outer)
+  // Cada caballo descansa a su ritmo: el reloj arranca corrido.
+  const rest = { uRest: { value: 1 }, uRestT: { value: index * 7.3 }, ...model.joints }
+  const mesh = new THREE.Mesh(model.geometry, withRest(fire.material, rest))
   holder.add(mesh)
-  if (fire) root.add(fire.flames)
-  let idleAdded = 0
-  const hull = new THREE.Mesh(model.geometry, outline({ width: 0.02 / model.scale, color: outer.clone().multiplyScalar(1.8), grow: true }))
+  root.add(fire.flames)
+  const hull = new THREE.Mesh(model.geometry, withRest(outline({ width: 0.02 / model.scale, color: outer.clone().multiplyScalar(1.8), grow: true }), rest))
   hull.morphTargetInfluences = mesh.morphTargetInfluences
   hull.morphTargetDictionary = mesh.morphTargetDictionary
   mesh.add(hull)
@@ -211,19 +376,17 @@ export function buildProHorse(model, index) {
 
   return {
     root, silk: element.outer, stride: 0,
-    // El tranco sigue a la velocidad, con tope para que se lea a 400 km/h. Parado, pasa a la pose de reposo.
+    // El tranco sigue a la velocidad, con tope para que se lea a 400 km/h. Parado, el galope se apaga y queda
+    // la pose de pie, con el reposo encima.
     animate(dt, _stride, _speed, _excite, metersPerSecond) {
       const moving = Math.min(1, metersPerSecond / 4)
       action.setEffectiveWeight(moving)
       action.setEffectiveTimeScale(Math.min(2.2, Math.max(0.4, metersPerSecond / 14)))
-      // Si el resultado no cambia, el mezclador no reescribe las influencias: lo sumado antes hay que sacarlo a mano.
-      // Sin esto, parado se acumula cuadro a cuadro y el caballo se infla sin límite.
-      if (model.idle >= 0) mesh.morphTargetInfluences[model.idle] -= idleAdded
       mixer.update(dt)
-      idleAdded = 1 - moving
-      if (model.idle >= 0) mesh.morphTargetInfluences[model.idle] += idleAdded
-      fire?.update(dt, action.time / model.clip.duration, metersPerSecond, mesh.morphTargetInfluences)
+      rest.uRest.value = 1 - moving
+      rest.uRestT.value += dt
+      fire.update(dt, action.time / model.clip.duration, metersPerSecond, mesh.morphTargetInfluences)
     },
-    setFire: fire?.set
+    setFire: fire.set
   }
 }
