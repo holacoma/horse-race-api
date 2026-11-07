@@ -2,11 +2,12 @@
 // El modelo trae pocos polígonos, así que se subdivide y se suaviza cada cuadro de su animación.
 import * as THREE from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
+import { buildFire } from "./fuego.js"
 import { outline, toon } from "./caballo.js"
 
 // Cada caballo es un elemento, con un color adentro y otro afuera. Por ahora, solo color.
 export const ELEMENTS = [
-  { name: "Fuego", inner: 0x3a0800, outer: 0xff7a14 },
+  { name: "Fuego", inner: 0x3a0800, outer: 0xff7a14, fire: true },
   { name: "Hielo", inner: 0x0a2c5c, outer: 0x86ecff },
   { name: "Electricidad", inner: 0x170838, outer: 0xb78cff },
   { name: "Agua", inner: 0x00284a, outer: 0x2fa0ff },
@@ -184,9 +185,12 @@ export function buildProHorse(model, index) {
   holder.position.x = -model.centerZ * model.scale
   root.add(holder)
 
-  const mesh = new THREE.Mesh(model.geometry, toon(element.inner, { rim: outer }))
+  const fire = element.fire ? buildFire(model, element, outer) : null
+  const mesh = new THREE.Mesh(model.geometry, fire ? fire.material : toon(element.inner, { rim: outer }))
   holder.add(mesh)
-  const hull = new THREE.Mesh(model.geometry, outline({ width: 0.02 / model.scale, color: outer.clone().multiplyScalar(1.8) }))
+  if (fire) root.add(fire.flames)
+  let idleAdded = 0
+  const hull = new THREE.Mesh(model.geometry, outline({ width: 0.02 / model.scale, color: outer.clone().multiplyScalar(1.8), grow: true }))
   hull.morphTargetInfluences = mesh.morphTargetInfluences
   hull.morphTargetDictionary = mesh.morphTargetDictionary
   mesh.add(hull)
@@ -212,8 +216,14 @@ export function buildProHorse(model, index) {
       const moving = Math.min(1, metersPerSecond / 4)
       action.setEffectiveWeight(moving)
       action.setEffectiveTimeScale(Math.min(2.2, Math.max(0.4, metersPerSecond / 14)))
+      // Si el resultado no cambia, el mezclador no reescribe las influencias: lo sumado antes hay que sacarlo a mano.
+      // Sin esto, parado se acumula cuadro a cuadro y el caballo se infla sin límite.
+      if (model.idle >= 0) mesh.morphTargetInfluences[model.idle] -= idleAdded
       mixer.update(dt)
-      if (model.idle >= 0) mesh.morphTargetInfluences[model.idle] += 1 - moving
-    }
+      idleAdded = 1 - moving
+      if (model.idle >= 0) mesh.morphTargetInfluences[model.idle] += idleAdded
+      fire?.update(dt, action.time / model.clip.duration, metersPerSecond, mesh.morphTargetInfluences)
+    },
+    setFire: fire?.set
   }
 }

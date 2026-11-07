@@ -25,6 +25,15 @@ class RaceSimulationJobTest < ActiveJob::TestCase
     assert_equal @race.winner_name, results.first.horse_name
   end
 
+  test "si varios cruzan en el mismo tick gana el que más pasó la meta, no el primero de la lista" do
+    entries = [ { name: "primero de la lista", reached: 101.0 }, { name: "el que más avanzó", reached: 130.0 }, { name: "no llegó", reached: 90.0 } ]
+
+    winner = RaceSimulationJob.new.send(:first_to_arrive, entries, 100.0)
+
+    assert_equal "el que más avanzó", winner[:name]
+    assert_nil RaceSimulationJob.new.send(:first_to_arrive, [ { reached: 99.0 } ], 100.0)
+  end
+
   test "lo que dura la carrera sale de su distancia y el canal manda el porcentaje recorrido" do
     @race.update!(distance: 400)
 

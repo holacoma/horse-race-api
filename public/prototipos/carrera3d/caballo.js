@@ -7,7 +7,8 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js"
 export const shared = {
   uTime: { value: 0 },
   uRimColor: { value: new THREE.Color(0x000000) },
-  uHorseRim: { value: 0.4 } // fuerza del brillo de borde propio de cada caballo
+  uHorseRim: { value: 0.4 }, // fuerza del brillo de borde propio de cada caballo
+  uViewHeight: { value: 1080 } // alto de la imagen en píxeles, para el tamaño de las partículas
 }
 
 const OUTLINE_COLOR = 0x1a1020
@@ -46,10 +47,12 @@ export function toon(color, { hair = false, vertexColors = false, map = null, si
   return material
 }
 
-export function outline({ hair = false, width = OUTLINE_WIDTH, color = OUTLINE_COLOR } = {}) {
+// grow: de lejos el contorno no baja de cierto grosor en pantalla, para que el caballo se siga viendo en las tomas generales.
+export function outline({ hair = false, width = OUTLINE_WIDTH, color = OUTLINE_COLOR, grow = false } = {}) {
   const material = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide })
-  material.onBeforeCompile = shader => patchVertex(shader, hair, `transformed += normal * ${width.toFixed(3)};`)
-  material.customProgramCacheKey = () => `outline-${hair}-${width}`
+  const distance = grow ? " * max(1.0, length((modelViewMatrix * vec4(transformed, 1.0)).xyz) / 12.0)" : ""
+  material.onBeforeCompile = shader => patchVertex(shader, hair, `transformed += normal * ${width.toFixed(3)}${distance};`)
+  material.customProgramCacheKey = () => `outline-${hair}-${width}-${grow}`
   return material
 }
 const OUTLINE = outline()

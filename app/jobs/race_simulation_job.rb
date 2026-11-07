@@ -40,7 +40,7 @@ class RaceSimulationJob < ApplicationJob
         participants: entries.map { |e| { id: e[:horse].id, position: (e[:horse].position / distance * 100).round(2) } }
       })
 
-      winner = entries.find { |e| e[:horse].position >= distance }
+      winner = first_to_arrive(entries, distance)
 
       if winner
         Race.transaction do
@@ -67,13 +67,19 @@ class RaceSimulationJob < ApplicationJob
     entries.each do |e|
       target = e[:top_speed] + (leader - e[:horse].position) * CATCH_UP + rand(SURGE)
       e[:speed] += (target - e[:speed]).clamp(-MAX_SLOWDOWN, e[:acceleration] * TICK_INTERVAL)
-      e[:horse].position = [ e[:horse].position + e[:speed] * TICK_INTERVAL, distance ].min
+      e[:reached] = e[:horse].position + e[:speed] * TICK_INTERVAL
+      e[:horse].position = [ e[:reached], distance ].min
     end
   end
 
-  # Varios pueden llegar a la meta en el mismo tick: el ganador anunciado siempre queda primero.
+  # A esta velocidad varios cruzan la meta en el mismo tick: gana el que más la pasó, no el primero de la lista.
+  def first_to_arrive(entries, distance)
+    entries.select { |e| e[:reached] >= distance }.max_by { |e| e[:reached] }
+  end
+
+  # El ganador anunciado siempre queda primero.
   def save_final_ranks(entries, winner)
-    others = (entries - [ winner ]).sort_by { |e| -e[:horse].position }
+    others = (entries - [ winner ]).sort_by { |e| -e[:reached] }
     [ winner, *others ].each.with_index(1) { |e, rank| e[:participant].update!(final_rank: rank) }
   end
 end

@@ -18,6 +18,59 @@ canvas { display: block; position: fixed; inset: 0; }
 .hud-rank i { width: 10px; height: 10px; border-radius: 50%; flex: none; border: 1px solid #fff; }
 .hud-rank span { overflow: hidden; text-overflow: ellipsis; }
 .hud-rank .mine { background: #ffc61a; color: #1a1020; }
+.hud-rank em { margin-left: auto; padding-left: 6px; flex: none; font-style: normal; font-size: 11px; opacity: .8; }
+
+/* Mapa de la carrera: un carril por caballo, de la salida a la meta. */
+.hud-map {
+  left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: min(56vw, 880px); padding: 7px 14px 7px 10px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 1px;
+  background: rgba(16, 8, 28, .72); border-radius: 9px;
+  opacity: 0; transition: opacity .25s;
+}
+.map-lane { position: relative; height: 7px; border-bottom: 1px solid rgba(255, 255, 255, .13); }
+.map-slide { position: absolute; inset: 0; will-change: transform; }
+.map-pin {
+  position: absolute; left: -6px; top: 0; width: 12px; height: 7px;
+  border-radius: 4px; box-shadow: 0 0 5px currentColor;
+}
+.map-pin.mine { outline: 1px solid #fff; }
+.map-pin.lead { top: -1px; height: 9px; width: 16px; left: -8px; box-shadow: 0 0 9px #fff; }
+.map-goal {
+  position: absolute; right: 12px; top: 5px; bottom: 5px; width: 5px;
+  background: repeating-conic-gradient(#fff 0 25%, #14081c 0 50%) 0 0 / 5px 5px;
+}
+
+/* Quién va primero, en grande, en la recta final. */
+.hud-lead {
+  left: 50%; top: 14px; transform: translateX(-50%);
+  display: grid; grid-template-columns: auto auto; column-gap: 12px; align-items: center;
+  padding: 9px 20px; border-radius: 10px; white-space: nowrap;
+  background: rgba(16, 8, 28, .82); border: 3px solid var(--c, #fff);
+  box-shadow: 0 0 22px var(--c, #fff);
+  opacity: 0; transition: opacity .15s;
+}
+.hud-lead i { grid-row: span 2; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; }
+.hud-lead b { font: 900 clamp(20px, 2.5vw, 36px) system-ui, sans-serif; line-height: 1.05; }
+.hud-lead small { font: 700 clamp(12px, 1vw, 15px) system-ui, sans-serif; opacity: .9; }
+
+/* Puesto sobre cada caballo en las tomas generales y en la llegada. */
+.hud-tag {
+  left: 0; top: 0; opacity: 0; will-change: transform;
+  padding: 1px 7px; border-radius: 6px; white-space: nowrap;
+  background: rgba(16, 8, 28, .86); border: 2px solid var(--c, #fff);
+  font: 800 13px system-ui, sans-serif;
+}
+.hud-tag.first {
+  padding: 3px 11px; background: var(--c, #fff); color: #14081c;
+  border-color: #fff; font: 900 18px system-ui, sans-serif;
+  box-shadow: 0 0 14px var(--c, #fff);
+  margin-top: -26px; /* más arriba que los demás, con su palito: el número de al lado nunca le queda encima */
+}
+.hud-tag.first::after {
+  content: ""; position: absolute; left: 50%; top: 100%;
+  width: 2px; height: 26px; margin-left: -1px; background: #fff;
+}
 
 .hud-meter {
   right: 16px; top: 14px; padding: 8px 14px; border-radius: 10px;
@@ -55,4 +108,6 @@ canvas { display: block; position: fixed; inset: 0; }
 
 @media (max-width: 600px) {
   .hud-rank { width: 150px; font-size: 10px; }
+  .hud-map { width: calc(100vw - 28px); bottom: 62px; }
+  .hud-tag.first { font-size: 13px; }
 }

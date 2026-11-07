@@ -37,13 +37,14 @@ const participants = Array.from({ length: N }, (_, i) => ({ id: i + 1, name: NAM
 let seed = Number(params.get("seed")) || Math.floor(Math.random() * 1e9)
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
 
-const myId = Number(params.get("yo")) || 2
+const myId = Number(params.get("yo")) || 1 // igual que en el prototipo real: el primero de la lista es el tuyo
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
 const race = createRace({ participants, distance: DISTANCE, horseModel, myId, capture: CAPTURE, effects: !reducedMotion, showFps: !CAPTURE })
 
 // Igual que RaceSimulationJob: aceleran hasta su velocidad tope, y los de atrás recuperan algo.
 const positions = participants.map(() => 0)
 const speeds = participants.map(() => 0)
+const reached = participants.map(() => 0)
 const accel = participants.map(() => 14 + random() * 6)
 const top = participants.map(() => 112 + random() * 16)
 let time = 0, nextTick = PRELUDE_SECONDS, finished = false
@@ -57,10 +58,11 @@ function drive(dt) {
   positions.forEach((p, i) => {
     const target = top[i] + (leader - p) * 0.05 + (random() - 0.5) * 28
     speeds[i] += Math.max(-8, Math.min(accel[i] * 0.3, target - speeds[i]))
-    positions[i] = Math.min(DISTANCE, p + speeds[i] * 0.3)
+    reached[i] = p + speeds[i] * 0.3
+    positions[i] = Math.min(DISTANCE, reached[i])
   })
   race.tick(positions.map((meters, i) => ({ id: participants[i].id, position: (meters / DISTANCE) * 100 })))
-  const winner = positions.findIndex(p => p >= DISTANCE)
+  const winner = reached.reduce((best, r, i) => (r >= DISTANCE && (best < 0 || r > reached[best]) ? i : best), -1)
   if (winner >= 0) {
     finished = true
     race.finish({ id: participants[winner].id, name: participants[winner].name, username: participants[winner].username })
