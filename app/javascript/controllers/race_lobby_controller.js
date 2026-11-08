@@ -45,7 +45,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=6"),
+      import("/prototipos/carrera3d/escena.js?v=7"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -65,13 +65,14 @@ export default class extends Controller {
     window.__sala = { race: this.race }
     // Lo que llegó mientras cargaba la escena.
     this.pending.splice(0).forEach(fn => fn())
+    if (data.favoritos) this.race.setFavoritos(data.favoritos)
     if (data.running) this.race.startIn(data.secondsToStart ?? 0)
     // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
     if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
     this.race.run()
     // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
     await Promise.all([
-      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp`, `/images/retratos/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
       document.fonts.ready
     ])
     this.cargandoTarget.hidden = true
@@ -120,6 +121,7 @@ export default class extends Controller {
       if (data.type === "player_joined") {
         this.addParticipant(data.participant)
       } else if (data.type === "race_started") {
+        if (data.favoritos) this.whenReady(() => this.race.setFavoritos(data.favoritos))
         this.onRaceStarted()
       } else if (data.type === "progress") {
         this.whenReady(() => this.race.tick(data.participants))

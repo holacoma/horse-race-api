@@ -17,13 +17,14 @@ class RaceSimulationJob < ApplicationJob
 
     entries = race.participants.includes(:user).map do |p|
       { participant: p, horse: Horse.find(p.horse_id), username: p.display_name,
-        speed: 0.0, acceleration: rand(ACCELERATION), top_speed: rand(TOP_SPEED) }
+        speed: 0.0, **race.fuerzas_de(p.horse_id) }
     end
 
     return if entries.empty?
 
     ActionCable.server.broadcast("race_#{race_id}", {
       type: "race_started",
+      favoritos: race.favoritos,
       participants: entries.map { |e| { id: e[:horse].id, name: e[:horse].name, username: e[:username] } }
     })
 

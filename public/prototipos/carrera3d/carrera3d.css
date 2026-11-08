@@ -128,3 +128,22 @@ canvas { display: block; position: fixed; inset: 0; }
   box-shadow: 4px 4px 0 var(--carmesi); transition: opacity .2s;
 }
 .hud-reco.show { opacity: 1; animation: latido 1.2s ease-in-out infinite; }
+
+/* Tarjeta de presentación de un favorito (preludio): pantalla completa, a lo Persona 5. Fondo negro con un corte en
+   el color de su elemento, el retrato grande a la derecha y el nombre en gótica a la izquierda. Entra de costado. */
+.hud-favorito {
+  inset: 0; z-index: 30; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; pointer-events: none; opacity: 0;
+  background: linear-gradient(115deg, var(--noche-1) 0 48%, var(--c) 48% 51%, var(--noche-1) 51% 100%);
+}
+.hud-favorito img { position: absolute; right: 0; top: 0; height: 100%; width: 58%; object-fit: cover; object-position: center 25%; clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); }
+.favorito-texto { position: relative; z-index: 1; display: grid; gap: 6px; padding: 0 0 0 6vw; max-width: 52%; transform: rotate(-4deg); }
+.favorito-texto small { justify-self: start; padding: 2px 12px; background: var(--carmesi); color: #fff; font: 700 clamp(12px, 1.6vw, 18px) var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; }
+.favorito-texto b { font: 400 clamp(38px, 7vw, 96px)/.95 var(--fuente-gotica); color: var(--noche-12); text-shadow: 4px 4px 0 var(--c), 8px 7px 0 var(--carmesi); overflow-wrap: anywhere; }
+.favorito-texto span { color: var(--noche-11, #cfc8bd); font: 600 clamp(13px, 1.6vw, 18px) var(--fuente-texto); }
+.hud-favorito.show { opacity: 1; animation: favorito-entra .45s cubic-bezier(.2, 1.3, .4, 1) both; }
+@keyframes favorito-entra { from { transform: translateX(-30%) skewX(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 640px) {
+  .hud-favorito { align-items: flex-end; background: var(--noche-1); }
+  .hud-favorito img { width: 100%; height: 62%; clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }
+  .favorito-texto { max-width: none; padding: 0 6vw 9vh; }
+}

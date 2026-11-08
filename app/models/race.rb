@@ -54,6 +54,17 @@ class Race < ApplicationRecord
     end
   end
 
+  # Las fuerzas de cada caballo salen de una semilla de la carrera, no del azar al largar: así se sabe de antemano
+  # quiénes son los favoritos (los más rápidos), aunque el empuje de cada tramo siga siendo al azar.
+  def fuerzas_de(horse_id)
+    rng = Random.new(id * 7919 + horse_id.to_i)
+    { acceleration: rng.rand(RaceSimulationJob::ACCELERATION), top_speed: rng.rand(RaceSimulationJob::TOP_SPEED) }
+  end
+
+  def favoritos(cuantos = 3)
+    participants.map(&:horse_id).sort_by { |h| f = fuerzas_de(h); [ -f[:top_speed], -f[:acceleration] ] }.first(cuantos)
+  end
+
   # Libres: ni el caballo ni su elemento están en la sala, así no se repiten colores en la carrera.
   def available_horses
     taken = participants.pluck(:horse_id)

@@ -170,6 +170,17 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     h.boom = new THREE.Sprite(m); h.boom.position.set(0, 1.4, 0); h.boom.userData.desde = state.clock
     h.root.add(h.boom)
   }
+  // Preludio: los 3 favoritos se presentan uno tras otro, cada uno unos 2,3 s, a partir de los 2,2 s.
+  const FAVORITOS = { desde: 2.2, cada: 2.6, dura: 2.3 }
+  function presentarFavoritos() {
+    const t = state.clock - state.preludeStart
+    if (state.started || !state.favoritos || !(t >= 0)) return hud.favorito(null)
+    const i = Math.floor((t - FAVORITOS.desde) / FAVORITOS.cada)
+    const dentro = (t - FAVORITOS.desde) - i * FAVORITOS.cada < FAVORITOS.dura
+    const h = i >= 0 && dentro ? horses.find(x => x.id === state.favoritos[i]) : null
+    hud.favorito(h || null, i + 1)
+  }
+
   function actualizarExplosiones() {
     if (state.countdownEnd === null) return
     horses.forEach((h, i) => {
@@ -421,6 +432,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     dust.update(motion)
     confetti.update(realDt)
     actualizarExplosiones()
+    presentarFavoritos()
     placeCamera(realDt)
     updateLighting()
     hud.update()
@@ -1370,6 +1382,9 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const rank = make("hud hud-rank")
     const count = make("hud hud-count")
     const win = make("hud hud-win")
+    // Tarjeta de presentación de un favorito, a pantalla completa, durante el preludio.
+    const fav = make("hud hud-favorito")
+    let favActual = null
     const reco = make("hud hud-reco")
     reco.textContent = "Reconectando…"
     const fps = showFps ? make("hud hud-fps") : null
@@ -1494,6 +1509,27 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         }
       },
       reconectando(si) { reco.classList.toggle("show", si) },
+      favorito(h, puesto) {
+        if (h === favActual) return
+        favActual = h
+        if (!h) { fav.classList.remove("show"); return }
+        fav.textContent = ""
+        fav.style.setProperty("--c", hex(h.silk))
+        const img = document.createElement("img")
+        img.src = `/images/retratos/${h.element}.webp`
+        img.alt = ""
+        const texto = document.createElement("div")
+        texto.className = "favorito-texto"
+        const etiqueta = document.createElement("small")
+        etiqueta.textContent = `Favorito n.º ${puesto}`
+        const nombre = document.createElement("b")
+        nombre.textContent = h.name
+        const de = document.createElement("span")
+        de.textContent = `${h.element[0].toUpperCase()}${h.element.slice(1)} · de ${h.username}`
+        texto.append(etiqueta, nombre, de)
+        fav.append(img, texto)
+        fav.classList.remove("show"); void fav.offsetWidth; fav.classList.add("show")
+      },
       showWin(h) {
         // La misma portada de victoria que en resultados: la del elemento del ganador, con el texto encima.
         win.textContent = ""
@@ -1544,6 +1580,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
   return {
     step, run, tick, finish, startIn, join, setMine,
+    setFavoritos(ids) { state.favoritos = ids.map(Number) },
     setConectado(si) { state.reconectando = !si; hud.reconectando(!si) },
     stop() { if (frame) cancelAnimationFrame(frame) },
     // Para probar y grabar.
