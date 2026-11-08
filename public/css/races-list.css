@@ -7,7 +7,7 @@
   text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 7px 8px 0 var(--arena-7);
   animation: susto 12s steps(1) infinite;
 }
-.inicio-marca::after { content: "♥"; color: var(--carmesi); position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
+.inicio-marca::after { content: "🪙"; text-shadow: none; position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
 /* El costado oscuro: la regla en negro y carmesí, como una etiqueta que no debería estar ahí. */
 .inicio-regla {
   max-width: 30ch; text-wrap: balance; padding: 6px 14px; background: var(--noche-1); color: var(--noche-12);

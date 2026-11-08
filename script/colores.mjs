@@ -223,6 +223,11 @@ lines.push("  /* Franjas: rojo, negro y blanco de corte duro, quietas. Para la m
 lines.push("  --franjas: repeating-linear-gradient(-55deg, var(--carmesi) 0 9px, var(--noche-1) 9px 15px, var(--noche-12) 15px 18px, var(--noche-1) 18px 24px);")
 lines.push("  /* Ecos: copias secas y corridas, en negro y carmesí, con un filo frío del otro lado. */")
 lines.push("  --ecos: 3px 3px 0 var(--noche-1), 6px 5px 0 var(--carmesi), -2px 0 0 color-mix(in oklch, var(--caballo-hielo) 55%, transparent);")
+// Arcoíris: los colores de los caballos en orden de tono. --arcoiris para fondos; --arcoiris-banda, una franja angosta
+// sobre transparente para el brillo lateral que cruza la marca y los botones principales.
+const RAINBOW = ["fuego", "roca", "veneno", "naturaleza", "viento", "hielo", "agua", "metal", "electricidad", "cosmos", "sombra"]
+lines.push(`  --arcoiris: linear-gradient(100deg, ${RAINBOW.map(e => `var(--caballo-${e})`).join(", ")});`)
+lines.push(`  --arcoiris-banda: linear-gradient(100deg, transparent 0 36%, ${RAINBOW.map((e, k) => `var(--caballo-${e}) ${(38 + k * 2.4).toFixed(1)}%`).join(", ")}, transparent 64% 100%);`)
 lines.push("  /* Halos de neón: toman el color del elemento (currentColor). En text-shadow o box-shadow; borde fino, nunca relleno grande. */")
 lines.push("  --halo-suave: 0 0 1px currentColor, 0 0 6px color-mix(in oklch, currentColor 50%, transparent);")
 lines.push("  --halo-medio: 0 0 1px currentColor, 0 0 8px color-mix(in oklch, currentColor 70%, transparent), 0 0 22px color-mix(in oklch, currentColor 35%, transparent);")
@@ -241,6 +246,10 @@ lines.push("")
 lines.push("/* De día: latido (corazones y brillitos que laten) y susto (algo raro asoma un instante, como en Doki Doki). */")
 lines.push("@keyframes latido { 0%, 100% { scale: 1; rotate: -8deg } 50% { scale: 1.35; rotate: 8deg } }")
 lines.push("@keyframes susto { 0%, 94%, 100% { color: var(--acento); filter: none; translate: 0 } 94.6% { color: var(--noche-1); filter: contrast(2); translate: 6px 0 } 95.2% { color: var(--carmesi); filter: invert(1); translate: -4px 0 } 95.8% { color: var(--noche-1); filter: none; translate: 2px 2px } }")
+// Brillo lateral: una franja cruza en el primer 40 % del ciclo y descansa el resto. Solo transform y opacidad.
+lines.push("@keyframes brillo { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0 } 6% { opacity: .85 } 36% { opacity: .85 } 40%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0 } }")
+// El mismo brillo sobre letras (la marca): la franja de --arcoiris-banda se corre por dentro del texto.
+lines.push("@keyframes brillo-texto { 0% { background-position: 100% 0 } 40%, 100% { background-position: 0% 0 } }")
 writeFileSync(new URL("../public/css/identidad.css", import.meta.url), lines.join("\n") + "\n")
 
 // ── Controles ──────────────────────────────────────────────────────────────────────

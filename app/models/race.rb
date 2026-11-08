@@ -59,8 +59,14 @@ class Race < ApplicationRecord
     Horse.all.reject { |h| taken.include?(h.id) }
   end
 
+  # Un nombre elegido en la tragamonedas que ya usó otra sala lleva un número: "rancho-sin-salida-2".
   def generate_slug
-    return if slug.present?
+    if slug.present?
+      base = slug
+      n = 1
+      self.slug = "#{base}-#{n += 1}" while Race.exists?(slug: slug)
+      return
+    end
     loop do
       self.slug = "#{SLUG_ADJECTIVES.sample}-#{SLUG_ANIMALS.sample}-#{rand(100)}"
       break unless Race.exists?(slug: slug)

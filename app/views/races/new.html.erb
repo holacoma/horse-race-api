@@ -2,7 +2,7 @@
 <% content_for :page_title, "Nueva sala" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/races-new.css?v=2">
-  <link rel="stylesheet" href="/css/slot-machine.css">
+  <link rel="stylesheet" href="/css/slot-machine.css?v=2">
 <% end %>
 
 <div class="new-race-wrap">
@@ -10,7 +10,7 @@
 <p class="subtitle">Configurá tu carrera multijugador</p>
 
 <%= form_with model: @race, url: races_path, method: :post, class: "formulario",
-              data: { controller: "slot-machine",
+              data: { controller: "slot-machine", slot_machine_format_value: "slug",
                       action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
 
   <% if @race.errors.any? %>

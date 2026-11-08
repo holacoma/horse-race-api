@@ -36,6 +36,17 @@
 }
 .slot-strip { will-change: transform; }
 .slot-cell { height: var(--slot-cell); display: flex; align-items: center; justify-content: center; color: var(--texto); font: 700 15px var(--fuente-titulo); white-space: nowrap; }
+/* Elegir a mano: la fila de arriba trae la palabra anterior y la de abajo la siguiente, de a una. */
+.slot-nudge {
+  position: absolute; left: 0; right: 0; z-index: 2; height: 33.4%; padding: 0 8px; border: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: flex-end;
+  background: transparent; color: var(--texto-apagado); font-size: 10px; transition: background .12s, color .12s;
+}
+.slot-nudge.arriba { top: 0; }
+.slot-nudge.abajo { bottom: 0; }
+.slot-nudge:hover { background: color-mix(in oklch, var(--texto) 10%, transparent); color: var(--texto); }
+.slot-nudge:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.slot-machine.spinning .slot-nudge { opacity: 0; pointer-events: none; }
 /* Girando no se lee: el texto baja de contraste y vuelve de golpe al frenar. */
 .slot-reel.spinning .slot-cell { color: var(--texto-apagado); }
 
@@ -53,6 +64,6 @@
 .slot-lever:focus { outline: none; }
 .slot-lever:focus-visible .slot-lever-stick::before { outline: 2px solid var(--foco); outline-offset: 2px; }
 .slot-lever:hover .slot-lever-stick { transform: scaleY(.88); }
-.slot-machine.spinning .slot-lever, .slot-machine.won .slot-lever { cursor: default; }
+.slot-machine.spinning .slot-lever { cursor: default; }
 .slot-machine.spinning .slot-lever-stick { animation: slot-pull .55s ease-in-out; }
 @keyframes slot-pull { 40% { transform: scaleY(-.85); } 100% { transform: scaleY(1); } }

@@ -1,12 +1,23 @@
 <% content_for :title, "Club Race — Ingresar" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/sessions.css?v=4">
-  <link rel="stylesheet" href="/css/slot-machine.css">
+  <link rel="stylesheet" href="/css/sessions.css?v=5">
+  <link rel="stylesheet" href="/css/slot-machine.css?v=2">
 <% end %>
+
+<%# Al llegar, antes de tener nombre: llueven monedas, cruzan caballos y la marca cae (sessions.css). %>
+<div class="lluvia" aria-hidden="true">
+  <% 14.times do |i| %>
+    <i style="--x: <%= (i * 7.3 + 3) % 96 %>vw; --d: <%= (i * 0.09).round(2) %>s; --s: <%= 20 + (i * 7 % 16) %>px; --r: <%= 360 + i * 45 %>deg">🪙</i>
+  <% end %>
+</div>
+<div class="galope" aria-hidden="true">
+  <i style="--dur: 7s; --retraso: .3s"><b>🐎</b></i>
+  <i style="--dur: 9s; --retraso: 2.6s"><b>🏇</b></i>
+</div>
 
 <div class="login">
 <div class="login-logo">
-  <h1 class="marca">Club Race</h1>
+  <h1 class="marca brilla-texto" data-texto="Club Race">Club Race<span class="deco moneda" aria-hidden="true">🪙</span><span class="deco caballo" aria-hidden="true">🐎</span></h1>
   <p class="regla">La primera regla del Club Race es: no se habla del Club Race.</p>
 </div>
 
@@ -35,7 +46,7 @@
                         action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
     <%= render "shared/slot_machine", reels: User::GUEST_NAME_REELS %>
     <%= f.hidden_field :username, data: { slot_machine_target: "field" } %>
-    <%= f.submit "Entrar como invitado", data: { slot_machine_target: "button", fx: "enter" } %>
+    <%= f.button "Entrar como invitado", type: "submit", class: "brilla", data: { slot_machine_target: "button", fx: "enter" } %>
   <% end %>
 
 </div>

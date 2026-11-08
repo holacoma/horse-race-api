@@ -100,7 +100,7 @@
     </div>
 
     <% if @race.creator_id == current_user.id && @race.pending? %>
-      <button id="btn-start" data-fx="start" data-race-lobby-target="btnStart" data-action="click->race-lobby#startRace">Largar</button>
+      <button id="btn-start" class="brilla" data-fx="start" data-race-lobby-target="btnStart" data-action="click->race-lobby#startRace">Largar</button>
     <% end %>
   </aside>
 

@@ -22,10 +22,17 @@ class RaceTest < ActiveSupport::TestCase
 
   test "slug must be unique" do
     race1 = Race.create!
-    race2 = Race.new
+    race2 = Race.create!
     race2.slug = race1.slug
     assert_not race2.valid?
     assert race2.errors[:slug].any?
+  end
+
+  test "a chosen room name that is taken gets a number" do
+    Race.create!(slug: "rancho-sin-salida")
+    Race.create!(slug: "rancho-sin-salida-2")
+
+    assert_equal "rancho-sin-salida-3", Race.create!(slug: "rancho-sin-salida").slug
   end
 
   test "capacity must be between 2 and 12" do

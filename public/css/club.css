@@ -45,15 +45,15 @@ h3 { font-size: 17px; margin-bottom: 6px; }
 .app-user a { text-decoration: none; }
 .app-main { flex: 1; padding: 32px; max-width: 1100px; width: 100%; margin: 0 auto; }
 
-/* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco, un corazón carmesí que late y, cada tanto, el susto. */
+/* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco, una moneda que late y, cada tanto, el susto. */
 .app-top .marca { display: inline-block; font: 400 26px var(--fuente-titulo); text-decoration: none; }
 [data-fase="fuera"] .app-top .marca {
   position: relative; color: var(--acento);
   text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 5px 0 var(--arena-7);
   animation: susto 13s steps(1) infinite;
 }
-[data-fase="fuera"] .app-top .marca::after { content: "♥"; color: var(--carmesi); position: absolute; right: -.7em; top: -.3em; font-size: .5em; animation: latido 1.6s ease-in-out infinite; }
-[data-fase="fuera"] .section-title::before { content: "♥ "; color: var(--acento); }
+[data-fase="fuera"] .app-top .marca::after { content: "🪙"; text-shadow: none; position: absolute; right: -.7em; top: -.3em; font-size: .5em; animation: latido 1.6s ease-in-out infinite; }
+[data-fase="fuera"] .section-title::before { content: "🪙 "; }
 [data-fase="fuera"] h1 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--arena-7); }
 
 /* De noche, la marca va en blanco con ecos secos, inclinada como un título de Persona. */
@@ -71,7 +71,7 @@ h3 { font-size: 17px; margin-bottom: 6px; }
 
 /* ── Botones ──────────────────────────────────────────────────────────────────────── */
 .btn, .btn-primary, .btn-join, .btn-submit, .btn-google-pixel, #btn-start, .results-new,
-.guest-form input[type="submit"], .share-row button, .results-back, .btn-salir, .add-btn {
+.guest-form [type="submit"], .share-row button, .results-back, .btn-salir, .add-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   font: 700 15px var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas);
   padding: 11px 20px; border: var(--borde-ancho) solid transparent; border-radius: var(--radio-chico);
@@ -79,13 +79,13 @@ h3 { font-size: 17px; margin-bottom: 6px; }
   transition: background .15s, box-shadow .15s, transform .1s;
 }
 /* Principal: el acento, con texto oscuro. */
-.btn-primary, .btn-join, .btn-submit, #btn-start, .results-new, .guest-form input[type="submit"], .btn.principal, .add-btn {
+.btn-primary, .btn-join, .btn-submit, #btn-start, .results-new, .guest-form [type="submit"], .btn.principal, .add-btn {
   background: var(--acento); color: var(--sobre-acento); box-shadow: var(--sombra);
 }
 .btn-primary:hover, .btn-join:hover, .btn-submit:hover, #btn-start:hover, .results-new:hover,
-.guest-form input[type="submit"]:hover, .btn.principal:hover, .add-btn:hover { background: var(--acento-encima); color: var(--sobre-acento); }
+.guest-form [type="submit"]:hover, .btn.principal:hover, .add-btn:hover { background: var(--acento-encima); color: var(--sobre-acento); }
 .btn-primary:active, .btn-join:active, .btn-submit:active, #btn-start:active, .results-new:active,
-.guest-form input[type="submit"]:active, .btn.principal:active { box-shadow: var(--sombra-presionada); transform: translateY(2px); }
+.guest-form [type="submit"]:active, .btn.principal:active { box-shadow: var(--sombra-presionada); transform: translateY(2px); }
 /* Secundario: del color de los elementos, con borde. */
 .btn-google-pixel, .share-row button, .results-back, .btn.secundario {
   background: var(--elemento); color: var(--texto); border-color: var(--borde); box-shadow: var(--sombra);
@@ -127,3 +127,25 @@ label { font-weight: 700; }
 .dibujo-caballo .dc-desfase { fill: var(--desfase, var(--caballo-cosmos)); opacity: .55; }
 .dibujo-caballo .dc-crin { fill: #111; }
 .dibujo-caballo .dc-linea { fill: none; stroke: #111; stroke-width: 3.4; stroke-linejoin: round; }
+
+/* ── Arcoíris y caballos ──────────────────────────────────────────────────────────────── */
+/* Brillo lateral: la franja con los colores de los caballos cruza cada tanto los botones principales. */
+.brilla { position: relative; overflow: hidden; isolation: isolate; }
+.brilla::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 36%; pointer-events: none;
+  background: var(--arcoiris); mix-blend-mode: screen; opacity: 0;
+  animation: brillo 4.8s ease-in-out var(--brillo-retraso, 1.2s) infinite;
+}
+/* El mismo brillo por dentro de las letras de la marca (necesita data-texto con el mismo texto). */
+.brilla-texto { position: relative; }
+.brilla-texto::before {
+  content: attr(data-texto); position: absolute; inset: 0; pointer-events: none; text-shadow: none; color: transparent;
+  background: var(--arcoiris-banda) 100% 0 / 300% 100% no-repeat; -webkit-background-clip: text; background-clip: text;
+  animation: brillo-texto 5.5s ease-in-out var(--brillo-retraso, 1.6s) infinite;
+}
+/* Caballos (emoji) que cruzan la pantalla al galope, abajo. Cada <i> trae su --dur y --retraso. */
+.galope { position: fixed; left: 0; right: 0; bottom: 10px; height: 52px; pointer-events: none; overflow: hidden; z-index: 0; }
+.galope i { position: absolute; left: 0; bottom: 4px; font-style: normal; font-size: 34px; transform: translateX(-14vw); animation: cruzar var(--dur, 10s) linear var(--retraso, 0s) infinite; }
+.galope b { display: inline-block; font-weight: 400; animation: trote .3s ease-in-out infinite alternate; }
+@keyframes cruzar { 0% { transform: translateX(-14vw); } 50%, 100% { transform: translateX(110vw); } }
+@keyframes trote { from { transform: scaleX(-1) translateY(0) rotate(0deg); } to { transform: scaleX(-1) translateY(-7px) rotate(7deg); } }

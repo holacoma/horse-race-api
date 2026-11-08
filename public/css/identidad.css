@@ -45,6 +45,8 @@
   --franjas: repeating-linear-gradient(-55deg, var(--carmesi) 0 9px, var(--noche-1) 9px 15px, var(--noche-12) 15px 18px, var(--noche-1) 18px 24px);
   /* Ecos: copias secas y corridas, en negro y carmesí, con un filo frío del otro lado. */
   --ecos: 3px 3px 0 var(--noche-1), 6px 5px 0 var(--carmesi), -2px 0 0 color-mix(in oklch, var(--caballo-hielo) 55%, transparent);
+  --arcoiris: linear-gradient(100deg, var(--caballo-fuego), var(--caballo-roca), var(--caballo-veneno), var(--caballo-naturaleza), var(--caballo-viento), var(--caballo-hielo), var(--caballo-agua), var(--caballo-metal), var(--caballo-electricidad), var(--caballo-cosmos), var(--caballo-sombra));
+  --arcoiris-banda: linear-gradient(100deg, transparent 0 36%, var(--caballo-fuego) 38.0%, var(--caballo-roca) 40.4%, var(--caballo-veneno) 42.8%, var(--caballo-naturaleza) 45.2%, var(--caballo-viento) 47.6%, var(--caballo-hielo) 50.0%, var(--caballo-agua) 52.4%, var(--caballo-metal) 54.8%, var(--caballo-electricidad) 57.2%, var(--caballo-cosmos) 59.6%, var(--caballo-sombra) 62.0%, transparent 64% 100%);
   /* Halos de neón: toman el color del elemento (currentColor). En text-shadow o box-shadow; borde fino, nunca relleno grande. */
   --halo-suave: 0 0 1px currentColor, 0 0 6px color-mix(in oklch, currentColor 50%, transparent);
   --halo-medio: 0 0 1px currentColor, 0 0 8px color-mix(in oklch, currentColor 70%, transparent), 0 0 22px color-mix(in oklch, currentColor 35%, transparent);
@@ -171,3 +173,5 @@
 /* De día: latido (corazones y brillitos que laten) y susto (algo raro asoma un instante, como en Doki Doki). */
 @keyframes latido { 0%, 100% { scale: 1; rotate: -8deg } 50% { scale: 1.35; rotate: 8deg } }
 @keyframes susto { 0%, 94%, 100% { color: var(--acento); filter: none; translate: 0 } 94.6% { color: var(--noche-1); filter: contrast(2); translate: 6px 0 } 95.2% { color: var(--carmesi); filter: invert(1); translate: -4px 0 } 95.8% { color: var(--noche-1); filter: none; translate: 2px 2px } }
+@keyframes brillo { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0 } 6% { opacity: .85 } 36% { opacity: .85 } 40%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0 } }
+@keyframes brillo-texto { 0% { background-position: 100% 0 } 40%, 100% { background-position: 0% 0 } }
