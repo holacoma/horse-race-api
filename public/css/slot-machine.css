@@ -67,3 +67,14 @@
 .slot-machine.spinning .slot-lever { cursor: default; }
 .slot-machine.spinning .slot-lever-stick { animation: slot-pull .55s ease-in-out; }
 @keyframes slot-pull { 40% { transform: scaleY(-.85); } 100% { transform: scaleY(1); } }
+
+/* Teléfono: rodillos más anchos (gabinete y palanca más finos) y la letra se achica para que entren las palabras
+   largas sin pisar las flechas de cada rodillo. */
+@media (max-width: 520px) {
+  .slot-machine { grid-template-columns: 1fr 26px; gap: 2px; }
+  .slot-cabinet { padding: 8px; gap: 8px; }
+  .slot-reels { gap: 4px; }
+  .slot-cell { padding: 0 14px 0 8px; font-size: clamp(11px, 3.6vw, 15px); }
+  .slot-nudge { padding: 0 5px; }
+  .slot-lever { transform: scale(.85); transform-origin: left center; }
+}

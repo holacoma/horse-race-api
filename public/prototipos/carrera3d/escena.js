@@ -119,6 +119,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     .filter(x => x > -40)
     .map(buildGrandstand)
   buildGates()
+  const cajones = buildStartGate()
 
   // Todos se arman al cargar (así sus shaders se compilan juntos); los que no corren quedan ocultos. Con el modelo hay
   // uno por elemento: cada caballo tiene siempre el suyo, y al entrar toma el de su elemento y el próximo carril.
@@ -433,6 +434,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     confetti.update(realDt)
     actualizarExplosiones()
     presentarFavoritos()
+    cajones.abrir(state.countdownEnd === null ? 0 : smooth(state.countdownEnd - 0.05, state.countdownEnd + 0.3, state.clock))
     placeCamera(realDt)
     updateLighting()
     hud.update()
@@ -717,6 +719,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     )
     camera.lookAt(look[0], look[1], look[2])
     camera.rotateZ(roll)
+    cajones.siCamaraAdentro(camera.position)
     if (shot !== state.shot) { state.shot = shot; state.shotChanged = t }
     camera.fov = fov * (1 + 0.22 * uSpeed.value) // proporcional: las lentes largas siguen siendo largas
     camera.updateProjectionMatrix()
@@ -1092,6 +1095,76 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       scene.add(rings)
     }
     arch(-3, "¡ L A R G A R O N !", 0x18c5b6)
+  }
+
+  // Cajones de largada: un cajón por carril, con su número en el color clásico de la mantilla, y puertas de barrotes
+  // que se abren de golpe hacia adelante en el «¡YA!». Si la cámara pasa por adentro, se ocultan para no taparla.
+  function buildStartGate() {
+    const XF = 1.8, XB = -1.7, H = 3.25, LARGO = XF - XB
+    const group = new THREE.Group()
+    const metal = toon(0x18c5b6), blanco = toon(0xf4efe6), acolchado = toon(0xd2283c)
+    const caja = (sx, sy, sz, x, y, z, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m); b.position.set(x, y, z); group.add(b); return b }
+    const zDe = k => (k - N / 2) * LANE
+    for (let k = 0; k <= N; k++) {
+      const z = zDe(k)
+      for (const x of [XF, XB]) {
+        const poste = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, H, 10), metal)
+        poste.position.set(x, H / 2, z); group.add(poste)
+      }
+      caja(LARGO, 0.12, 0.12, (XF + XB) / 2, H, z, metal)
+      caja(LARGO - 0.2, 0.1, 0.18, (XF + XB) / 2, H + 0.06, z, acolchado)
+    }
+    const ancho = N * LANE + 0.3
+    caja(0.24, 0.3, ancho, XF, H + 0.12, 0, metal)
+    caja(0.24, 0.3, ancho, XB, H + 0.12, 0, metal)
+    caja(LARGO + 0.3, 0.06, ancho, (XF + XB) / 2, H + 0.3, 0, blanco)
+
+    // Números: del 1 en el carril más cercano a la cámara de la sala, con los colores de las mantillas de carrera.
+    const MANTILLAS = [["#d62b2b", "#fff"], ["#ffffff", "#111"], ["#1f4fd6", "#fff"], ["#ffd21a", "#111"], ["#169c4a", "#fff"], ["#141414", "#ffd21a"],
+      ["#ff7a00", "#111"], ["#ff7ab6", "#111"], ["#19c3c3", "#111"], ["#7a3db8", "#fff"], ["#9a9a9a", "#d62b2b"], ["#b6e51a", "#111"]]
+    for (let k = 0; k < N; k++) {
+      const [bg, fg] = MANTILLAS[k % MANTILLAS.length]
+      const n = String(k + 1)
+      const cara = new THREE.MeshBasicMaterial({ map: textTexture(n, { width: 128, height: 128, bg, fg, font: n.length > 1 ? 74 : 96 }) })
+      const borde = new THREE.MeshBasicMaterial({ color: bg })
+      const placa = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.62, 0.62), [cara, borde, borde, borde, borde, borde])
+      placa.position.set(XF + 0.15, H + 0.12, zDe(N - k - 0.5))
+      group.add(placa)
+    }
+
+    // Puertas: media puerta por lado, con bisagra en el poste. Una sola geometría (marco y barrotes) que crece hacia +z;
+    // las del otro lado van espejadas.
+    const MEDIA = LANE / 2 - 0.04
+    const piezas = [[0.07, 0.07, MEDIA, 0, 1.05, MEDIA / 2], [0.07, 0.07, MEDIA, 0, 0.3, MEDIA / 2], [0.06, 0.82, 0.07, 0, 0.675, MEDIA - 0.035]]
+    for (let b = 1; b <= 2; b++) piezas.push([0.035, 0.75, 0.035, 0, 0.675, MEDIA * b / 3])
+    const geoPuerta = mergeGeometries(piezas.map(([sx, sy, sz, x, y, z]) => new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z)))
+    const geoPad = new THREE.BoxGeometry(0.12, 0.14, MEDIA).translate(0, 1.12, MEDIA / 2)
+    const puertas = []
+    for (let k = 0; k < N; k++) for (const lado of [1, -1]) {
+      const p = new THREE.Group()
+      p.add(new THREE.Mesh(geoPuerta, blanco), new THREE.Mesh(geoPad, acolchado))
+      p.position.set(XF, 0, lado > 0 ? zDe(k) + 0.02 : zDe(k + 1) - 0.02)
+      p.scale.z = lado
+      p.userData.lado = lado
+      group.add(p); puertas.push(p)
+    }
+
+    // La línea de largada, pintada justo delante de las puertas.
+    const linea = new THREE.Mesh(new THREE.PlaneGeometry(0.22, N * LANE), new THREE.MeshBasicMaterial({ color: 0xffffff }))
+    linea.rotation.x = -Math.PI / 2
+    linea.position.set(XF + 0.45, 0.025, 0)
+    group.add(linea)
+    scene.add(group)
+
+    let abierto = -1
+    return {
+      abrir(u) {
+        if (u === abierto) return
+        abierto = u
+        puertas.forEach(p => { p.rotation.y = p.userData.lado * u * 1.75 })
+      },
+      siCamaraAdentro(c) { group.visible = !(c.x > XB - 0.4 && c.x < XF + 1.3 && Math.abs(c.z) < N * LANE / 2 + 0.3 && c.y < H + 0.6) }
+    }
   }
 
   function buildDust() {

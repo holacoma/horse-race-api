@@ -19,3 +19,6 @@
 .toggle input:focus-visible + .toggle-slider { outline: 2px solid var(--foco); outline-offset: 2px; }
 .btn-submit { width: 100%; font-size: 16px; padding: 13px 20px; }
 .formulario .back-link { margin-top: 0; text-align: center; }
+@media (max-width: 520px) {
+  .formulario { padding: 16px 14px; gap: 14px; }
+}
