@@ -36,6 +36,8 @@ plugin :tmp_restart
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments.
 plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+# En Windows no hay fork: los trabajos corren en hilos dentro de Puma.
+solid_queue_mode :async if ENV["SOLID_QUEUE_IN_PUMA"] && Gem.win_platform?
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
