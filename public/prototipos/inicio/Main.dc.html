@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Club Race · Inicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&amp;family=Nunito:wght@500;700;800&amp;family=New+Rocker&amp;display=swap">
+<style>
+body{margin:0;background:oklch(0.965 0.014 80)}
+a{color:oklch(0.28 0.03 80)}a:hover{color:oklch(0.45 0.036 80)}
+.pradera{position:absolute;left:0;right:0;bottom:0;height:380px;overflow:hidden;z-index:0;pointer-events:none;background:linear-gradient(var(--cielo0),var(--cielo1) 55%,var(--cielo2));transition:--cielo0 5s,--cielo1 5s,--cielo2 5s,--capa1 5s,--capa2 5s,--capa3 5s,--capa4 5s,--sol 5s,--halo 5s}
+@property --cielo0{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --cielo1{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --cielo2{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --capa1{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --capa2{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --capa3{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --capa4{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --sol{syntax:"<color>";inherits:true;initial-value:transparent}
+@property --halo{syntax:"<color>";inherits:true;initial-value:transparent}
+.pajaro{position:absolute;color:var(--capa4);font-size:16px;animation:volar linear infinite}
+@keyframes volar{to{transform:translate(60vw,-40px)}}
+@keyframes halo{0%,100%{opacity:.7;transform:scale(1.8)}50%{opacity:1;transform:scale(2.1)}}
+.sol-halo{animation:halo 5s ease-in-out infinite}
+.pradera i{position:absolute;left:0;width:200%;animation:pradera var(--v) linear infinite}
+@keyframes pradera{to{transform:translateX(-50%)}}
+@keyframes brillo{0%{transform:translateX(-130%) skewX(-20deg);opacity:0}1%,8%{opacity:.85}9%,100%{transform:translateX(330%) skewX(-20deg);opacity:0}}
+@keyframes rebote{0%,93%,100%{translate:0 0;rotate:0deg}95%{translate:0 -7px;rotate:-2deg}97%{translate:0 1px;rotate:1deg}}
+@keyframes cruzar{0%{transform:translateX(-10vw)}50%,100%{transform:translateX(105vw)}}
+@keyframes trote{from{transform:scaleX(-1) translateY(0)}to{transform:scaleX(-1) translateY(-6px) rotate(7deg)}}
+@keyframes latido{0%,100%{transform:scale(1) rotate(-8deg)}50%{transform:scale(1.3) rotate(8deg)}}
+.jugar{position:relative;overflow:hidden;isolation:isolate}
+.jugar::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(100deg,#fe6a00,#feb200,#d9db00,#76f173,#00f3cd,#00e5fe,#00abff,#7a8cff,#b96ff7,#e45cbf,#fa5576);mix-blend-mode:screen;opacity:0;animation:brillo 17s ease-in-out 2s infinite}
+.jugar{animation:rebote 23s ease-in-out 9s infinite}
+.sala:hover{transform:translateY(-2px) rotate(-.5deg)}
+</style>
+</helmet>
+<div style="position: relative; min-height: 900px; overflow: hidden; font-family: Nunito, system-ui, sans-serif; color: oklch(0.28 0.03 80); background: oklch(0.965 0.014 80)">
+
+  <sc-if value="{{pradera}}" hint-placeholder-val="{{ true }}">
+  <div class="pradera" aria-hidden="true" style="--cielo0: {{paleta.cielo0}}; --cielo1: {{paleta.cielo1}}; --cielo2: {{paleta.cielo2}}; --capa1: {{paleta.capa1}}; --capa2: {{paleta.capa2}}; --capa3: {{paleta.capa3}}; --capa4: {{paleta.capa4}}; --sol: {{paleta.sol}}; --halo: {{paleta.halo}}">
+    <div class="sol-halo" style="position: absolute; left: 62%; bottom: 120px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, var(--halo), transparent 68%)"></div>
+    <div style="position: absolute; left: calc(62% + 85px); bottom: 205px; width: 90px; height: 90px; border-radius: 50%; background: var(--sol)"></div>
+    <i style="--v: 120s; bottom: 120px; height: 150px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 200 L80 200 L110 150 L210 148 L240 200 L420 200 L450 170 L470 120 L590 118 L620 175 L650 200 L820 200 L840 160 L900 158 L920 200 L1000 200 L1080 200 L1110 150 L1210 148 L1240 200 L1420 200 L1450 170 L1470 120 L1590 118 L1620 175 L1650 200 L1820 200 L1840 160 L1900 158 L1920 200 L2000 200 L2000 300 Z" style="fill: var(--capa1)"></path></svg></i>
+    <i style="--v: 80s; bottom: 70px; height: 170px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 210 C120 170 220 150 330 175 C440 200 520 150 640 160 C760 170 880 215 1000 210 C1120 170 1220 150 1330 175 C1440 200 1520 150 1640 160 C1760 170 1880 215 2000 210 L2000 300 Z" style="fill: var(--capa2)"></path></svg></i>
+    <i style="--v: 45s; bottom: 30px; height: 170px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 230 C90 200 200 180 300 205 C400 230 520 175 650 185 C780 195 900 240 1000 230 C1090 200 1200 180 1300 205 C1400 230 1520 175 1650 185 C1780 195 1900 240 2000 230 L2000 300 Z" style="fill: var(--capa3)"></path></svg></i>
+    <i style="--v: 22s; bottom: 0; height: 120px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 255 C150 225 300 235 420 250 C540 265 680 225 800 240 C900 252 960 262 1000 255 C1150 225 1300 235 1420 250 C1540 265 1680 225 1800 240 C1900 252 1960 262 2000 255 L2000 300 Z" style="fill: var(--capa4)"></path></svg></i>
+    <span class="pajaro" style="left: 30%; bottom: 250px; animation-duration: 38s">〰</span>
+    <span class="pajaro" style="left: 34%; bottom: 270px; animation-duration: 44s; font-size: 12px">〰</span>
+    <span style="position: absolute; bottom: 10px; left: 0; font-size: 36px; animation: cruzar 8s linear .3s infinite"><span style="display: inline-block; filter: hue-rotate(150deg) saturate(1.6); animation: trote .3s ease-in-out infinite alternate">🐎</span></span>
+    <span style="position: absolute; bottom: 4px; left: 0; font-size: 40px; animation: cruzar 9.5s linear 1.4s infinite"><span style="display: inline-block; filter: brightness(0) drop-shadow(2px 2px 0 oklch(0.56 0.22 25)); animation: trote .28s ease-in-out infinite alternate">🏇</span></span>
+    <span style="position: absolute; bottom: 16px; left: 0; font-size: 30px; animation: cruzar 11s linear 2.6s infinite"><span style="display: inline-block; filter: grayscale(1) contrast(1.4) drop-shadow(0 0 0 #fff) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff); animation: trote .34s ease-in-out infinite alternate">🐎</span></span>
+  </div>
+  </sc-if>
+
+
+  <div style="position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px">
+    <header style="display: flex; align-items: center; justify-content: flex-end; padding: 16px 0; border-bottom: 2px dashed oklch(0.86 0.03 80)">
+      <div style="display: flex; gap: 12px; align-items: center; font-weight: 700">
+        <a href="#" style="text-decoration: none">Doña en Cuotas</a>
+        <button type="button" style="font: 400 15px 'Mochiy Pop One', sans-serif; color: oklch(0.56 0.22 25); background: oklch(0.94 0.02 80); border: 2px solid oklch(0.81 0.032 80); border-radius: 10px; padding: 6px 12px; cursor: pointer">Salir</button>
+      </div>
+    </header>
+
+    <main style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 48px; padding: 28px 0 420px; align-items: start">
+      <section style="display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+        <h1 style="position: relative; margin: 0 0 6px; width: min-content; font: 400 clamp(56px, 8vw, 92px)/.95 'Mochiy Pop One', sans-serif; transform: rotate(-4deg); transform-origin: left bottom; text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 7px 8px 0 oklch(0.81 0.032 80)">Club Race<span aria-hidden="true" style="position: absolute; right: -.5em; top: -.2em; font-size: .4em; text-shadow: none; animation: latido 1.6s ease-in-out infinite">🪙</span></h1>
+        <p style="margin: 0; max-width: 30ch; padding: 6px 14px; background: oklch(0.145 0.006 55); color: oklch(0.95 0.006 55); font: 400 19px/1.2 'New Rocker', serif; transform: rotate(1.2deg); box-shadow: 4px 4px 0 oklch(0.56 0.22 25)">La primera regla del Club Race es: no se habla del Club Race.</p>
+        <button type="button" class="jugar" style="margin-top: 18px; font: 400 34px/1 'Mochiy Pop One', sans-serif; padding: 22px 46px; border: none; border-radius: 18px; cursor: pointer; background: oklch(0.28 0.03 80); color: oklch(0.985 0.01 80); box-shadow: 0 6px 0 oklch(0.81 0.032 80), 0 14px 28px rgba(0,0,0,.18); transform: rotate(-1.5deg)">Jugar ya</button>
+        <a href="#" style="font-weight: 800; font-size: 15px; text-decoration: none">Armar una sala para tus amigos</a>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0 0 2px; font: 400 24px 'Mochiy Pop One', sans-serif">Salas abiertas</h2>
+        <sc-for list="{{salas}}" as="sala" hint-placeholder-count="3">
+          <a href="#" class="sala" style="display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: center; padding: 14px 18px; text-decoration: none; background: oklch(0.965 0.014 80); border: 2px solid oklch(0.86 0.03 80); border-radius: 18px; box-shadow: 0 3px 0 oklch(0.81 0.032 80), 0 8px 18px rgba(0,0,0,.08); transition: transform .12s">
+            <span style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font: 400 18px 'Mochiy Pop One', sans-serif">{{sala.nombre}}</span>
+              <span style="font-size: 13px; color: oklch(0.45 0.036 80)">de {{sala.creador}} · {{sala.metros}} m</span>
+              <span style="font-size: 13px; color: oklch(0.45 0.036 80)">{{sala.lugares}}</span>
+            </span>
+            <span style="font: 400 16px 'Mochiy Pop One', sans-serif; padding: 9px 16px; border-radius: 10px; background: oklch(0.94 0.02 80); border: 2px solid oklch(0.73 0.036 80)">Unirse</span>
+          </a>
+        </sc-for>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"pradera":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+// Cielo, cuatro capas de lejos a cerca, sol y su halo.
+const PALETAS = {
+  atardecer: { cielo0: "oklch(0.8 0.07 55)", cielo1: "oklch(0.9 0.06 75)", cielo2: "oklch(0.95 0.04 85)", capa1: "oklch(0.86 0.05 62)", capa2: "oklch(0.78 0.07 52)", capa3: "oklch(0.66 0.085 42)", capa4: "oklch(0.45 0.07 35)", sol: "#fff6e2", halo: "rgba(255, 244, 214, .9)" },
+  manana: { cielo0: "oklch(0.84 0.06 215)", cielo1: "oklch(0.93 0.04 190)", cielo2: "oklch(0.97 0.02 120)", capa1: "oklch(0.88 0.04 190)", capa2: "oklch(0.8 0.06 175)", capa3: "oklch(0.68 0.07 165)", capa4: "oklch(0.48 0.06 160)", sol: "#fffbe8", halo: "rgba(255, 252, 230, .85)" },
+  noche: { cielo0: "oklch(0.3 0.06 275)", cielo1: "oklch(0.42 0.07 285)", cielo2: "oklch(0.55 0.06 300)", capa1: "oklch(0.45 0.05 285)", capa2: "oklch(0.37 0.05 280)", capa3: "oklch(0.29 0.045 275)", capa4: "oklch(0.2 0.03 270)", sol: "#f2f1ff", halo: "rgba(220, 225, 255, .5)" },
+  tormenta: { cielo0: "oklch(0.62 0.03 250)", cielo1: "oklch(0.74 0.03 240)", cielo2: "oklch(0.82 0.02 220)", capa1: "oklch(0.7 0.025 240)", capa2: "oklch(0.6 0.03 245)", capa3: "oklch(0.49 0.035 250)", capa4: "oklch(0.34 0.03 255)", sol: "#eef1f6", halo: "rgba(240, 244, 250, .45)" },
+  desierto_rojo: { cielo0: "oklch(0.72 0.11 40)", cielo1: "oklch(0.84 0.09 65)", cielo2: "oklch(0.92 0.06 85)", capa1: "oklch(0.76 0.1 45)", capa2: "oklch(0.64 0.13 35)", capa3: "oklch(0.5 0.13 28)", capa4: "oklch(0.32 0.08 25)", sol: "#fff1d6", halo: "rgba(255, 230, 190, .9)" }
+}
+
+// Pasan solas, como el día: cada una queda un rato y se funde con la siguiente.
+const ORDEN = ["manana", "tormenta", "atardecer", "desierto_rojo", "noche"]
+const QUEDA_MS = 12000
+
+class Component extends DCLogic {
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState(s => ({ i: (((s && s.i) || 0) + 1) % ORDEN.length })), QUEDA_MS)
+  }
+  componentWillUnmount() { clearInterval(this.timer) }
+
+  renderVals() {
+    return {
+      pradera: this.props.pradera ?? true,
+      paleta: PALETAS[ORDEN[(this.state && this.state.i) || 0]],
+      salas: [
+        { nombre: "hipodromo-manana-pago", creador: "Jinete Sin Suerte", metros: 2000, lugares: "0 de 6 lugares" },
+        { nombre: "corral-pierde-todo", creador: "Doña en Cuotas", metros: 2000, lugares: "1 de 6 lugares" },
+        { nombre: "picadero-y-reza", creador: "Conde Deuda", metros: 2000, lugares: "3 de 6 lugares" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
