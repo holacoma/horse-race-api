@@ -7,7 +7,7 @@ import { shared, toon } from "./caballo.js"
 // Los ojos, a esta altura y profundidad de la cabeza, sobre la superficie de cada lado. La cabeza del modelo no es
 // simétrica (un lado llega a x 11 y el otro a -9,5): espejar un ojo deja el otro flotando fuera de la cara, sin pintarse.
 const EYE_AT = { y: 156, z: 111, window: 3.5 }
-const EYE_RADIUS = 4.2
+const EYE_RADIUS = 3.6
 const EYE_GLOW = 15
 const MANE = { fromZ: 26, toZ: 104, midline: 4.5 }
 // En la pose original una pata trasera va estirada más atrás que la cola, pero mucho más abajo.
@@ -225,8 +225,8 @@ function eyesOn(ref) {
 
 // Destello de cada ojo: un punto brillante apenas afuera de la cara, que sigue a la cabeza. Pintado sobre la piel, el
 // ojo queda de canto y de frente casi no se ve; el destello se ve desde cualquier ángulo (la cabeza tapa el de atrás).
-const EYE_OUT = 1.6 // unidades del modelo hacia afuera de la cara
-const EYE_SPRITE = 0.16 // metros
+const EYE_OUT = 0.35 // unidades del modelo hacia afuera de la cara: apenas, para que no parezcan salidos
+const EYE_SPRITE = 0.1 // metros
 function buildEyeGlow(model, palette) {
   const ref = model.geometry.attributes.aRef
   const nearest = target => {

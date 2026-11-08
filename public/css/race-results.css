@@ -26,3 +26,12 @@
   .results-player { grid-column: 3; }
   .results-hero { flex-direction: column; text-align: center; }
 }
+
+/* Tu puesto, imposible de no ver: la fila sobresale y lleva un sello carmesí con "Tú". */
+.results-row.is-me { position: relative; transform: scale(1.04) rotate(-.6deg); background: var(--noche-1); color: var(--noche-12); border-color: var(--noche-1); box-shadow: 6px 6px 0 var(--carmesi); z-index: 1; }
+.results-row.is-me .results-player { color: var(--noche-11, var(--noche-12)); }
+.results-tu {
+  position: absolute; left: -78px; top: 50%; margin-top: -17px; padding: 2px 14px 4px; transform: rotate(-8deg);
+  background: var(--carmesi); color: #fff; font: 400 26px/1 var(--fuente-gotica); box-shadow: 3px 3px 0 var(--noche-1);
+  animation: latido 1.6s ease-in-out infinite;
+}

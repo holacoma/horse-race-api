@@ -491,16 +491,17 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       fov = 28
       roll = -0.18 + 0.12 * u
     } else if (stage === "replay-perfil") {
-      // Segunda repetición: la cámara gira alrededor del ganador mientras cruza, de atrás y al costado hasta quedar
-      // adelante, con el arco de la meta en cuadro: se ve que llegó primero.
+      // Segunda repetición: la cámara gira alrededor del ganador mientras cruza y se aleja subiendo, como en F-Zero X:
+      // arranca cerca, de atrás y al costado, y termina lejos y en alto, con la meta y el resto de la pista en cuadro.
       const u = (crossedFor - PAN_SECONDS - REPLAY_SECONDS) / REPLAY_SECONDS
+      const s = smooth(0, 1, u)
       const w = state.winner
-      const a = Math.PI * (1.15 - 0.95 * smooth(0, 1, u))
-      const r = 8 - 2.5 * u
+      const a = Math.PI * (1.15 - 0.85 * s)
+      const r = 6 + 16 * s
       shot = "final-giro"
-      pos = [w.x + Math.cos(a) * r, 2.4 - 0.8 * u, w.z + Math.sin(a) * r]
-      look = [w.x + 0.8, 1.5, w.z]
-      fov = 42
+      pos = [w.x + Math.cos(a) * r, 2 + 8 * s, w.z + Math.sin(a) * r]
+      look = [w.x + 1 + 3 * s, 1.4, w.z]
+      fov = 40 + 12 * s
       roll = 0.04 - 0.08 * u
     } else if (state.countdownEnd === null && !state.started) {
       // En la sala: la cámara pasea despacio frente a la largada mientras los caballos esperan, descansando.
