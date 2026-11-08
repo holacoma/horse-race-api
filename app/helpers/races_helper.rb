@@ -3,6 +3,14 @@ module RacesHelper
   # Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js.
   ELEMENTOS_POR_CARRIL = %w[fuego hielo electricidad agua viento roca sombra luz veneno metal naturaleza cosmos].freeze
 
+  def elemento_de_carril(index) = ELEMENTOS_POR_CARRIL[index % ELEMENTOS_POR_CARRIL.size]
+
+  # Retrato del caballo de ese carril (public/images/retratos, generados con script/retratos).
+  def retrato_de_carril(index, clase: "results-retrato")
+    elemento = elemento_de_carril(index)
+    image_tag("/images/retratos/#{elemento}.webp", alt: "", class: clase, loading: "lazy")
+  end
+
   def color_de_carril(index, tinta: false)
     "var(--caballo-#{ELEMENTOS_POR_CARRIL[index % ELEMENTOS_POR_CARRIL.size]}#{'-tinta' if tinta})"
   end

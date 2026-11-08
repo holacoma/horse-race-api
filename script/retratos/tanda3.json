@@ -1,0 +1,128 @@
+[
+ {
+  "nombre": "agua",
+  "semilla": 40,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with flowing blue water mane and splashes, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "viento",
+  "semilla": 41,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with swirling teal wind streaks for a mane, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "roca",
+  "semilla": 42,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with amber cracked stone armor plates, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "luz",
+  "semilla": 43,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with radiant white and gold light mane, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "metal",
+  "semilla": 44,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with chrome armor with lavender steel sheen, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "naturaleza",
+  "semilla": 45,
+  "ancho": 832,
+  "alto": 1216,
+  "prompt": "no humans, persona 5 style, stylized portrait of a horse, black horse with green leaves and vines mane, fierce glowing eyes, red and black graphic background, halftone dots, bold shapes, high contrast, dynamic angle, gothic"
+ },
+ {
+  "nombre": "victoria-fuego",
+  "semilla": 46,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with glowing orange cracks and fire mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-hielo",
+  "semilla": 47,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with glowing cyan ice crystals and frozen mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-electricidad",
+  "semilla": 48,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with crackling violet lightning and electric mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-agua",
+  "semilla": 49,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with flowing blue water mane and splashes, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-viento",
+  "semilla": 50,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with swirling teal wind streaks for a mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-roca",
+  "semilla": 51,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with amber cracked stone armor plates, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-sombra",
+  "semilla": 52,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with black smoke body and crimson glowing eyes, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-luz",
+  "semilla": 53,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with radiant white and gold light mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-veneno",
+  "semilla": 54,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with dripping acid yellow green venom, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-metal",
+  "semilla": 55,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with chrome armor with lavender steel sheen, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-naturaleza",
+  "semilla": 56,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with green leaves and vines mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ },
+ {
+  "nombre": "victoria-cosmos",
+  "semilla": 57,
+  "ancho": 1216,
+  "alto": 832,
+  "prompt": "no humans, persona 5 style, victory screen splash art, triumphant black horse rearing up with starry magenta galaxy mane, all-out attack style, shattered red and black background, halftone, bold diagonal shapes, high contrast, dramatic, gothic"
+ }
+]

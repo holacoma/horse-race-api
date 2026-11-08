@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs"
 const COMFY = "http://127.0.0.1:8188"
 const MODELO = "animagine-xl-3.1.safetensors"
 const CALIDAD = "masterpiece, best quality, very aesthetic, absurdres"
-const NEGATIVO = "nsfw, lowres, bad anatomy, extra legs, extra heads, deformed, text, watermark, signature, jpeg artifacts, blurry, human, person, rider"
+const NEGATIVO = "1girl, 1boy, girl, boy, multiple girls, human face, humanoid, anime character, nsfw, lowres, bad anatomy, extra legs, five legs, extra limbs, missing legs, extra heads, two heads, deformed face, malformed head, disfigured, mutated, fused, deformed, text, watermark, signature, jpeg artifacts, blurry, human, person, rider"
 
 const tanda = JSON.parse(readFileSync(process.argv[2], "utf8"))
 const salida = new URL("./salida/", import.meta.url)

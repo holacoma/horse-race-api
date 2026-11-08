@@ -1,14 +1,15 @@
 /* Resultados: el ganador grande arriba, las acciones, y la lista de puestos. */
 .results-wrap { max-width: 640px; display: grid; gap: 20px; }
+/* Portada de victoria a lo Persona 5: la ilustración del elemento del ganador a lo ancho, y encima quién ganó en un bloque negro. */
 .results-hero {
-  display: flex; align-items: center; gap: 20px; padding: 22px;
-  background: var(--acento-fondo); border: var(--borde-ancho) solid var(--acento-borde);
-  border-radius: var(--radio); box-shadow: var(--sombra); transform: rotate(-1.2deg);
+  position: relative; display: flex; align-items: flex-end; min-height: 300px; padding: 18px; overflow: hidden;
+  background: var(--noche-1) var(--portada) center 30% / cover no-repeat; border: 3px solid var(--noche-1);
+  box-shadow: 8px 8px 0 var(--carmesi); transform: rotate(-1deg);
 }
-.results-hero .dibujo-caballo { width: 120px; flex: none; transform: rotate(-5deg); }
-.results-hero h1 { font-size: 30px; color: var(--acento-texto); }
-.results-winner-horse { font-weight: 700; color: var(--texto-suave); }
-.results-my-position { margin-top: 6px; font-weight: 800; }
+.results-hero-texto { padding: 10px 18px 12px; background: var(--noche-1); color: var(--noche-12); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); }
+.results-hero h1 { margin: 0; font: 400 34px/1.05 var(--fuente-gotica); color: var(--noche-12); text-shadow: 2px 2px 0 var(--carmesi); }
+.results-winner-horse { margin: 4px 0 0; font-weight: 700; color: var(--noche-11, #cfc8bd); }
+.results-my-position { margin: 6px 0 0; font-weight: 800; color: var(--noche-12); }
 .results-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .results-list { list-style: none; display: grid; gap: 8px; }
 .results-row {
@@ -18,7 +19,7 @@
 .results-row:nth-child(2n) { transform: rotate(calc(var(--giro) * .5)); }
 .results-row.is-me { background: var(--acento-fondo); border-color: var(--acento-borde); }
 .results-position { font: 700 20px var(--fuente-titulo); text-align: center; }
-.results-row .dibujo-caballo { width: 44px; margin: -6px 0 -4px; }
+.results-retrato { width: 52px; height: 52px; object-fit: cover; object-position: center 30%; border: 2px solid var(--noche-1); box-shadow: 3px 3px 0 var(--carmesi); transform: rotate(-3deg); }
 .results-horse { font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
 .results-player { color: var(--texto-suave); font-size: 14px; }
 @media (max-width: 520px) {

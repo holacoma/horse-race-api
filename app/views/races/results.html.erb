@@ -1,7 +1,7 @@
 <% content_for :title, "#{@race.slug} — Resultados" %>
 <% content_for :page_title, @race.slug %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-results.css?v=3">
+  <link rel="stylesheet" href="/css/race-results.css?v=4">
 <% end %>
 
 <%
@@ -11,9 +11,9 @@
 %>
 
 <div class="results-wrap">
-  <header class="results-hero">
-    <%= dibujo_caballo(color_de_carril(@lane_index[winner]), clase: "results-dibujo") %>
-    <div>
+  <%# La portada de victoria es la del elemento del ganador; encima, quién ganó, en gótica. %>
+  <header class="results-hero" style="--portada: url('/images/retratos/victoria-<%= elemento_de_carril(@lane_index[winner]) %>.webp')">
+    <div class="results-hero-texto">
       <% if my_position == 1 %>
         <h1>🏆 ¡Ganaste!</h1>
       <% else %>
@@ -36,7 +36,7 @@
     <% @results.each.with_index(1) do |participant, position| %>
       <li class="results-row<%= " is-me" if participant == @my_participant %>">
         <span class="results-position"><%= medals[position] || position %></span>
-        <%= dibujo_caballo(color_de_carril(@lane_index[participant])) %>
+        <%= retrato_de_carril(@lane_index[participant]) %>
         <span class="results-horse"><%= participant.horse_name %></span>
         <span class="results-player"><%= participant.display_name %></span>
         <% if participant == @my_participant %><span class="results-tu">Tú</span><% end %>
