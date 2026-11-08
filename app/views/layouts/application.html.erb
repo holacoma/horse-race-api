@@ -16,7 +16,10 @@
   <%= yield :head %>
 </head>
 <body data-controller="button-fx" data-action="click->button-fx#play:capture">
-<% if logged_in? %>
+<% if content_for?(:pantalla_completa) %>
+  <%# La sala con la carrera 3D: toda la pantalla es de la escena, sin menú. %>
+  <%= yield %>
+<% elsif logged_in? %>
   <div class="app">
     <%= render "layouts/sidebar" %>
     <div class="app-page">

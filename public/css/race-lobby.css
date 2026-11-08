@@ -1,75 +1,112 @@
-/* Sala de espera: quién está, el enlace para invitar, elegir caballo y largar. */
-[data-controller="race-lobby"] { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-.lobby-header { text-align: center; }
-.lobby-header h1 { font-size: 34px; transform: rotate(-2deg); }
-.lobby-header .players-count {
-  display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 99px;
-  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); font-weight: 800;
-}
-.share-row { display: flex; gap: 8px; align-items: center; width: 100%; max-width: 560px; }
-.share-row input { flex: 1; }
-.section-title { width: 100%; max-width: 560px; margin: 8px 0 0; }
+/* Sala: un panel sobre la escena 3D. La escena ocupa toda la pantalla (carrera3d.css); el panel es de la fase
+   "fuera" (kawaii) mientras se espera, y al largar se corre con un corte seco y queda la carrera. */
 
-#participants-list { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 8px; }
-.participant-row {
-  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
-  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil);
-  border-radius: var(--radio-chico); box-shadow: var(--sombra);
+/* Sobre la escena no va el grano ni la trama de la página: la escena tiene los suyos. */
+body::before, body::after { display: none; }
+
+/* Mientras se espera, el HUD de la carrera no se ve. */
+.esperando .hud { opacity: 0 !important; }
+
+.sala-cargando {
+  position: fixed; right: 32px; bottom: 28px; z-index: 5;
+  font: 400 15px var(--fuente-titulo); color: var(--texto); padding: 8px 16px;
+  background: var(--superficie); border-radius: var(--radio-chico); box-shadow: var(--sombra);
 }
-.participant-row:nth-child(2n) { transform: rotate(calc(var(--giro) * .5)); }
-.participant-row .p-username { font-weight: 800; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.participant-row .p-horse { color: var(--acento-texto); font-weight: 700; }
-.profile-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 4px; opacity: .7; flex: none; }
+
+.sala-panel {
+  position: fixed; top: 18px; left: 18px; bottom: 18px; z-index: 10;
+  width: min(410px, calc(100vw - 36px)); overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 24px;
+  background: var(--superficie); background-image: var(--patron);
+  border: var(--borde-ancho) solid var(--rosa-dia-6, var(--borde-sutil)); border-radius: var(--radio);
+  box-shadow: var(--sombra), 0 18px 40px rgb(0 0 0 / 0.25);
+  transform: rotate(-0.6deg);
+  transition: transform .55s cubic-bezier(.7, 0, .3, 1), opacity .35s;
+}
+.en-carrera .sala-panel { transform: translateX(calc(-100% - 60px)) rotate(-6deg); opacity: 0; pointer-events: none; }
+
+.sala-cabecera { display: grid; gap: 4px; }
+.sala-volver { justify-self: start; font-weight: 800; text-decoration: none; font-size: 14px; }
+.sala-nombre { font-size: 30px; line-height: 1.05; overflow-wrap: anywhere; transform: rotate(-2deg); transform-origin: left; }
+.players-count {
+  justify-self: start; margin-top: 4px; padding: 3px 12px; border-radius: 99px;
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); font-weight: 800; font-size: 13px;
+}
+.share-row { display: flex; gap: 8px; }
+.share-row input { flex: 1; min-width: 0; font-size: 13px; }
+.share-row button { padding: 8px 14px; font-size: 14px; }
+.tu-caballo {
+  padding: 10px 14px; border-radius: var(--radio-chico); background: var(--acento); color: var(--sobre-acento);
+  font: 400 15px var(--fuente-titulo); box-shadow: var(--sombra);
+}
+.section-title { margin: 6px 0 0; }
+
+#participants-list { display: flex; flex-direction: column; gap: 6px; }
+.participant-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radio-chico);
+  background: var(--fondo); border: var(--borde-ancho) solid var(--borde-sutil); font-size: 14px;
+}
+.participant-row.recien { animation: entra .35s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes entra { from { transform: translateX(-14px) scale(.96); opacity: 0; } }
+.p-color { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; box-shadow: 0 0 0 2px var(--superficie), 0 0 0 3px var(--c); }
+.participant-row .p-username { font-weight: 800; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.participant-row .p-horse { color: var(--texto-suave); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.profile-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: .7; flex: none; }
 .profile-btn:hover { opacity: 1; }
 
-#horse-picker, #apostador-section { width: 100%; max-width: 680px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-#horse-picker h2 { font-size: 24px; }
-/* Ancho mínimo para que entren el dibujo (82px) y el nombre más largo del catálogo. */
-#horse-picker .picker-cards, #apostador-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
-#horse-picker .picker-card, #apostador-cards .picker-card { padding: 14px 8px; overflow-wrap: anywhere; }
-.picker-card.favorite { border-color: var(--acento-borde); background: var(--acento-fondo); }
-.picker-card.picking { border-color: var(--acento); box-shadow: 0 0 0 3px color-mix(in oklch, var(--acento) 35%, transparent); }
+#horse-picker, #apostador-section { display: flex; flex-direction: column; gap: 10px; }
+#horse-picker h2 { font-size: 20px; }
+#apostador-section { padding: 14px; border: var(--borde-ancho) dashed var(--borde); border-radius: var(--radio); }
+#apostador-section h3 { font-size: 16px; }
+.sala-ayuda { font-size: 13px; color: var(--texto-suave); }
+.picker-cards { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.picker-card {
+  padding: 10px; font: inherit; cursor: pointer; text-align: center; color: var(--texto);
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra);
+}
+.picker-card:nth-child(n) { transform: none; }
+.picker-card:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-1deg); }
+.picker-card .card-name { font: 400 14px var(--fuente-titulo); margin: 0; }
+.picker-card.favorite { background: var(--acento-fondo); border-color: var(--acento-borde); }
+.picker-card.picking { opacity: .5; transform: scale(.96); }
 .picker-card.taken { opacity: .35; cursor: not-allowed; }
-.picker-card.taken:hover { transform: none; border-color: var(--borde-sutil); }
 
-#apostador-section {
-  align-items: stretch; padding: 20px; background: var(--superficie); border: var(--borde-ancho) dashed var(--borde);
-  border-radius: var(--radio);
-}
-#apostador-section h3 { color: var(--acento-texto); }
-#apostador-name-input.typing { border-color: var(--acento); color: var(--acento-texto); }
-
-#status-bar { font-weight: 700; color: var(--texto-suave); text-align: center; }
+#status-bar { font-weight: 700; color: var(--texto-suave); text-align: center; font-size: 14px; }
 #status-bar.ready { color: var(--exito-texto); }
-#btn-start { font-size: 18px; padding: 14px 32px; background: var(--exito); }
-#btn-start:hover { background: var(--verde-dia-10); }
-#race-section { width: 100%; display: none; flex-direction: column; align-items: center; gap: 16px; }
+#status-bar.error { color: var(--peligro-texto); }
+#btn-start { width: 100%; font-size: 20px; padding: 14px; }
 
-/* ── Perfil emergente ─────────────────────────────────────────────────────────────── */
-#profile-overlay {
-  display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; padding: 16px;
-  background: color-mix(in oklch, var(--texto) 55%, transparent);
-}
+/* Perfil emergente: igual que antes, sobre todo. */
+#profile-overlay { display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; padding: 16px; background: color-mix(in oklch, var(--texto) 55%, transparent); }
 #profile-overlay.open { display: flex; }
-#profile-popup {
-  position: relative; width: 100%; max-width: 340px; padding: 24px;
-  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil);
-  border-radius: var(--radio); box-shadow: var(--sombra); transform: rotate(-1deg);
-  animation: pop .18s ease-out both;
-}
-@keyframes pop { from { transform: scale(.9) rotate(-1deg); opacity: 0; } }
+#profile-popup { position: relative; width: 100%; max-width: 340px; padding: 24px; background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio); box-shadow: var(--sombra); animation: pop .18s ease-out both; }
+@keyframes pop { from { transform: scale(.9); opacity: 0; } }
 #profile-popup .pp-close { position: absolute; top: 12px; right: 14px; background: none; border: none; cursor: pointer; color: var(--texto-apagado); font-size: 18px; }
-#profile-popup .pp-close:hover { color: var(--texto); }
 .pp-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
 .pp-avatar, .pp-avatar-placeholder { width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--acento); flex: none; object-fit: cover; }
-.pp-avatar-placeholder { display: grid; place-items: center; background: var(--acento-fondo); color: var(--acento-texto); font: 700 22px var(--fuente-titulo); }
-.pp-username { font: 700 18px var(--fuente-titulo); }
+.pp-avatar-placeholder { display: grid; place-items: center; background: var(--acento-fondo); color: var(--acento-texto); font: 400 22px var(--fuente-titulo); }
+.pp-username { font: 400 18px var(--fuente-titulo); }
 .pp-link { font-size: 13px; text-decoration: none; }
 .pp-stats { display: flex; gap: 24px; margin-bottom: 16px; }
-.pp-stat-val { font: 700 24px var(--fuente-titulo); color: var(--acento-texto); }
+.pp-stat-val { font: 400 24px var(--fuente-titulo); color: var(--acento-texto); }
 .pp-stat-lbl, .pp-favs-title { font-size: 12px; font-weight: 700; color: var(--texto-apagado); text-transform: uppercase; letter-spacing: .06em; }
 .pp-favs-title { margin-bottom: 6px; }
 .pp-favs { display: flex; gap: 6px; flex-wrap: wrap; }
-.pp-fav-chip { padding: 2px 10px; border-radius: 99px; background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); font-size: 13px; font-weight: 700; }
+.pp-fav-chip { padding: 2px 10px; border-radius: 99px; background: var(--acento-fondo); color: var(--acento-texto); font-size: 13px; font-weight: 700; }
 .pp-no-favs { color: var(--texto-apagado); font-size: 13px; }
 #profile-popup.loading { opacity: .5; pointer-events: none; }
+
+/* El corte de la largada: un bloque carmesí cruza en diagonal y deja un flash blanco seco. Solo transform y opacidad. */
+.corte { position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden; }
+.corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -120%; width: 70%; background: var(--carmesi); transform: skewX(-18deg); }
+.corte::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; }
+.corte.ya::before { animation: cruce .42s cubic-bezier(.7, 0, .3, 1) both; }
+.corte.ya::after { animation: flash .42s steps(1) both; }
+@keyframes cruce { to { transform: skewX(-18deg) translateX(380%); } }
+@keyframes flash { 0%, 35% { opacity: 0; } 36% { opacity: .85; } 46%, 100% { opacity: 0; } }
+
+@media (max-width: 760px) {
+  .sala-panel { top: auto; left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 60vh; transform: none; }
+  .en-carrera .sala-panel { transform: translateY(calc(100% + 40px)); }
+  .sala-cargando { right: 16px; top: 16px; bottom: auto; }
+}

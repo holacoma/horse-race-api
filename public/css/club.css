@@ -140,3 +140,7 @@ label { font-weight: 700; }
   .app-top { padding: 12px 16px; }
   .app-main { padding: 20px 16px; }
 }
+
+/* ── Entre páginas: fundido, sin corte (view transitions entre documentos del mismo sitio) ─────────── */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; }

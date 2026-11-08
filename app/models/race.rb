@@ -40,7 +40,7 @@ class Race < ApplicationRecord
 
   def random_bettor_name = available_bettor_names.sample
 
-  def start!(countdown: RaceSimulationJob::COUNTDOWN_SEC)
+  def start!(countdown: RaceSimulationJob::PRELUDE_SEC)
     return false unless pending?
     update!(status: :running, started_at: Time.current)
     RaceSimulationJob.perform_later(id, countdown)

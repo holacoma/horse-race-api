@@ -1,8 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 
-const PICK_ANIMATION_MS = 300
 const CLOSE_ANIMATION_MS = 150
+// Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
+const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
 
+// La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
+// esperan en la largada y aparecen a medida que alguien se une. Al largar, la sala se corre y empieza el preludio.
 export default class extends Controller {
   static values = {
     raceId: Number,
@@ -14,158 +17,153 @@ export default class extends Controller {
     bettorNames: Array
   }
 
-  static targets = ["participantsList", "playersCount", "statusBar", "horsePicker",
-                     "pickerCards", "raceSection", "countdown", "track", "winnerBanner",
-                     "btnStart", "apostadorSection", "profileOverlay", "profilePopup",
+  static targets = ["participantsList", "playersCount", "statusBar", "horsePicker", "pickerCards",
+                     "btnStart", "apostadorSection", "profileOverlay", "profilePopup", "panel", "cargando",
+                     "tuCaballo", "tuCaballoNombre", "corte", "results",
                      "ppAvatarWrap", "ppUsername", "ppProfileLink", "ppRaces", "ppWins", "ppFavs"]
 
   connect() {
-    this.hueRotations = [0, 55, 110, 170, 220, 285]
-    this.frameIndex = 0
-    this.animInterval = null
-
-    this.animalCfg = {
-      horse: {
-        frameCount: 5,
-        basePath: "/images/horse/frame_",
-        spriteStyle: "transform: scaleX(-1);",
-        spriteHeight: "132px"
-      },
-      guinea_pig: {
-        frameCount: 4,
-        basePath: "/images/guinea_pig/frame_",
-        spriteStyle: "transform: scaleX(1); height: auto;",
-        spriteHeight: "auto"
-      }
-    }
-
+    this.data3d = JSON.parse(document.getElementById("race-data").textContent)
+    this.pending = []
     this.setupWebSocket()
+    this.buildScene()
   }
 
   disconnect() {
     if (this.socket) this.socket.close()
-    if (this.animInterval) clearInterval(this.animInterval)
-    clearInterval(this.typingInterval)
-    clearTimeout(this.typingPause)
+    this.race?.stop()
   }
 
+  // ── Escena 3D ─────────────────────────────────────────────────────────────────────
+  async buildScene() {
+    // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
+    const [{ createRace }, { loadHorseModel }] = await Promise.all([
+      import("/prototipos/carrera3d/escena.js"),
+      import("/prototipos/carrera3d/caballo-pro.js")
+    ])
+    const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
+    const data = this.data3d
+    this.race = createRace({
+      participants: data.participants,
+      slots: data.capacity,
+      distance: data.distance,
+      horseModel,
+      myId: data.myHorseId,
+      showFps: false,
+      onCelebrate: () => { this.resultsTarget.hidden = false },
+      onDone: () => this.goToResults()
+    })
+    window.__sala = { race: this.race }
+    // Lo que llegó mientras cargaba la escena.
+    this.pending.splice(0).forEach(fn => fn())
+    if (data.running) this.race.startIn(data.secondsToStart ?? 0)
+    this.race.run()
+    this.cargandoTarget.hidden = true
+  }
+
+  whenReady(fn) {
+    if (this.race) fn()
+    else this.pending.push(fn)
+  }
+
+  // ── Canal de la carrera ────────────────────────────────────────────────────────────
   setupWebSocket() {
     const wsUrl = (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/cable"
     this.socket = new WebSocket(wsUrl)
     const identifier = JSON.stringify({ channel: "RaceChannel", race_id: this.raceIdValue })
 
-    this.socket.onopen = () => {
-      this.socket.send(JSON.stringify({ command: "subscribe", identifier }))
-    }
-
-    this.socket.onmessage = (event) => {
+    this.socket.onopen = () => this.socket.send(JSON.stringify({ command: "subscribe", identifier }))
+    this.socket.onmessage = event => {
       const msg = JSON.parse(event.data)
       if (msg.type === "welcome" || msg.type === "ping" || msg.type === "confirm_subscription") return
       const data = msg.message
       if (!data) return
 
       if (data.type === "player_joined") {
-        const p = data.participant
-        this.addParticipant(p.username, p.horse_name, p.horse_id, p.profile_username)
+        this.addParticipant(data.participant)
       } else if (data.type === "race_started") {
-        this.onRaceStarted(data.participants)
+        this.onRaceStarted()
       } else if (data.type === "progress") {
-        data.participants.forEach(p => this.moveHorse(p.id, p.position))
+        this.whenReady(() => this.race.tick(data.participants))
       } else if (data.type === "finished") {
-        this.onFinished(data.winner)
+        this.whenReady(() => this.race.finish(data.winner))
       }
     }
-
     this.socket.onerror = () => console.error("WebSocket error")
   }
 
-  addParticipant(username, horseName, horseId, profileUsername) {
+  addParticipant(p) {
+    if (document.querySelector(`#participants-list [data-horse-id="${p.horse_id}"]`)) return
+    const index = this.participantCountValue
     const div = document.createElement("div")
-    div.className = "participant-row"
-    const profileBtn = profileUsername
-      ? `<button class="profile-btn" data-fx="profile" data-action="click->race-lobby#openProfilePopup" data-username="${profileUsername}" title="Ver perfil">👤</button>`
-      : ""
-    div.innerHTML = `<span class="p-username">${username}</span><span class="p-horse">🐎 ${horseName}</span>${profileBtn}`
+    div.className = "participant-row recien"
+    div.dataset.horseId = p.horse_id
+    div.style.setProperty("--c", `var(--caballo-${ELEMENTOS[index % ELEMENTOS.length]}-tinta)`)
+    div.innerHTML = `<i class="p-color"></i><span class="p-username"></span><span class="p-horse"></span>`
+    div.querySelector(".p-username").textContent = p.username
+    div.querySelector(".p-horse").textContent = p.horse_name
+    if (p.profile_username) {
+      const button = document.createElement("button")
+      Object.assign(button, { className: "profile-btn", title: "Ver perfil", textContent: "👤" })
+      button.dataset.fx = "profile"
+      button.dataset.action = "click->race-lobby#openProfilePopup"
+      button.dataset.username = p.profile_username
+      div.append(button)
+    }
     this.participantsListTarget.appendChild(div)
 
-    document.querySelectorAll(`[data-horse-id="${horseId}"]`).forEach(el => el.remove())
+    // Ese caballo ya no se puede elegir ni sumar.
+    document.querySelectorAll(`.picker-card[data-horse-id="${p.horse_id}"]`).forEach(el => el.remove())
 
     this.participantCountValue += 1
     this.playersCountTarget.textContent = `${this.participantCountValue}/${this.capacityValue} jugadores`
-
     const remaining = this.capacityValue - this.participantCountValue
-    if (remaining <= 0) {
-      this.statusBarTarget.textContent = "¡Sala lista!"
-      this.statusBarTarget.className = "ready"
-    } else {
-      this.statusBarTarget.textContent = `Esperando ${remaining} jugador${remaining === 1 ? "" : "es"} más…`
-    }
+    this.statusBarTarget.textContent = remaining <= 0 ? "¡Sala lista!" : `Esperando ${remaining} jugador${remaining === 1 ? "" : "es"} más…`
+    this.statusBarTarget.classList.toggle("ready", remaining <= 0)
+
+    // El caballo aparece en la largada.
+    this.whenReady(() => this.race.join({ id: p.horse_id, name: p.horse_name, username: p.username }))
   }
 
   copyLink(event) {
     const button = event.currentTarget
     const input = document.getElementById("share-link")
-    input.select()
-    document.execCommand("copy")
-
+    navigator.clipboard?.writeText(input.value).catch(() => { input.select(); document.execCommand("copy") })
     button.dataset.label ||= button.textContent
     button.textContent = "¡Copiado!"
     clearTimeout(this.copiedTimeout)
     this.copiedTimeout = setTimeout(() => { button.textContent = button.dataset.label }, 1200)
   }
 
+  // ── Elegir caballo y sumar caballos: sin esperas, uno atrás de otro ────────────────────
   pickHorse(event) {
-    const horseId = event.currentTarget.dataset.horseId
     const card = event.currentTarget
-    if (card.classList.contains("taken") || this.pickingHorse) return
+    if (card.classList.contains("picking") || this.pickingHorse) return
     this.pickingHorse = true
-
-    // La tarjeta desaparece al confirmarse: se espera a que termine su animación de clic.
-    setTimeout(() => this.submitHorse(card, horseId), PICK_ANIMATION_MS)
-  }
-
-  submitHorse(card, horseId) {
-    fetch(`/races/${this.raceSlugValue}/participants`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
-      body: JSON.stringify({ horse_id: horseId })
-    })
-      .then(r => r.json())
+    card.classList.add("picking")
+    this.postParticipant({ horse_id: card.dataset.horseId })
       .then(data => {
-        if (data.race_started) {
-          window.location.href = "/races/" + this.raceSlugValue + "/live"
-        } else if (data.ok) {
-          this.horsePickerTarget.style.display = "none"
-        } else {
-          alert(data.error || "No se pudo elegir ese caballo")
-          card.classList.add("taken")
-        }
+        if (!data.ok) throw new Error(data.error || "No se pudo elegir ese caballo")
+        this.horsePickerTarget.remove()
+        this.tuCaballoNombreTarget.textContent = data.participant.horse_name
+        this.tuCaballoTarget.hidden = false
+        this.whenReady(() => this.race.setMine(data.participant.horse_id))
       })
-      .catch(() => alert("Error de red, intentá de nuevo"))
-      .finally(() => { this.pickingHorse = false })
+      .catch(error => { card.classList.add("taken"); this.aviso(error.message) })
+      .finally(() => { this.pickingHorse = false; card.classList.remove("picking") })
   }
 
   addApostador(event) {
-    if (this.addingApostador) return
-
     const card = event.currentTarget
-    const nameInput = document.getElementById("apostador-name-input")
-    if (!nameInput) return
-
-    this.addingApostador = true
+    if (card.classList.contains("picking")) return
     card.classList.add("picking")
-    nameInput.readOnly = true
-
-    const submit = name => this.submitApostador(card, nameInput, name)
-    const typedName = nameInput.value.trim()
-    const defaultName = typedName ? null : this.nextBettorName()
-
-    if (defaultName) {
-      this.typeName(nameInput, defaultName, () => submit(defaultName))
-    } else {
-      // Con nombre escrito se usa ese; si no quedara ninguno, lo asigna el servidor.
-      submit(typedName)
-    }
+    const input = document.getElementById("apostador-name-input")
+    const typed = input?.value.trim()
+    if (input) input.value = ""
+    const name = typed || this.nextBettorName()
+    this.postParticipant({ horse_id: card.dataset.horseId, guest_name: name })
+      .then(data => { if (!data.ok) throw new Error(data.error || "No se pudo sumar ese caballo") })
+      .catch(error => { card.classList.remove("picking"); this.aviso(error.message) })
   }
 
   nextBettorName() {
@@ -173,69 +171,57 @@ export default class extends Controller {
     return this.bettorNames.shift()
   }
 
-  typeName(input, name, done) {
-    const letters = Array.from(name)
-    let shown = 0
-
-    input.classList.add("typing")
-    this.typingInterval = setInterval(() => {
-      shown += 1
-      input.value = letters.slice(0, shown).join("")
-      if (shown < letters.length) return
-
-      clearInterval(this.typingInterval)
-      // Pausa breve para que el nombre completo alcance a leerse.
-      this.typingPause = setTimeout(done, 350)
-    }, 60)
-  }
-
-  submitApostador(card, nameInput, name) {
-    fetch(`/races/${this.raceSlugValue}/participants`, {
+  postParticipant(body) {
+    return fetch(`/races/${this.raceSlugValue}/participants`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
-      body: JSON.stringify({ horse_id: card.dataset.horseId, guest_name: name })
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) {
-          nameInput.value = ""
-        } else {
-          alert(data.error || "No se pudo agregar el apostador")
-        }
-      })
-      .catch(() => alert("Error de red, intentá de nuevo"))
-      .finally(() => {
-        this.addingApostador = false
-        card.classList.remove("picking")
-        nameInput.classList.remove("typing")
-        nameInput.readOnly = false
-      })
+      body: JSON.stringify(body)
+    }).then(r => r.json())
   }
 
   startRace() {
     const btn = this.btnStartTarget
     btn.disabled = true
-    btn.textContent = "Iniciando…"
-    fetch(`/races/${this.raceSlugValue}/start`, {
-      method: "POST",
-      headers: { "X-CSRF-Token": this.csrfToken() }
-    })
+    btn.textContent = "Largando…"
+    fetch(`/races/${this.raceSlugValue}/start`, { method: "POST", headers: { "X-CSRF-Token": this.csrfToken() } })
       .then(r => r.json())
       .then(data => {
-        if (data.race_started) {
-          window.location.href = "/races/" + this.raceSlugValue + "/live"
-        } else if (data.error) {
-          btn.disabled = false
-          btn.textContent = "🏁 Comenzar carrera"
-          alert(data.error)
-        }
+        if (data.error) throw new Error(data.error)
+        this.onRaceStarted()
       })
-      .catch(() => {
-        btn.disabled = false
-        btn.textContent = "🏁 Comenzar carrera"
-      })
+      .catch(error => { btn.disabled = false; btn.textContent = "Largar"; this.aviso(error.message) })
   }
 
+  // ── Largada: la sala se corre con un corte seco y la escena pasa al preludio ─────────────
+  onRaceStarted() {
+    if (this.started) return
+    this.started = true
+    const cut = this.corteTarget
+    cut.classList.remove("ya")
+    void cut.offsetWidth
+    cut.classList.add("ya")
+    // El cambio de fase, justo cuando el bloque tapa la pantalla.
+    setTimeout(() => {
+      document.documentElement.dataset.fase = "carrera"
+      this.element.classList.add("en-carrera")
+    }, 160)
+    this.whenReady(() => this.race.startIn(13))
+  }
+
+  goToResults() {
+    const url = this.data3d.resultsUrl
+    // La transición entre páginas (view transitions) la hace un fundido, sin corte.
+    location.assign(url)
+  }
+
+  aviso(text) {
+    this.statusBarTarget.textContent = text
+    this.statusBarTarget.classList.add("error")
+    clearTimeout(this.avisoTimeout)
+    this.avisoTimeout = setTimeout(() => this.statusBarTarget.classList.remove("error"), 2500)
+  }
+
+  // ── Perfil emergente ───────────────────────────────────────────────────────────────
   openProfilePopup(event) {
     const username = event.currentTarget.dataset.username
     this.profileOverlayTarget.classList.add("open")
@@ -247,9 +233,7 @@ export default class extends Controller {
     this.ppFavsTarget.innerHTML = ""
     this.ppAvatarWrapTarget.innerHTML = ""
 
-    fetch(`/profiles/${username}.json`, {
-      headers: { "X-CSRF-Token": this.csrfToken() }
-    })
+    fetch(`/profiles/${username}.json`, { headers: { "X-CSRF-Token": this.csrfToken() } })
       .then(r => r.json())
       .then(data => {
         this.profilePopupTarget.classList.remove("loading")
@@ -273,83 +257,6 @@ export default class extends Controller {
   closePopupBtn() {
     // Se cierra después de la animación de clic de la cruz, que si no queda oculta antes de empezar.
     setTimeout(() => this.profileOverlayTarget.classList.remove("open"), CLOSE_ANIMATION_MS)
-  }
-
-  onRaceStarted(_participants) {
-    window.location.href = "/races/" + this.raceSlugValue + "/live"
-  }
-
-  onFinished(winner) {
-    this.stopAnimation()
-    const banner = this.winnerBannerTarget
-    banner.textContent = `🏆 Ganador: ${winner.username} (${winner.name})`
-    banner.style.display = "block"
-    banner.style.animation = "pop 0.3s ease-out"
-  }
-
-  preloadFrames() {
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    for (let i = 1; i <= cfg.frameCount; i++) {
-      (new Image()).src = cfg.basePath + i + ".png"
-    }
-  }
-
-  renderTrack(participants) {
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    this.trackTarget.innerHTML = participants.map((p, i) => {
-      const hue = this.hueRotations[i % this.hueRotations.length]
-      return `<div class="lane-row">
-        <span class="lane-label" title="${p.username} — ${p.name}">${p.username}</span>
-        <div class="track-wrap" id="wrap-${p.id}">
-          <div class="track-bg"></div>
-          <img class="horse-sprite" id="horse-${p.id}"
-               src="${cfg.basePath}1.png"
-               style="filter: hue-rotate(${hue}deg); ${cfg.spriteStyle}">
-        </div>
-      </div>`
-    }).join("")
-  }
-
-  startAnimation() {
-    if (this.animInterval) return
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    this.animInterval = setInterval(() => {
-      this.frameIndex = (this.frameIndex + 1) % cfg.frameCount
-      document.querySelectorAll(".horse-sprite").forEach(el => {
-        el.src = cfg.basePath + (this.frameIndex + 1) + ".png"
-      })
-    }, 110)
-  }
-
-  stopAnimation() {
-    clearInterval(this.animInterval)
-    this.animInterval = null
-  }
-
-  moveHorse(horseId, position) {
-    const img = document.getElementById("horse-" + horseId)
-    const wrap = document.getElementById("wrap-" + horseId)
-    if (!img || !wrap) return
-    const maxLeft = wrap.offsetWidth - img.offsetWidth
-    img.style.left = Math.max(0, position / 100 * maxLeft) + "px"
-  }
-
-  showCountdown(callback) {
-    const el = this.countdownTarget
-    el.style.display = "block"
-    const steps = ["3", "2", "1", "🏁 GO!"]
-    let i = 0
-    el.textContent = steps[0]
-    const interval = setInterval(() => {
-      i++
-      if (i < steps.length) {
-        el.textContent = steps[i]
-      } else {
-        clearInterval(interval)
-        el.style.display = "none"
-        callback()
-      }
-    }, 1000)
   }
 
   csrfToken() {

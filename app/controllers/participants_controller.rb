@@ -40,6 +40,6 @@ class ParticipantsController < WebController
 
     race.reload.start! if race.full? && race.pending?
 
-    render json: { ok: true, race_started: race.running?, participant: { horse_name: horse.name, display_name: participant.display_name } }
+    render json: { ok: true, race_started: race.running?, participant: { horse_id: horse.id, horse_name: horse.name, display_name: participant.display_name } }
   end
 end

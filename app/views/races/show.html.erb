@@ -1,10 +1,25 @@
 <% content_for :title, "Club Race — #{@race.slug}" %>
-<% content_for :page_title, @race.slug %>
+<% content_for :pantalla_completa, true %>
+<% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-lobby.css?v=2">
+  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=3">
 <% end %>
 
-<div data-controller="race-lobby"
+<%# La escena 3D se arma con un carril por lugar y estos caballos ya en la largada; el resto aparece al unirse. %>
+<script id="race-data" type="application/json"><%= raw({
+  raceId: @race.id,
+  capacity: @race.capacity,
+  distance: @race.distance,
+  running: @race.running?,
+  secondsToStart: @seconds_to_start,
+  participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } },
+  myHorseId: @my_participant&.horse_id,
+  resultsUrl: results_race_path(@race)
+}.to_json) %></script>
+
+<div class="sala<%= ' en-carrera' if @race.running? %>"
+     data-controller="race-lobby"
      data-race-lobby-race-id-value="<%= @race.id %>"
      data-race-lobby-race-slug-value="<%= @race.slug %>"
      data-race-lobby-animal-type-value="<%= @race.animal_type %>"
@@ -13,38 +28,78 @@
      data-race-lobby-favorite-ids-value="<%= @favorite_horse_ids.to_json %>"
      data-race-lobby-bettor-names-value="<%= (@is_creator ? @race.available_bettor_names.shuffle : []).to_json %>">
 
-  <div class="lobby-header">
-    <h1><%= @race.animal_type == "guinea_pig" ? "🐹" : "🐴" %> <%= @race.slug %></h1>
-    <div class="players-count" data-race-lobby-target="playersCount">
-      <%= @participants.size %>/<%= @race.capacity %> jugadores
+  <div class="sala-cargando" data-race-lobby-target="cargando">Preparando la pista…</div>
+
+  <aside class="sala-panel" data-race-lobby-target="panel">
+    <header class="sala-cabecera">
+      <%= link_to "← Salas", races_path, class: "sala-volver", data: { fx: "back" } %>
+      <h1 class="sala-nombre"><%= @race.slug %></h1>
+      <div class="players-count" data-race-lobby-target="playersCount"><%= @participants.size %>/<%= @race.capacity %> jugadores</div>
+    </header>
+
+    <div class="share-row">
+      <input type="text" id="share-link" readonly value="<%= request.base_url %>/races/<%= @race.slug %>" aria-label="Enlace para invitar">
+      <button data-fx="copy" data-action="click->race-lobby#copyLink">Copiar</button>
     </div>
-  </div>
 
-  <div class="share-row">
-    <input type="text" id="share-link" readonly value="<%= request.base_url %>/races/<%= @race.slug %>">
-    <button data-fx="copy" data-action="click->race-lobby#copyLink">Copiar</button>
-  </div>
+    <div class="tu-caballo" data-race-lobby-target="tuCaballo"<%= ' hidden' unless @my_participant %>>
+      Tu caballo: <b data-race-lobby-target="tuCaballoNombre"><%= @my_participant&.horse_name %></b>
+    </div>
 
-  <div class="section-title">Participantes</div>
-  <div id="participants-list" data-race-lobby-target="participantsList">
-    <% @participants.each do |p| %>
-      <div class="participant-row" id="participant-<%= p.id %>">
-        <span class="p-username"><%= p.display_name %></span>
-        <span class="p-horse">🐎 <%= p.horse_name %></span>
-        <% if p.user_id.present? %>
-          <button class="profile-btn"
-                  data-fx="profile"
-                  data-action="click->race-lobby#openProfilePopup"
-                  data-username="<%= p.user.username %>"
-                  title="Ver perfil">👤</button>
-        <% end %>
+    <% if @my_participant.nil? %>
+      <div id="horse-picker" data-race-lobby-target="horsePicker">
+        <h2>Elegí tu caballo</h2>
+        <div id="picker-cards" class="picker-cards" data-race-lobby-target="pickerCards">
+          <% @available_horses.each do |horse| %>
+            <% is_fav = @favorite_horse_ids.include?(horse.id) %>
+            <button class="picker-card<%= ' favorite' if is_fav %>" data-horse-id="<%= horse.id %>" data-fx="join" data-action="click->race-lobby#pickHorse">
+              <span class="card-name"><%= '⭐ ' if is_fav %><%= horse.name %></span>
+            </button>
+          <% end %>
+        </div>
       </div>
     <% end %>
-  </div>
 
-  <div id="profile-overlay"
-       data-race-lobby-target="profileOverlay"
-       data-action="click->race-lobby#closeProfilePopup">
+    <div class="section-title">Participantes</div>
+    <div id="participants-list" data-race-lobby-target="participantsList">
+      <% @participants.each_with_index do |p, i| %>
+        <div class="participant-row" id="participant-<%= p.id %>" data-horse-id="<%= p.horse_id %>" style="--c: <%= color_de_carril(i, tinta: true) %>">
+          <i class="p-color"></i>
+          <span class="p-username"><%= p.display_name %></span>
+          <span class="p-horse"><%= p.horse_name %></span>
+          <% if p.user_id.present? %>
+            <button class="profile-btn" data-fx="profile" data-action="click->race-lobby#openProfilePopup" data-username="<%= p.user.username %>" title="Ver perfil">👤</button>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @is_creator && @race.pending? %>
+      <div id="apostador-section" data-race-lobby-target="apostadorSection">
+        <h3>Sumar caballos</h3>
+        <p class="sala-ayuda">Tocá los que quieras, uno atrás de otro: entran con un apostador cada uno.</p>
+        <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (opcional)">
+        <div id="apostador-cards" class="picker-cards">
+          <% @all_available_horses.each do |horse| %>
+            <button class="picker-card" id="apostador-card-<%= horse.id %>" data-horse-id="<%= horse.id %>" data-fx="add" data-action="click->race-lobby#addApostador">
+              <span class="card-name"><%= horse.name %></span>
+            </button>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div id="status-bar" data-race-lobby-target="statusBar">
+      <% remaining = @race.capacity - @participants.size %>
+      <%= remaining > 0 ? "Esperando #{remaining} jugador#{remaining == 1 ? '' : 'es'} más…" : "¡Sala lista!" %>
+    </div>
+
+    <% if @race.creator_id == current_user.id && @race.pending? %>
+      <button id="btn-start" data-fx="start" data-race-lobby-target="btnStart" data-action="click->race-lobby#startRace">Largar</button>
+    <% end %>
+  </aside>
+
+  <div id="profile-overlay" data-race-lobby-target="profileOverlay" data-action="click->race-lobby#closeProfilePopup">
     <div id="profile-popup" data-race-lobby-target="profilePopup">
       <button class="pp-close" data-fx="close" data-action="click->race-lobby#closePopupBtn">✕</button>
       <div class="pp-header">
@@ -55,83 +110,15 @@
         </div>
       </div>
       <div class="pp-stats">
-        <div>
-          <div class="pp-stat-val" data-race-lobby-target="ppRaces">—</div>
-          <div class="pp-stat-lbl">Carreras</div>
-        </div>
-        <div>
-          <div class="pp-stat-val" data-race-lobby-target="ppWins">—</div>
-          <div class="pp-stat-lbl">Victorias</div>
-        </div>
+        <div><div class="pp-stat-val" data-race-lobby-target="ppRaces">—</div><div class="pp-stat-lbl">Carreras</div></div>
+        <div><div class="pp-stat-val" data-race-lobby-target="ppWins">—</div><div class="pp-stat-lbl">Victorias</div></div>
       </div>
       <div class="pp-favs-title">Caballos favoritos</div>
       <div class="pp-favs" data-race-lobby-target="ppFavs"></div>
     </div>
   </div>
 
-  <% if @my_participant.nil? %>
-    <div id="horse-picker" data-race-lobby-target="horsePicker">
-      <h2>Elige tu caballo</h2>
-      <div id="picker-cards" class="picker-cards" data-race-lobby-target="pickerCards">
-        <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
-        <% @available_horses.each_with_index do |horse, i| %>
-          <% is_fav = @favorite_horse_ids.include?(horse.id) %>
-          <div class="picker-card<%= is_fav ? ' favorite' : '' %>"
-               data-horse-id="<%= horse.id %>"
-               data-fx="join"
-               data-action="click->race-lobby#pickHorse">
-            <img src="/images/<%= @race.animal_type %>/frame_1.png"
-                 style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
-            <div class="card-name"><%= is_fav ? '⭐ ' : '' %><%= horse.name %></div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <div id="status-bar" data-race-lobby-target="statusBar">
-    <% remaining = @race.capacity - @participants.size %>
-    <% if remaining > 0 %>
-      Esperando <%= remaining %> jugador<%= remaining == 1 ? "" : "es" %> más…
-    <% else %>
-      ¡Sala lista!
-    <% end %>
-  </div>
-
-  <% if @is_creator && @race.pending? %>
-    <div id="apostador-section" data-race-lobby-target="apostadorSection">
-      <h3>Agregar apostador</h3>
-      <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (opcional)">
-      <div id="apostador-cards" class="picker-cards">
-        <% hue_rotations = [0, 55, 110, 170, 220, 285] %>
-        <% @all_available_horses.each_with_index do |horse, i| %>
-          <div class="picker-card"
-               id="apostador-card-<%= horse.id %>"
-               data-horse-id="<%= horse.id %>"
-               data-fx="add"
-               data-action="click->race-lobby#addApostador">
-            <img src="/images/<%= @race.animal_type %>/frame_1.png"
-                 style="filter: hue-rotate(<%= hue_rotations[i % hue_rotations.size] %>deg)">
-            <div class="card-name"><%= horse.name %></div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <% if @race.creator_id == current_user.id %>
-    <button id="btn-start"
-            data-fx="start"
-            data-race-lobby-target="btnStart"
-            data-action="click->race-lobby#startRace">🏁 Comenzar carrera</button>
-  <% end %>
-
-  <div id="race-section" data-race-lobby-target="raceSection">
-    <div id="countdown" data-race-lobby-target="countdown"></div>
-    <div id="track" data-race-lobby-target="track"></div>
-    <div id="winner-banner" data-race-lobby-target="winnerBanner"></div>
-  </div>
-
-  <div class="back-link"><%= link_to "← Volver a salas", root_path, data: { fx: "back" } %></div>
-
+  <%# Al largar: un bloque carmesí cruza y deja un flash seco, y la sala se corre. %>
+  <div class="corte" data-race-lobby-target="corte" aria-hidden="true"></div>
+  <div class="controls"><%= link_to "Ver resultados", results_race_path(@race), id: "results", hidden: true, data: { race_lobby_target: "results" } %></div>
 </div>

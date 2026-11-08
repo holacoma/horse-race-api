@@ -24,10 +24,11 @@ class RacesController < WebController
     end
   end
 
+  # La sala y la carrera son la misma pantalla: la carrera 3D ya está en la sala, con los caballos esperando en la
+  # largada, y al largar la interfaz se corre. Si se abre con la carrera en marcha, entra directo a la carrera.
   def show
-    redirect_to live_race_path(@race) and return if @race.running?
     redirect_to results_race_path(@race) and return if @race.finished?
-    @participants         = @race.participants.includes(:user)
+    @participants         = @race.participants.includes(:user).order(:created_at)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
     @all_available_horses = @race.available_horses.sample(@race.capacity) if @is_creator
@@ -38,14 +39,13 @@ class RacesController < WebController
     others         = available.reject { |h| favorite_ids.include?(h.id) }.sample(4 - fav_available.size)
     @available_horses    = fav_available + others
     @favorite_horse_ids  = favorite_ids
+    @seconds_to_start    = @race.running? ? [ @race.started_at + RaceSimulationJob::PRELUDE_SEC - Time.current, 0 ].max : nil
   end
 
+  # La carrera 2D quedó reemplazada por la 3D de la sala.
   def live
     redirect_to results_race_path(@race) and return if @race.finished?
-    redirect_to race_path(@race) and return unless @race.running?
-    @participants    = @race.participants.includes(:user).order(:created_at)
-    @my_participant  = @race.participants.find_by(user: current_user)
-    @participants_json = @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } }
+    redirect_to race_path(@race)
   end
 
   # Prototipo: la misma carrera real que `live`, dibujada en 3D.

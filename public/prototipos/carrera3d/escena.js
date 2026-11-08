@@ -69,7 +69,7 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, showFps = true }) {
+export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, showFps = true }) {
   const FINISH = distance
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
@@ -81,7 +81,8 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   renderer.info.autoReset = false // el total del cuadro incluye varias pasadas
   document.body.prepend(renderer.domElement)
 
-  const N = participants.length
+  // Un carril por lugar: en la sala los caballos aparecen en la largada a medida que alguien se une (join).
+  const N = Math.max(1, slots ?? 0, participants.length)
   const WIDTH = N * LANE + 2.4
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 900)
@@ -119,23 +120,41 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     .map(buildGrandstand)
   buildGates()
 
-  const horses = participants.map((p, i) => {
+  // Todos los lugares se arman al cargar (así sus shaders se compilan juntos); los vacíos quedan ocultos.
+  const pool = Array.from({ length: N }, (_, i) => {
     const h = horseModel ? buildProHorse(horseModel, i) : buildHorse(i)
-    h.id = p.id
-    h.name = p.name
-    h.username = p.username
     h.x = 0
     h.v = 0
     h.z = (i - (N - 1) / 2) * LANE
     h.history = []
     h.rank = i
+    h.active = false
     h.root.position.set(0, 0, h.z)
     scene.add(h.root)
     return h
   })
-  const mine = horses.find(h => h.id === myId)
+  const horses = []
+  let mine = null
   // Todos arden; la cámara de la transformación va con el tuyo.
-  const fireHorse = mine?.setFire ? mine : horses.find(h => h.setFire)
+  let fireHorse = null
+  const pickFireHorse = () => { fireHorse = mine?.setFire ? mine : horses.find(h => h.setFire) || null }
+  function join(p) {
+    if (horses.some(h => h.id === p.id)) return
+    const h = pool.find(h => !h.active)
+    if (!h) return
+    Object.assign(h, { id: p.id, name: p.name, username: p.username, active: true })
+    h.root.visible = true
+    horses.push(h)
+    if (h.id === myId) mine = h
+    pickFireHorse()
+    hud.activate(h)
+  }
+  function setMine(id) {
+    myId = id
+    mine = horses.find(h => h.id === id) || null
+    pickFireHorse()
+    hud.markMine()
+  }
   // Tomas que se turnan durante la carrera: una general, una de cerca, y así.
   const SHOTS = ["peloton", "heroe", "tele", "peloton", "arco", "peloton", "cola"]
 
@@ -143,6 +162,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   const confetti = buildConfetti()
   const post = buildPost()
   const hud = buildHud()
+  participants.forEach(join)
 
   const state = {
     clock: 0, rt: 0, timeScale: 1, intensity: 0, impact: 0, portal: 0,
@@ -266,6 +286,11 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
       }
     }
 
+    if (!horses.length) {
+      // Sala vacía: todavía no hay a quién seguir; se ve la largada.
+      waitingFrame(realDt)
+      return
+    }
     const leader = horses.reduce((best, h) => (h.x > best.x ? h : best), horses[0])
     // La cámara sigue al puntero sin retraso: a esta velocidad, cualquier demora deja a los caballos atrás de ella.
     // Solo se suaviza el salto cuando cambia quién va primero.
@@ -313,7 +338,8 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
       onDone?.()
     }
 
-    const preludeT = state.clock - state.preludeStart
+    // En la sala, sin largada a la vista, el preludio no empezó: un número finito (con -Infinity el piso da NaN y se ve negro).
+    const preludeT = state.countdownEnd === null ? -1000 : state.clock - state.preludeStart
     const entering = smooth(WORLD_FROM, WORLD_FROM + WORLD_SECONDS, preludeT)
     uWorld.value = state.started ? 1 : entering
     uWave.value = state.started ? 1e6 : ((preludeT - WORLD_FROM) / WORLD_SECONDS) * (FINISH + 450)
@@ -385,18 +411,31 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   }
 
   // ── Cámara: cortes secos por tramo, como un resumen de carrera anime ──────────────
+  function waitingFrame(realDt) {
+    const t = state.clock
+    camera.position.set(7.5 + Math.sin(t * 0.07) * 1.6, 2.2, WIDTH / 2 + 2.6)
+    camera.lookAt(-0.6, 1.25, -WIDTH * 0.08)
+    camera.fov = 48
+    camera.updateProjectionMatrix()
+    state.shot = "sala"
+    updateLighting()
+    hud.update()
+    render(realDt)
+  }
+
   function placeCamera(dt) {
     const L = state.leaderX
     const leader = state.leader
-    const mean = horses.reduce((s, h) => s + h.x, 0) / N
+    const n = horses.length
+    const mean = horses.reduce((s, h) => s + h.x, 0) / n
     const f = (L + mean) / 2
     const crossedFor = state.crossedAt === null ? -1 : state.clock - state.crossedAt
     const z = leader.z
     const i = state.intensity
     // Cuánto hay que encuadrar: de primero a último, y de primero a segundo y tercero para la pelea por llegar.
-    state.span = damp(state.span, L - state.order[N - 1].x, 3, dt)
-    state.gapSecond = damp(state.gapSecond, L - state.order[1].x, 4, dt)
-    state.gapThird = damp(state.gapThird, L - state.order[Math.min(2, N - 1)].x, 3, dt)
+    state.span = damp(state.span, L - state.order[n - 1].x, 3, dt)
+    state.gapSecond = damp(state.gapSecond, L - state.order[Math.min(1, n - 1)].x, 4, dt)
+    state.gapThird = damp(state.gapThird, L - state.order[Math.min(2, n - 1)].x, 3, dt)
 
     // Transformación: por delante y del lado de afuera, sin otros caballos en medio, mientras la luz lo recorre.
     const fireShot = () => {
@@ -451,6 +490,13 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
       look = [w.x, 1.25, w.z]
       fov = 14
       roll = 0.06
+    } else if (state.countdownEnd === null && !state.started) {
+      // En la sala: la cámara pasea despacio frente a la largada mientras los caballos esperan, descansando.
+      const t = state.clock
+      shot = "sala"
+      pos = [7.5 + Math.sin(t * 0.07) * 1.6, 2.2 + Math.sin(t * 0.11) * 0.25, WIDTH / 2 + 2.6]
+      look = [-0.6, 1.25, -WIDTH * 0.08]
+      fov = 48
     } else if (!state.started || L < 1) {
       // Preludio: del aire a la cara de los caballos, y recién después el 3, 2, 1.
       const t = state.clock - state.preludeStart
@@ -475,7 +521,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
         fov = 30
         roll = 0.12
       } else if (t < 9) {
-        const h = horses[Math.floor(N / 2)]
+        const h = horses[Math.floor(horses.length / 2)] || horses[0]
         shot = "preludio-cara"
         pos = [h.x + 4.4, 1, h.z - 1.8]
         look = [h.x + 1.8, 1.95, h.z]
@@ -1256,11 +1302,13 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
 
     // Mapa de la carrera: un carril por caballo, de la salida a la meta.
     const map = make("hud hud-map")
-    const pins = horses.map(h => {
-      const slide = make("map-slide", make("map-lane", map))
-      const pin = make(`map-pin${h === mine ? " mine" : ""}`, slide)
+    const pins = pool.map(h => {
+      const lane = make("map-lane", map)
+      lane.style.display = "none"
+      const slide = make("map-slide", lane)
+      const pin = make("map-pin", slide)
       pin.style.background = hex(h.silk)
-      return { h, slide, pin }
+      return { h, lane, slide, pin }
     })
     make("map-goal", map)
 
@@ -1272,11 +1320,11 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     lead.append(leadDot, leadName, leadInfo)
 
     // Puesto sobre cada caballo. Se proyecta a mano y se corrige por la lente del postproceso.
-    const tags = horses.map(h => {
+    const tags = new Map(pool.map(h => {
       const tag = make("hud hud-tag")
       tag.style.setProperty("--c", hex(h.silk))
-      return tag
-    })
+      return [h, tag]
+    }))
     const point = new THREE.Vector3()
     const unlens = (x, y) => {
       const amount = lensAmount()
@@ -1293,8 +1341,8 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
       const contenders = state.shot === "recta" || state.shot === "llegada"
       const leaderOnly = state.shot === "tele" || state.shot === "arco"
       camera.updateMatrixWorld()
-      horses.forEach((h, index) => {
-        const tag = tags[index]
+      horses.forEach(h => {
+        const tag = tags.get(h)
         const rank = state.order.indexOf(h) + 1
         let show = finale ? h === state.winner : everyone || (contenders && rank <= 3) || (leaderOnly && rank === 1)
         if (show) {
@@ -1313,10 +1361,19 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     }
 
     return {
+      activate(h) {
+        const pin = pins.find(p => p.h === h)
+        pin.lane.style.display = ""
+        pin.pin.classList.toggle("mine", h === mine)
+      },
+      markMine() { pins.forEach(p => p.pin.classList.toggle("mine", p.h === mine)) },
       update() {
+        // En la sala, antes de largar, la pantalla es de la sala: sin HUD.
+        document.body.classList.toggle("esperando", state.countdownEnd === null && !state.started)
         const crossed = state.crossedAt !== null
         map.style.opacity = state.started && !state.celebrating ? 1 : 0
         pins.forEach(({ h, slide, pin }) => {
+          if (!h.active) return
           slide.style.transform = `translateX(${clamp((h.x / FINISH) * 100, 0, 100).toFixed(2)}%)`
           pin.classList.toggle("lead", h === state.leader)
         })
@@ -1355,7 +1412,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
           leadDot.style.background = hex(h.silk)
           lead.style.setProperty("--c", hex(h.silk))
           leadName.textContent = announced ? `¡GANA ${h.name.toUpperCase()}!` : h.name.toUpperCase()
-          leadInfo.textContent = announced ? `apuesta de ${h.username}` : `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m`
+          leadInfo.textContent = announced ? `apuesta de ${h.username}` : (sorted[1] ? `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m` : `a ${remaining} m`)
         }
       },
       showWin(h) {
@@ -1381,8 +1438,10 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   resize()
   // Todo se compila al cargar: lo que recién entra en cuadro cerca de la meta, como la tribuna, trababa la imagen al llegar.
   post.compile()
+  // Compilados: los lugares todavía vacíos se ocultan hasta que alguien se una.
+  pool.forEach(h => { h.root.visible = h.active })
 
-  const horseMorphActive = () => horses[0].root.children[0].children[0]?.morphTargetInfluences?.filter(v => v > 0.01).length ?? 0
+  const horseMorphActive = () => pool[0].root.children[0].children[0]?.morphTargetInfluences?.filter(v => v > 0.01).length ?? 0
 
   let frame = null
   function run() {
@@ -1396,7 +1455,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   }
 
   return {
-    step, run, tick, finish, startIn,
+    step, run, tick, finish, startIn, join, setMine,
     stop() { if (frame) cancelAnimationFrame(frame) },
     // Para probar y grabar.
     debugCamera(pos, look, fov = 35) {
