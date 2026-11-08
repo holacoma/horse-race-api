@@ -1,0 +1,254 @@
+[
+ {
+  "nombre": "chibi-fuego-a",
+  "semilla": 1000,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, orange fire mane and tail, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-fuego-b",
+  "semilla": 1001,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, orange fire mane and tail, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-fuego-c",
+  "semilla": 1002,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, orange fire mane and tail, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-hielo-a",
+  "semilla": 1003,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, icy cyan crystal mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-hielo-b",
+  "semilla": 1004,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, icy cyan crystal mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-hielo-c",
+  "semilla": 1005,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, icy cyan crystal mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-electricidad-a",
+  "semilla": 1006,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, violet lightning mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-electricidad-b",
+  "semilla": 1007,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, violet lightning mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-electricidad-c",
+  "semilla": 1008,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, violet lightning mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-agua-a",
+  "semilla": 1009,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, blue water mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-agua-b",
+  "semilla": 1010,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, blue water mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-agua-c",
+  "semilla": 1011,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, blue water mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-viento-a",
+  "semilla": 1012,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, teal swirly wind mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-viento-b",
+  "semilla": 1013,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, teal swirly wind mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-viento-c",
+  "semilla": 1014,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, teal swirly wind mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-roca-a",
+  "semilla": 1015,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, brown body with amber pebble armor, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-roca-b",
+  "semilla": 1016,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, brown body with amber pebble armor, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-roca-c",
+  "semilla": 1017,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, brown body with amber pebble armor, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-sombra-a",
+  "semilla": 1018,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, black body, smoky mane, red eyes, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-sombra-b",
+  "semilla": 1019,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, black body, smoky mane, red eyes, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-sombra-c",
+  "semilla": 1020,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, black body, smoky mane, red eyes, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-luz-a",
+  "semilla": 1021,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, white body, golden mane, small halo, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-luz-b",
+  "semilla": 1022,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, white body, golden mane, small halo, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-luz-c",
+  "semilla": 1023,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, white body, golden mane, small halo, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-veneno-a",
+  "semilla": 1024,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, acid green mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-veneno-b",
+  "semilla": 1025,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, acid green mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-veneno-c",
+  "semilla": 1026,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, acid green mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-metal-a",
+  "semilla": 1027,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, silver body, lavender mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-metal-b",
+  "semilla": 1028,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, silver body, lavender mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-metal-c",
+  "semilla": 1029,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, silver body, lavender mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-naturaleza-a",
+  "semilla": 1030,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, green leafy mane with a small flower, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-naturaleza-b",
+  "semilla": 1031,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, green leafy mane with a small flower, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-naturaleza-c",
+  "semilla": 1032,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, green leafy mane with a small flower, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-cosmos-a",
+  "semilla": 1033,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, starry magenta galaxy mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-cosmos-b",
+  "semilla": 1034,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, starry magenta galaxy mane, thick black outline, flat colors, sticker, kawaii, centered"
+ },
+ {
+  "nombre": "chibi-cosmos-c",
+  "semilla": 1035,
+  "ancho": 1024,
+  "alto": 1024,
+  "prompt": "no humans, (white background:1.5), (simple background:1.4), chibi horse, cute pony, (horse:1.3), long horse face, horse ears, hooves, four legs, full body, standing, side view, big sparkly eyes, starry magenta galaxy mane, thick black outline, flat colors, sticker, kawaii, centered"
+ }
+]

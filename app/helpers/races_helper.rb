@@ -11,6 +11,9 @@ module RacesHelper
     image_tag("/images/retratos/#{elemento}.webp", alt: "", class: clase, loading: "lazy")
   end
 
+  # El caballo chibi de ese carril, con borde transparente (public/images/chibis): así se ve en la sala, antes de largar.
+  def chibi_de_carril(index, clase: "p-chibi") = image_tag("/images/chibis/#{elemento_de_carril(index)}.webp", alt: "", class: clase)
+
   def color_de_carril(index, tinta: false)
     "var(--caballo-#{ELEMENTOS_POR_CARRIL[index % ELEMENTOS_POR_CARRIL.size]}#{'-tinta' if tinta})"
   end

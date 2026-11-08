@@ -3,7 +3,7 @@
 <% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=4">
-  <link rel="stylesheet" href="/css/race-lobby.css?v=6">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=7">
 <% end %>
 
 <%# La escena 3D se arma con un carril por lugar y estos caballos ya en la largada; el resto aparece al unirse. %>
@@ -46,7 +46,7 @@
     <%# Tu caballo, bien claro: grande, con su color y un cartel. %>
     <div class="tu-caballo" data-race-lobby-target="tuCaballo" style="<%= "--c: #{color_de_carril(my_index)}" if my_index %>"<%= ' hidden' unless @my_participant %>>
       <span class="tu-cartel">Tu caballo</span>
-      <%= dibujo_caballo(nil, clase: "tu-dibujo") %>
+      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de_carril(my_index)}.webp" if my_index %>">
       <b data-race-lobby-target="tuCaballoNombre"><%= @my_participant&.horse_name %></b>
     </div>
 
@@ -57,7 +57,6 @@
           <% @available_horses.each do |horse| %>
             <% is_fav = @favorite_horse_ids.include?(horse.id) %>
             <button class="picker-card<%= ' favorite' if is_fav %>" data-horse-id="<%= horse.id %>" data-fx="join" data-action="click->race-lobby#pickHorse">
-              <%= dibujo_caballo %>
               <span class="card-name"><%= '⭐ ' if is_fav %><%= horse.name %></span>
             </button>
           <% end %>
@@ -69,7 +68,7 @@
     <div id="participants-list" data-race-lobby-target="participantsList">
       <% @participants.each_with_index do |p, i| %>
         <div class="participant-row" id="participant-<%= p.id %>" data-horse-id="<%= p.horse_id %>" style="--c: <%= color_de_carril(i) %>">
-          <%= dibujo_caballo(nil, clase: "p-dibujo") %>
+          <%= chibi_de_carril(i) %>
           <span class="p-username"><%= p.display_name %></span>
           <span class="p-horse"><%= p.horse_name %></span>
           <% if p.user_id.present? %>

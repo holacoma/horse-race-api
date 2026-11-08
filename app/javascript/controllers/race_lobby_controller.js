@@ -4,8 +4,6 @@ import { sonar, sonarCuandoSePueda, GOLPE_TIEMPO } from "sonidos"
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
 const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
-// El mismo dibujo que RacesHelper#dibujo_caballo (las piezas están en shared/_dibujo_defs).
-const DIBUJO = '<svg class="dibujo-caballo p-dibujo" viewBox="-8 0 112 104" aria-hidden="true"><use href="#dc-cabeza" class="dc-desfase" transform="translate(5 -3)"></use><use href="#dc-cabeza" class="dc-pelo"></use><g clip-path="url(#dc-recorte)" mask="url(#dc-mascara)"><rect x="-10" y="-10" width="120" height="120" fill="url(#dc-puntos)" opacity="0.5"></rect></g><use href="#dc-crin" class="dc-crin"></use><use href="#dc-cabeza" class="dc-linea"></use><use href="#dc-detalle"></use></svg>'
 
 // La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
 // esperan en la largada y aparecen a medida que alguien se une. Al largar, la sala se corre y empieza el preludio.
@@ -22,7 +20,7 @@ export default class extends Controller {
 
   static targets = ["participantsList", "playersCount", "statusBar", "horsePicker", "pickerCards",
                      "btnStart", "apostadorSection", "profileOverlay", "profilePopup", "panel", "cargando",
-                     "tuCaballo", "tuCaballoNombre", "corte", "results",
+                     "tuCaballo", "tuCaballoNombre", "tuChibi", "corte", "results",
                      "ppAvatarWrap", "ppUsername", "ppProfileLink", "ppRaces", "ppWins", "ppFavs"]
 
   connect() {
@@ -109,8 +107,9 @@ export default class extends Controller {
     div.dataset.horseId = p.horse_id
     const color = `var(--caballo-${ELEMENTOS[index % ELEMENTOS.length]})`
     div.style.setProperty("--c", color)
-    div.innerHTML = `${DIBUJO}<span class="p-username"></span><span class="p-horse"></span>`
-    if (String(p.horse_id) === String(this.myHorseId)) this.tuCaballoTarget.style.setProperty("--c", color)
+    const chibi = `/images/chibis/${ELEMENTOS[index % ELEMENTOS.length]}.webp`
+    div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-username"></span><span class="p-horse"></span>`
+    if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
     div.querySelector(".p-username").textContent = p.username
     div.querySelector(".p-horse").textContent = p.horse_name
     if (p.profile_username) {
@@ -160,7 +159,10 @@ export default class extends Controller {
         this.tuCaballoNombreTarget.textContent = data.participant.horse_name
         // Si el aviso de llegada ya pintó su fila, su color es el de tu caballo.
         const row = this.participantsListTarget.querySelector(`[data-horse-id="${this.myHorseId}"]`)
-        if (row) this.tuCaballoTarget.style.setProperty("--c", row.style.getPropertyValue("--c"))
+        if (row) {
+          this.tuCaballoTarget.style.setProperty("--c", row.style.getPropertyValue("--c"))
+          this.tuChibiTarget.src = row.querySelector(".p-chibi").src
+        }
         this.tuCaballoTarget.hidden = false
         this.whenReady(() => this.race.setMine(data.participant.horse_id))
       })
