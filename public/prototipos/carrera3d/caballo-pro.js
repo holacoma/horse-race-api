@@ -396,7 +396,7 @@ export function buildProHorse(model, index) {
   root.add(shadow)
 
   return {
-    root, silk: element.outer, stride: 0,
+    root, silk: element.outer, element: element.name.toLowerCase(), stride: 0,
     // El tranco sigue a la velocidad, con tope para que se lea a 400 km/h. Parado, el galope se apaga y queda
     // la pose de pie, con el reposo encima.
     animate(dt, _stride, _speed, _excite, metersPerSecond) {

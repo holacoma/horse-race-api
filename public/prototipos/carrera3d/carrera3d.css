@@ -111,3 +111,11 @@ canvas { display: block; position: fixed; inset: 0; }
   .hud-map { width: calc(100vw - 28px); bottom: 62px; }
   .hud-tag.first { font-size: 13px; }
 }
+
+/* Con portada: la ilustración del elemento del ganador, como en resultados, y el texto en un bloque negro encima. */
+.hud-win.con-portada {
+  width: min(760px, 82vw); aspect-ratio: 16 / 9; padding: 0; display: flex; align-items: flex-end; white-space: normal; text-align: left;
+  background: var(--noche-1) var(--portada) center 30% / cover no-repeat; border: 3px solid var(--noche-1); border-left-width: 3px;
+  box-shadow: 10px 10px 0 var(--carmesi);
+}
+.hud-win.con-portada .hud-win-texto { margin: 0 0 18px 18px; padding: 8px 20px 10px; background: var(--noche-1); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); font-size: clamp(26px, 4vw, 52px); }

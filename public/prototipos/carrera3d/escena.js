@@ -1428,11 +1428,19 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         }
       },
       showWin(h) {
+        // La misma portada de victoria que en resultados: la del elemento del ganador, con el texto encima.
         win.textContent = ""
-        win.append(`¡Ganó ${h.name}!`)
+        if (h.element) {
+          win.classList.add("con-portada")
+          win.style.setProperty("--portada", `url("/images/retratos/victoria-${h.element}.webp")`)
+        }
+        const texto = document.createElement("div")
+        texto.className = "hud-win-texto"
+        texto.append(h === mine ? "¡Ganaste!" : `¡Ganó ${h.name}!`)
         const small = document.createElement("small")
-        small.textContent = h === mine ? "¡ese es tu caballo!" : `apuesta de ${h.username}`
-        win.append(small)
+        small.textContent = h === mine ? `con ${h.name}` : `apuesta de ${h.username}`
+        texto.append(small)
+        win.append(texto)
         win.classList.add("show")
       }
     }
