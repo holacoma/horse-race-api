@@ -150,27 +150,44 @@ label { font-weight: 700; }
 @keyframes cruzar { 0% { transform: translateX(-14vw); } 50%, 100% { transform: translateX(110vw); } }
 @keyframes trote { from { transform: scaleX(-1) translateY(0) rotate(0deg); } to { transform: scaleX(-1) translateY(-7px) rotate(7deg); } }
 
-/* Pradera de fondo (entrada e inicio): toda la pantalla, con capas que pasan a distinta velocidad, como desde un tren.
-   Cada capa mide el doble de ancho y se corre media vuelta (sus dibujos se repiten justo en esa mitad). Solo transform. */
-.pradera { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: linear-gradient(var(--cian-dia-4), var(--arena-2) 70%); }
-.pradera::before { content: ""; position: absolute; right: 8vw; top: 7vh; width: 11vw; min-width: 80px; aspect-ratio: 1; border-radius: 50%; background: var(--ambar-dia-6); }
+/* Franja de carrera (entrada e inicio), a lo Alto's Odyssey: capas que pasan a distinta velocidad, como desde un tren,
+   y paletas que se funden solas (cada una ~12 s, fundido de 5 s). Cada capa mide el doble de ancho y se corre media vuelta
+   (su dibujo se repite justo en esa mitad). Todo con transform, opacidad y colores registrados con @property. */
+@property --cielo0 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --cielo1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --cielo2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --capa1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --capa2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --capa3 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --capa4 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sol { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --halo { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@keyframes pradera-paletas {
+  0%, 14% { --cielo0: oklch(0.84 0.06 215); --cielo1: oklch(0.93 0.04 190); --cielo2: oklch(0.97 0.02 120); --capa1: oklch(0.88 0.04 190); --capa2: oklch(0.8 0.06 175); --capa3: oklch(0.68 0.07 165); --capa4: oklch(0.48 0.06 160); --sol: #fffbe8; --halo: rgba(255, 252, 230, .85) }
+  20%, 34% { --cielo0: oklch(0.62 0.03 250); --cielo1: oklch(0.74 0.03 240); --cielo2: oklch(0.82 0.02 220); --capa1: oklch(0.7 0.025 240); --capa2: oklch(0.6 0.03 245); --capa3: oklch(0.49 0.035 250); --capa4: oklch(0.34 0.03 255); --sol: #eef1f6; --halo: rgba(240, 244, 250, .45) }
+  40%, 54% { --cielo0: oklch(0.8 0.07 55); --cielo1: oklch(0.9 0.06 75); --cielo2: oklch(0.95 0.04 85); --capa1: oklch(0.86 0.05 62); --capa2: oklch(0.78 0.07 52); --capa3: oklch(0.66 0.085 42); --capa4: oklch(0.45 0.07 35); --sol: #fff6e2; --halo: rgba(255, 244, 214, .9) }
+  60%, 74% { --cielo0: oklch(0.72 0.11 40); --cielo1: oklch(0.84 0.09 65); --cielo2: oklch(0.92 0.06 85); --capa1: oklch(0.76 0.1 45); --capa2: oklch(0.64 0.13 35); --capa3: oklch(0.5 0.13 28); --capa4: oklch(0.32 0.08 25); --sol: #fff1d6; --halo: rgba(255, 230, 190, .9) }
+  80%, 94% { --cielo0: oklch(0.3 0.06 275); --cielo1: oklch(0.42 0.07 285); --cielo2: oklch(0.55 0.06 300); --capa1: oklch(0.45 0.05 285); --capa2: oklch(0.37 0.05 280); --capa3: oklch(0.29 0.045 275); --capa4: oklch(0.2 0.03 270); --sol: #f2f1ff; --halo: rgba(220, 225, 255, .5) }
+  100% { --cielo0: oklch(0.84 0.06 215); --cielo1: oklch(0.93 0.04 190); --cielo2: oklch(0.97 0.02 120); --capa1: oklch(0.88 0.04 190); --capa2: oklch(0.8 0.06 175); --capa3: oklch(0.68 0.07 165); --capa4: oklch(0.48 0.06 160); --sol: #fffbe8; --halo: rgba(255, 252, 230, .85) }
+}
+.pradera {
+  position: fixed; left: 0; right: 0; bottom: 0; height: min(380px, 44vh); z-index: -1; overflow: hidden; pointer-events: none;
+  background: linear-gradient(var(--cielo0), var(--cielo1) 55%, var(--cielo2));
+  animation: pradera-paletas 85s linear infinite;
+}
 .pradera i { position: absolute; left: 0; width: 200%; animation: pradera var(--v) linear infinite; }
-.pradera .nubes {
-  top: 4vh; height: 38vh; --v: 140s;
-  background:
-    radial-gradient(ellipse 5% 22% at 10% 50%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 3.6% 18% at 13.5% 36%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 4% 16% at 38% 70%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 6% 24% at 70% 40%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 4% 18% at 74% 26%, var(--arena-1) 96%, transparent);
-  background-size: 50% 100%;
-}
-.pradera .lejos { bottom: 14vh; height: 42vh; --v: 90s; background: linear-gradient(var(--verde-dia-4), var(--verde-dia-4)) 0 100% / 100% 48% no-repeat, radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-4) 98%, transparent 100%) 0 70% / 16.667% 70% repeat-x; }
-.pradera .cerca { bottom: 0; height: 38vh; --v: 50s; background: linear-gradient(var(--verde-dia-6), var(--verde-dia-6)) 0 100% / 100% 48% no-repeat, radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-6) 98%, transparent 100%) 0 70% / 12.5% 70% repeat-x; }
-.pradera .madera {
-  bottom: 9vh; height: 9vh; --v: 24s;
-  background: linear-gradient(var(--arena-1), var(--arena-1)) 0 30% / 100% 10% no-repeat,
-              repeating-linear-gradient(90deg, var(--arena-1) 0 0.3%, transparent 0.3% 5%);
-}
-.pradera .pasto { bottom: 0; height: 10vh; --v: 24s; background: var(--verde-dia-7); }
+.pradera i:nth-of-type(1) path { fill: var(--capa1); }
+.pradera i:nth-of-type(2) path { fill: var(--capa2); }
+.pradera i:nth-of-type(3) path { fill: var(--capa3); }
+.pradera i:nth-of-type(4) path { fill: var(--capa4); }
+.pradera-sol { position: absolute; left: calc(62% + 85px); bottom: 205px; width: 90px; height: 90px; border-radius: 50%; background: var(--sol); }
+.pradera-halo { position: absolute; left: 62%; bottom: 120px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, var(--halo), transparent 68%); animation: pradera-halo 5s ease-in-out infinite; }
+.pradera-pajaro { position: absolute; color: var(--capa4); font-size: 16px; animation: pradera-volar linear infinite; }
+.pradera-caballo { position: absolute; left: 0; transform: translateX(-12vw); animation: cruzar linear infinite; }
+.pradera-caballo b { display: inline-block; font-weight: 400; animation: trote .3s ease-in-out infinite alternate; }
 @keyframes pradera { to { transform: translateX(-50%); } }
+@keyframes pradera-halo { 0%, 100% { opacity: .7; scale: 1.8; } 50% { opacity: 1; scale: 2.1; } }
+@keyframes pradera-volar { to { transform: translate(60vw, -40px); } }
+/* El contenido va por encima de la franja. */
+.app, .app-solo { position: relative; z-index: 1; }
+body:has(.pradera) .app-main, body:has(.pradera) .app-solo { padding-bottom: min(400px, 46vh); }

@@ -110,6 +110,8 @@ function soplo({ t = ahora(), dur, gain = 0.2, filter = "bandpass", freq = 2000,
   src.stop(t + dur + 0.05)
 }
 
+const tono_ = opciones => tono({ type: "triangle", ...opciones })
+
 // Batería.
 const bombo = (t, gain = 0.9, out = sfx) => {
   tono({ t, freq: 150, to: 42, dur: 0.32, gain, attack: 0.002, out })
@@ -172,6 +174,19 @@ const SONIDOS = {
   tic() {
     soplo({ dur: 0.03, gain: 0.14, freq: 2400, q: 6 })
     tono({ type: "triangle", freq: 1200, dur: 0.05, gain: 0.08 })
+  },
+  // Un carrete rodando: un clic por fila que pasa, parejo mientras gira y cada vez más espaciado al frenar.
+  rodar(giraMs, frenaMs, carrete = 0) {
+    const t0 = ahora()
+    const tono = carrete ? 1700 : 2100
+    let t = 0
+    let paso = 1 / 16
+    while (t < (giraMs + frenaMs) / 1000) {
+      soplo({ t: t0 + t, dur: 0.02, gain: 0.07, freq: tono, q: 5 })
+      tono_({ t: t0 + t, freq: tono / 2, dur: 0.03, gain: 0.03 })
+      if (t > giraMs / 1000) paso *= 1.35
+      t += paso
+    }
   },
   premio() {
     [1047, 1319, 1568].forEach((freq, i) => tono({ t: ahora() + i * 0.07, type: "triangle", freq, dur: 0.22, gain: 0.14, wet: 0.2 }))

@@ -1,2 +1,16 @@
-<%# Fondo de pradera que pasa despacio (entrada e inicio). Estilos en club.css. %>
-<div class="pradera" aria-hidden="true"><i class="nubes"></i><i class="lejos"></i><i class="cerca"></i><i class="madera"></i><i class="pasto"></i></div>
+<%# Franja de carrera abajo (entrada e inicio), a lo Alto's Odyssey: cielo de degradado, mesetas y dunas que se aclaran
+    con la distancia, sol con halo, pájaros y caballos que cruzan, cada uno con otro estilo. Las paletas pasan solas
+    (amanecer, tormenta, atardecer, desierto rojo, noche). Estilos en club.css. %>
+<div class="pradera" aria-hidden="true">
+  <div class="pradera-halo"></div>
+  <div class="pradera-sol"></div>
+  <i style="--v: 120s; bottom: 120px; height: 150px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 200 L80 200 L110 150 L210 148 L240 200 L420 200 L450 170 L470 120 L590 118 L620 175 L650 200 L820 200 L840 160 L900 158 L920 200 L1000 200 L1080 200 L1110 150 L1210 148 L1240 200 L1420 200 L1450 170 L1470 120 L1590 118 L1620 175 L1650 200 L1820 200 L1840 160 L1900 158 L1920 200 L2000 200 L2000 300 Z" style="fill: var(--capa1)"></path></svg></i>
+  <i style="--v: 80s; bottom: 70px; height: 170px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 210 C120 170 220 150 330 175 C440 200 520 150 640 160 C760 170 880 215 1000 210 C1120 170 1220 150 1330 175 C1440 200 1520 150 1640 160 C1760 170 1880 215 2000 210 L2000 300 Z" style="fill: var(--capa2)"></path></svg></i>
+  <i style="--v: 45s; bottom: 30px; height: 170px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 230 C90 200 200 180 300 205 C400 230 520 175 650 185 C780 195 900 240 1000 230 C1090 200 1200 180 1300 205 C1400 230 1520 175 1650 185 C1780 195 1900 240 2000 230 L2000 300 Z" style="fill: var(--capa3)"></path></svg></i>
+  <i style="--v: 22s; bottom: 0; height: 120px"><svg viewBox="0 0 2000 300" preserveAspectRatio="none" style="display: block; width: 100%; height: 100%" aria-hidden="true"><path d="M0 300 L0 255 C150 225 300 235 420 250 C540 265 680 225 800 240 C900 252 960 262 1000 255 C1150 225 1300 235 1420 250 C1540 265 1680 225 1800 240 C1900 252 1960 262 2000 255 L2000 300 Z" style="fill: var(--capa4)"></path></svg></i>
+  <span class="pradera-pajaro" style="left: 30%; bottom: 250px; animation-duration: 38s">〰</span>
+  <span class="pradera-pajaro" style="left: 34%; bottom: 270px; animation-duration: 44s; font-size: 12px">〰</span>
+  <span class="pradera-caballo" style="bottom: 10px; font-size: 36px; animation-duration: 8s; animation-delay: .3s"><b style="filter: hue-rotate(150deg) saturate(1.6)">🐎</b></span>
+  <span class="pradera-caballo" style="bottom: 4px; font-size: 40px; animation-duration: 9.5s; animation-delay: 1.4s"><b style="filter: brightness(0) drop-shadow(2px 2px 0 var(--carmesi))">🏇</b></span>
+  <span class="pradera-caballo" style="bottom: 16px; font-size: 30px; animation-duration: 11s; animation-delay: 2.6s"><b style="filter: grayscale(1) contrast(1.4) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff)">🐎</b></span>
+</div>

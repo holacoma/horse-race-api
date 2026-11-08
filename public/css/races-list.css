@@ -53,3 +53,9 @@
   .inicio-hero { position: static; justify-items: center; text-align: center; }
   .btn-jugar { font-size: 28px; padding: 18px 36px; }
 }
+
+/* "Jugar ya" se anima de vez en cuando y no siempre igual: el brillo cruza cada 17 s y un saltito cada 23 s. */
+.btn-jugar.brilla::after { animation: brillo-esporadico 17s ease-in-out 2s infinite; }
+.btn-jugar { animation: rebote 23s ease-in-out 9s infinite; }
+@keyframes brillo-esporadico { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 1%, 8% { opacity: .85; } 9%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0; } }
+@keyframes rebote { 0%, 93%, 100% { translate: 0 0; rotate: 0deg; } 95% { translate: 0 -7px; rotate: -2deg; } 97% { translate: 0 1px; rotate: 1deg; } }

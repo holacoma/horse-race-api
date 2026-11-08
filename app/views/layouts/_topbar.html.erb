@@ -1,6 +1,7 @@
 <%# Una sola barra: la marca lleva al inicio; a la derecha, tu perfil y salir. Nada más que decidir. %>
 <header class="app-top">
-  <%= link_to "Club Race", root_path, class: "marca", data: { fx: "nav" } %>
+  <%# En el inicio la marca ya está grande en la página: arriba no se repite. %>
+  <% if controller_name == "races" && action_name == "index" %><span></span><% else %><%= link_to "Club Race", root_path, class: "marca", data: { fx: "nav" } %><% end %>
   <div class="app-user">
     <%= link_to current_user.username, profile_path(current_user.username), data: { fx: "profile" } %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>

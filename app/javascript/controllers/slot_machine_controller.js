@@ -135,6 +135,7 @@ export default class extends Controller {
     const translate = y => `translateY(${y}px)`
 
     reel.classList.add("spinning")
+    sonar("rodar", WINDUP.ms + spinMs, BRAKE.ms, index)
     setTimeout(() => this.reelStopped(reel, index, word), stopAt)
 
     // Cae hasta y = 0, que es donde queda la tira sin transformar.

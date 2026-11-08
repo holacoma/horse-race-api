@@ -491,13 +491,17 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       fov = 28
       roll = -0.18 + 0.12 * u
     } else if (stage === "replay-perfil") {
-      // Segunda repetición: de perfil con lente larga, el fondo pasa barrido.
+      // Segunda repetición: la cámara gira alrededor del ganador mientras cruza, de atrás y al costado hasta quedar
+      // adelante, con el arco de la meta en cuadro: se ve que llegó primero.
+      const u = (crossedFor - PAN_SECONDS - REPLAY_SECONDS) / REPLAY_SECONDS
       const w = state.winner
-      shot = "final-perfil"
-      pos = [w.x - 1, 3.6, w.z + WIDTH / 2 + 14]
-      look = [w.x, 1.25, w.z]
-      fov = 14
-      roll = 0.06
+      const a = Math.PI * (1.15 - 0.95 * smooth(0, 1, u))
+      const r = 8 - 2.5 * u
+      shot = "final-giro"
+      pos = [w.x + Math.cos(a) * r, 2.4 - 0.8 * u, w.z + Math.sin(a) * r]
+      look = [w.x + 0.8, 1.5, w.z]
+      fov = 42
+      roll = 0.04 - 0.08 * u
     } else if (state.countdownEnd === null && !state.started) {
       // En la sala: la cámara pasea despacio frente a la largada mientras los caballos esperan, descansando.
       const t = state.clock
@@ -1299,7 +1303,6 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       return el
     }
     const rank = make("hud hud-rank")
-    const meter = make("hud hud-meter")
     const count = make("hud hud-count")
     const win = make("hud hud-win")
     const fps = showFps ? make("hud hud-fps") : null
@@ -1411,7 +1414,6 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         rank.querySelectorAll("span").forEach((span, i) => { span.textContent = `${sorted[i].name} · ${sorted[i].username}` })
         if (state.started) rank.querySelectorAll("em").forEach((em, i) => { em.textContent = i ? `+${Math.round(sorted[0].x - sorted[i].x)} m` : "" })
         const remaining = Math.max(0, Math.ceil(FINISH - state.leaderX))
-        meter.textContent = crossed ? "¡META!" : state.started ? `${remaining} m · ${Math.round(Math.abs(state.leader.v) * 3.6)} km/h` : ""
 
         const fighting = !crossed && (state.shot === "recta" || state.shot === "llegada")
         const announced = crossed && !state.celebrating && state.winner
