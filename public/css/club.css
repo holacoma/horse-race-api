@@ -150,31 +150,27 @@ label { font-weight: 700; }
 @keyframes cruzar { 0% { transform: translateX(-14vw); } 50%, 100% { transform: translateX(110vw); } }
 @keyframes trote { from { transform: scaleX(-1) translateY(0) rotate(0deg); } to { transform: scaleX(-1) translateY(-7px) rotate(7deg); } }
 
-/* Ventana a la pradera, detrás de la marca: capas que pasan a distinta velocidad, como mirar por la ventana de un tren.
+/* Pradera de fondo (entrada e inicio): toda la pantalla, con capas que pasan a distinta velocidad, como desde un tren.
    Cada capa mide el doble de ancho y se corre media vuelta (sus dibujos se repiten justo en esa mitad). Solo transform. */
-.ventana-pradera {
-  position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: 28px;
-  border: 4px solid var(--arena-12); box-shadow: 0 5px 0 var(--arena-7);
-  background: linear-gradient(var(--cian-dia-4), var(--arena-2) 75%);
-}
-.ventana-pradera::before { content: ""; position: absolute; right: 9%; top: 12%; width: 13%; aspect-ratio: 1; border-radius: 50%; background: var(--ambar-dia-6); }
-.ventana-pradera i { position: absolute; left: 0; width: 200%; animation: pradera var(--v) linear infinite; }
-.ventana-pradera .nubes {
-  top: 6%; height: 36%; --v: 90s; opacity: .95;
+.pradera { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: linear-gradient(var(--cian-dia-4), var(--arena-2) 70%); }
+.pradera::before { content: ""; position: absolute; right: 8vw; top: 7vh; width: 11vw; min-width: 80px; aspect-ratio: 1; border-radius: 50%; background: var(--ambar-dia-6); }
+.pradera i { position: absolute; left: 0; width: 200%; animation: pradera var(--v) linear infinite; }
+.pradera .nubes {
+  top: 4vh; height: 38vh; --v: 140s;
   background:
-    radial-gradient(ellipse 4% 30% at 10% 60%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 3% 24% at 13% 42%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 3.5% 22% at 35% 70%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 4.5% 28% at 72% 50%, var(--arena-1) 96%, transparent),
-    radial-gradient(ellipse 3% 22% at 75.5% 36%, var(--arena-1) 96%, transparent);
+    radial-gradient(ellipse 5% 22% at 10% 50%, var(--arena-1) 96%, transparent),
+    radial-gradient(ellipse 3.6% 18% at 13.5% 36%, var(--arena-1) 96%, transparent),
+    radial-gradient(ellipse 4% 16% at 38% 70%, var(--arena-1) 96%, transparent),
+    radial-gradient(ellipse 6% 24% at 70% 40%, var(--arena-1) 96%, transparent),
+    radial-gradient(ellipse 4% 18% at 74% 26%, var(--arena-1) 96%, transparent);
   background-size: 50% 100%;
 }
-.ventana-pradera .lejos { bottom: 20%; height: 42%; --v: 60s; background: radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-5) 98%, transparent 100%) 0 100% / 12.5% 100% repeat-x; }
-.ventana-pradera .cerca { bottom: 6%; height: 36%; --v: 32s; background: radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-7) 98%, transparent 100%) 0 100% / 8.333% 100% repeat-x; }
-.ventana-pradera .madera {
-  bottom: 8%; height: 16%; --v: 16s;
-  background: linear-gradient(var(--arena-1), var(--arena-1)) 0 35% / 100% 12% no-repeat,
-              repeating-linear-gradient(90deg, var(--arena-1) 0 0.35%, transparent 0.35% 5%);
+.pradera .lejos { bottom: 14vh; height: 42vh; --v: 90s; background: linear-gradient(var(--verde-dia-4), var(--verde-dia-4)) 0 100% / 100% 48% no-repeat, radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-4) 98%, transparent 100%) 0 70% / 16.667% 70% repeat-x; }
+.pradera .cerca { bottom: 0; height: 38vh; --v: 50s; background: linear-gradient(var(--verde-dia-6), var(--verde-dia-6)) 0 100% / 100% 48% no-repeat, radial-gradient(ellipse 50% 100% at 50% 100%, var(--verde-dia-6) 98%, transparent 100%) 0 70% / 12.5% 70% repeat-x; }
+.pradera .madera {
+  bottom: 9vh; height: 9vh; --v: 24s;
+  background: linear-gradient(var(--arena-1), var(--arena-1)) 0 30% / 100% 10% no-repeat,
+              repeating-linear-gradient(90deg, var(--arena-1) 0 0.3%, transparent 0.3% 5%);
 }
-.ventana-pradera .pasto { bottom: 0; height: 10%; --v: 16s; background: var(--verde-dia-8); }
+.pradera .pasto { bottom: 0; height: 10vh; --v: 24s; background: var(--verde-dia-7); }
 @keyframes pradera { to { transform: translateX(-50%); } }

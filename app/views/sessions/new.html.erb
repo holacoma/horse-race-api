@@ -1,10 +1,11 @@
 <% content_for :title, "Club Race — Ingresar" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/sessions.css?v=6">
+  <link rel="stylesheet" href="/css/sessions.css?v=7">
   <link rel="stylesheet" href="/css/slot-machine.css?v=2">
 <% end %>
 
 <%# Al llegar, antes de tener nombre: llueven monedas, cruzan caballos y la marca cae (sessions.css). %>
+<%= render "shared/pradera" %>
 <div class="lluvia" aria-hidden="true">
   <% 14.times do |i| %>
     <i style="--x: <%= (i * 7.3 + 3) % 96 %>vw; --d: <%= (i * 0.09).round(2) %>s; --s: <%= 20 + (i * 7 % 16) %>px; --r: <%= 360 + i * 45 %>deg">🪙</i>
@@ -17,7 +18,6 @@
 
 <div class="login">
 <div class="login-logo">
-  <%= render "shared/ventana_pradera" %>
   <h1 class="marca brilla-texto" data-texto="Club Race">Club Race<span class="deco moneda" aria-hidden="true">🪙</span><span class="deco caballo" aria-hidden="true">🐎</span></h1>
   <p class="regla">La primera regla del Club Race es: no se habla del Club Race.</p>
 </div>
