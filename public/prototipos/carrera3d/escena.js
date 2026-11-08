@@ -135,6 +135,53 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     scene.add(h.root)
     return h
   })
+  // Antes de largar, en la sala, cada caballo se ve como su chibi (un cartel que mira a cámara). Al largar explota,
+  // uno tras otro, con un destello de su color, y aparece en llamas.
+  const texturas = new THREE.TextureLoader()
+  const destello = (() => {
+    const c = document.createElement("canvas"); c.width = c.height = 128
+    const g = c.getContext("2d"), grad = g.createRadialGradient(64, 64, 0, 64, 64, 64)
+    grad.addColorStop(0, "rgba(255,255,255,1)"); grad.addColorStop(0.35, "rgba(255,255,255,.85)"); grad.addColorStop(1, "rgba(255,255,255,0)")
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128)
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t
+  })()
+  const EXPLOSION = { cascada: 0.16, dura: 0.6 }
+  function chibiDe(h) {
+    if (!h.element || h.chibi) return h.chibi
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false }))
+    texturas.load(`/images/chibis/${h.element}.webp`, t => {
+      t.colorSpace = THREE.SRGBColorSpace
+      s.material.map = t; s.material.needsUpdate = true
+      s.scale.set(2.6 * t.image.width / t.image.height, 2.6, 1)
+    })
+    s.scale.set(2.6, 2.6, 1); s.position.set(0, 1.35, 0)
+    h.root.add(s); h.chibi = s
+    return s
+  }
+  function verChibi(h, chibi) {
+    const s = chibiDe(h)
+    if (!s) return
+    h.root.children.forEach(c => { if (c !== s && !c.userData.sombra && c !== h.boom) c.visible = !chibi })
+    s.visible = chibi
+  }
+  function explotar(h) {
+    verChibi(h, false)
+    const m = new THREE.SpriteMaterial({ map: destello, color: h.silk, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+    h.boom = new THREE.Sprite(m); h.boom.position.set(0, 1.4, 0); h.boom.userData.desde = state.clock
+    h.root.add(h.boom)
+  }
+  function actualizarExplosiones() {
+    if (state.countdownEnd === null) return
+    horses.forEach((h, i) => {
+      if (h.chibi?.visible && state.clock >= state.explotaDesde + i * EXPLOSION.cascada) explotar(h)
+      if (!h.boom) return
+      const u = (state.clock - h.boom.userData.desde) / EXPLOSION.dura
+      if (u >= 1) { h.root.remove(h.boom); h.boom.material.dispose(); h.boom = null; return }
+      const k = 1 - Math.pow(1 - u, 3)
+      h.boom.scale.setScalar(0.5 + 7 * k)
+      h.boom.material.opacity = 1 - u
+    })
+  }
   const horses = []
   let mine = null
   // Todos arden; la cámara de la transformación va con el tuyo.
@@ -149,6 +196,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     h.rank = lane
     h.root.position.z = h.z
     Object.assign(h, { id: p.id, name: p.name, username: p.username, active: true })
+    if (state.countdownEnd === null) verChibi(h, true)
     h.root.visible = true
     horses.push(h)
     if (h.id === myId) mine = h
@@ -181,6 +229,9 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   // ── Datos ─────────────────────────────────────────────────────────────────────────
   // Si la página abre tarde, el preludio ya va avanzado y se entra directo al inframundo.
   function startIn(seconds) {
+    // Larga ahora: explotan. Si la página abre con la carrera ya avanzada, aparecen en llamas sin explotar.
+    state.explotaDesde = state.clock + 0.55
+    if (seconds < PRELUDE_SECONDS - 1.5) horses.forEach(h => verChibi(h, false))
     state.countdownEnd = state.clock + seconds
     state.preludeStart = state.countdownEnd - PRELUDE_SECONDS
   }
@@ -363,6 +414,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     animateHorses(realDt, motion)
     dust.update(motion)
     confetti.update(realDt)
+    actualizarExplosiones()
     placeCamera(realDt)
     updateLighting()
     hud.update()
@@ -1439,6 +1491,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         if (h.element) {
           win.classList.add("con-portada")
           win.style.setProperty("--portada", `url("/images/retratos/victoria-${h.element}.webp")`)
+          win.style.setProperty("--portada-anim", `url("/images/retratos/victoria-${h.element}-anim.webp")`)
         }
         const texto = document.createElement("div")
         texto.className = "hud-win-texto"

@@ -3,7 +3,8 @@
 /* Portada de victoria a lo Persona 5: la ilustración del elemento del ganador a lo ancho, y encima quién ganó en un bloque negro. */
 .results-hero {
   position: relative; display: flex; align-items: flex-end; min-height: 300px; padding: 18px; overflow: hidden;
-  background: var(--noche-1) var(--portada) center 30% / cover no-repeat; border: 3px solid var(--noche-1);
+  /* La animada (loop de ida y vuelta) encima; si no existe, se ve la fija de abajo. */
+  background: var(--portada-anim, none) center 30% / cover no-repeat, var(--noche-1) var(--portada) center 30% / cover no-repeat; border: 3px solid var(--noche-1);
   box-shadow: 8px 8px 0 var(--carmesi); transform: rotate(-1deg);
 }
 .results-hero-texto { padding: 10px 18px 12px; background: var(--noche-1); color: var(--noche-12); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); }

@@ -393,6 +393,7 @@ export function buildProHorse(model, index) {
   shadow.rotation.x = -Math.PI / 2
   shadow.scale.set(1.9, 0.6, 1)
   shadow.position.y = 0.04
+  shadow.userData.sombra = true // queda visible también cuando el caballo se ve como chibi
   root.add(shadow)
 
   return {

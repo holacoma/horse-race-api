@@ -1,7 +1,7 @@
 <% content_for :title, "#{@race.slug} — Resultados" %>
 <% content_for :page_title, @race.slug %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-results.css?v=5">
+  <link rel="stylesheet" href="/css/race-results.css?v=6">
 <% end %>
 
 <%
@@ -12,7 +12,7 @@
 
 <div class="results-wrap">
   <%# La portada de victoria es la del elemento del ganador; encima, quién ganó, en gótica. %>
-  <header class="results-hero" style="--portada: url('/images/retratos/victoria-<%= elemento_de(winner.horse_id) %>.webp')">
+  <header class="results-hero" style="--portada: url('/images/retratos/victoria-<%= elemento_de(winner.horse_id) %>.webp'); --portada-anim: url('/images/retratos/victoria-<%= elemento_de(winner.horse_id) %>-anim.webp')">
     <div class="results-hero-texto">
       <% if my_position == 1 %>
         <h1>🏆 ¡Ganaste!</h1>
