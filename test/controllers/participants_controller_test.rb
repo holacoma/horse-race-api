@@ -58,7 +58,8 @@ class ParticipantsControllerTest < ActionDispatch::IntegrationTest
   test "default apostador name is not repeated in the room" do
     last_free = Race::BETTOR_NAMES.last
     Race::BETTOR_NAMES.without(last_free).each_with_index do |name, i|
-      @race.participants.create!(name: name, horse_id: i + 2, horse_name: "Caballo #{i}")
+      # Más apostadores que elementos: se saltea la regla de un elemento por sala, que acá no importa.
+      @race.participants.build(name: name, horse_id: 2 + 12 * i, horse_name: "Caballo #{i}").save!(validate: false)
     end
 
     post race_participants_path(@race), params: { horse_id: 1, guest_name: "" }, as: :json

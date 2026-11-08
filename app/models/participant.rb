@@ -6,6 +6,14 @@ class Participant < ApplicationRecord
                       if: -> { user_id.present? }
   validates :horse_id, uniqueness: { scope: :race_id, message: "ese caballo ya fue tomado" }
   validates :name, presence: true, unless: -> { user_id.present? }
+  validate :elemento_libre, on: :create
+
+  # En una sala no se repiten elementos: cada caballo se distingue por su color.
+  def elemento_libre
+    elemento = Horse.elemento_de(horse_id)
+    otros = race.participants.where.not(id: id).pluck(:horse_id)
+    errors.add(:horse_id, "ya hay un caballo de #{elemento} en la sala") if otros.any? { |h| Horse.elemento_de(h) == elemento }
+  end
 
   def display_name
     user&.username || name

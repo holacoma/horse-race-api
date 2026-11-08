@@ -23,6 +23,14 @@ class Horse
     { id: 35, name: "Don Comilón"      }, { id: 36, name: "El Mago"           }
   ].freeze
 
+  # Cada caballo tiene siempre el mismo elemento, y con él su color, su chibi, su retrato y su portada.
+  # Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js.
+  ELEMENTOS = %w[fuego hielo electricidad agua viento roca sombra luz veneno metal naturaleza cosmos].freeze
+
+  def self.elemento_de(horse_id) = ELEMENTOS[(horse_id.to_i - 1) % ELEMENTOS.size]
+
+  def elemento = Horse.elemento_de(id)
+
   def initialize(id:, name:)
     @id = id
     @name = name

@@ -1,22 +1,16 @@
 module RacesHelper
-  # El color de cada caballo es el del elemento de su carril, en el orden en que entró a la sala.
-  # Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js.
-  ELEMENTOS_POR_CARRIL = %w[fuego hielo electricidad agua viento roca sombra luz veneno metal naturaleza cosmos].freeze
+  # Todo sale del elemento del caballo (Horse#elemento): color, chibi, retrato y portada.
+  def elemento_de(horse_id) = Horse.elemento_de(horse_id)
 
-  def elemento_de_carril(index) = ELEMENTOS_POR_CARRIL[index % ELEMENTOS_POR_CARRIL.size]
-
-  # Retrato del caballo de ese carril (public/images/retratos, generados con script/retratos).
-  def retrato_de_carril(index, clase: "results-retrato")
-    elemento = elemento_de_carril(index)
-    image_tag("/images/retratos/#{elemento}.webp", alt: "", class: clase, loading: "lazy")
+  # Retrato del caballo (public/images/retratos, generados con script/retratos).
+  def retrato_de(horse_id, clase: "results-retrato")
+    image_tag("/images/retratos/#{elemento_de(horse_id)}.webp", alt: "", class: clase, loading: "lazy")
   end
 
-  # El caballo chibi de ese carril, con borde transparente (public/images/chibis): así se ve en la sala, antes de largar.
-  def chibi_de_carril(index, clase: "p-chibi") = image_tag("/images/chibis/#{elemento_de_carril(index)}.webp", alt: "", class: clase)
+  # El caballo chibi, con borde transparente (public/images/chibis): así se ve en la sala, antes de largar.
+  def chibi_de(horse_id, clase: "p-chibi") = image_tag("/images/chibis/#{elemento_de(horse_id)}.webp", alt: "", class: clase)
 
-  def color_de_carril(index, tinta: false)
-    "var(--caballo-#{ELEMENTOS_POR_CARRIL[index % ELEMENTOS_POR_CARRIL.size]}#{'-tinta' if tinta})"
-  end
+  def color_de(horse_id, tinta: false) = "var(--caballo-#{elemento_de(horse_id)}#{-tinta if tinta})"
 
   # Dibujo del caballo, estilo Spider-Verse: color plano, una capa corrida como error de impresión, trama de puntos
   # en la sombra y contorno grueso de tinta. Sin color, queda en tinta (para elegir, antes de tener carril).

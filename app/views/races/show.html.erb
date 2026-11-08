@@ -3,7 +3,7 @@
 <% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=4">
-  <link rel="stylesheet" href="/css/race-lobby.css?v=7">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=8">
 <% end %>
 
 <%# La escena 3D se arma con un carril por lugar y estos caballos ya en la largada; el resto aparece al unirse. %>
@@ -13,7 +13,7 @@
   distance: @race.distance,
   running: @race.running?,
   secondsToStart: @seconds_to_start,
-  participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } },
+  participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, element: elemento_de(p.horse_id) } },
   myHorseId: @my_participant&.horse_id,
   resultsUrl: results_race_path(@race)
 }.to_json) %></script>
@@ -44,9 +44,9 @@
 
     <% my_index = @my_participant && @participants.index(@my_participant) %>
     <%# Tu caballo, bien claro: grande, con su color y un cartel. %>
-    <div class="tu-caballo" data-race-lobby-target="tuCaballo" style="<%= "--c: #{color_de_carril(my_index)}" if my_index %>"<%= ' hidden' unless @my_participant %>>
+    <div class="tu-caballo" data-race-lobby-target="tuCaballo" style="<%= "--c: #{color_de(@my_participant.horse_id)}" if @my_participant %>"<%= ' hidden' unless @my_participant %>>
       <span class="tu-cartel">Tu caballo</span>
-      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de_carril(my_index)}.webp" if my_index %>">
+      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de(@my_participant.horse_id)}.webp" if @my_participant %>">
       <b data-race-lobby-target="tuCaballoNombre"><%= @my_participant&.horse_name %></b>
     </div>
 
@@ -56,7 +56,8 @@
         <div id="picker-cards" class="picker-cards" data-race-lobby-target="pickerCards">
           <% @available_horses.each do |horse| %>
             <% is_fav = @favorite_horse_ids.include?(horse.id) %>
-            <button class="picker-card<%= ' favorite' if is_fav %>" data-horse-id="<%= horse.id %>" data-fx="join" data-action="click->race-lobby#pickHorse">
+            <button class="picker-card<%= ' favorite' if is_fav %>" data-horse-id="<%= horse.id %>" data-elemento="<%= horse.elemento %>" style="--c: <%= color_de(horse.id) %>" data-fx="join" data-action="click->race-lobby#pickHorse">
+              <%= chibi_de(horse.id, clase: "picker-chibi") %>
               <span class="card-name"><%= '⭐ ' if is_fav %><%= horse.name %></span>
             </button>
           <% end %>
@@ -67,10 +68,10 @@
     <div class="section-title">Participantes</div>
     <div id="participants-list" data-race-lobby-target="participantsList">
       <% @participants.each_with_index do |p, i| %>
-        <div class="participant-row" id="participant-<%= p.id %>" data-horse-id="<%= p.horse_id %>" style="--c: <%= color_de_carril(i) %>">
-          <%= chibi_de_carril(i) %>
-          <span class="p-username"><%= p.display_name %></span>
+        <div class="participant-row" id="participant-<%= p.id %>" data-horse-id="<%= p.horse_id %>" style="--c: <%= color_de(p.horse_id) %>">
+          <%= chibi_de(p.horse_id) %>
           <span class="p-horse"><%= p.horse_name %></span>
+          <span class="p-username">de <%= p.display_name %></span>
           <% if p.user_id.present? %>
             <button class="profile-btn" data-fx="profile" data-action="click->race-lobby#openProfilePopup" data-username="<%= p.user.username %>" title="Ver perfil">👤</button>
           <% end %>
@@ -85,7 +86,8 @@
         <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (opcional)">
         <div id="apostador-cards" class="picker-cards">
           <% @all_available_horses.each do |horse| %>
-            <button class="picker-card" id="apostador-card-<%= horse.id %>" data-horse-id="<%= horse.id %>" data-fx="add" data-action="click->race-lobby#addApostador">
+            <button class="picker-card" id="apostador-card-<%= horse.id %>" data-horse-id="<%= horse.id %>" data-elemento="<%= horse.elemento %>" style="--c: <%= color_de(horse.id) %>" data-fx="add" data-action="click->race-lobby#addApostador">
+              <%= chibi_de(horse.id, clase: "picker-chibi") %>
               <span class="card-name"><%= horse.name %></span>
             </button>
           <% end %>

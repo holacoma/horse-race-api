@@ -54,9 +54,11 @@ class Race < ApplicationRecord
     end
   end
 
+  # Libres: ni el caballo ni su elemento están en la sala, así no se repiten colores en la carrera.
   def available_horses
     taken = participants.pluck(:horse_id)
-    Horse.all.reject { |h| taken.include?(h.id) }
+    elementos = taken.map { |id| Horse.elemento_de(id) }
+    Horse.all.reject { |h| taken.include?(h.id) || elementos.include?(h.elemento) }
   end
 
   # Un nombre elegido en la tragamonedas que ya usó otra sala lleva un número: "rancho-sin-salida-2".

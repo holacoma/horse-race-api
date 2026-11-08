@@ -8,7 +8,8 @@ class PrototiposController < WebController
   def crear_carrera
     count = params[:caballos].to_i.clamp(2, 12)
     distance = params[:distancia].to_i.clamp(Race::DISTANCE_RANGE)
-    horses = Horse.all.sample(count)
+    # Uno por elemento: en una sala no se repiten.
+    horses = Horse.all.group_by(&:elemento).values.map(&:sample).sample(count)
     bettors = Race::BETTOR_NAMES.sample(count)
 
     race = Race.create!(slug: Race.pick_room_name[:slug], capacity: count, distance: distance, is_public: false, creator: current_user)

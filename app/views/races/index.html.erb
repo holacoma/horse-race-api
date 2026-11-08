@@ -26,7 +26,7 @@
             <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.distance %> m</span>
             <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
               <% race.capacity.times do |i| %>
-                <i class="<%= 'ocupado' if i < participants.size %>" style="--c: <%= color_de_carril(i, tinta: true) %>"></i>
+                <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
               <% end %>
             </span>
             <span class="room-unirse">Unirse</span>

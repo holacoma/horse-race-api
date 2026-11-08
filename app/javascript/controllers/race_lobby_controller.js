@@ -101,16 +101,17 @@ export default class extends Controller {
   addParticipant(p) {
     if (document.querySelector(`#participants-list [data-horse-id="${p.horse_id}"]`)) return
     sonar("moneda")
-    const index = this.participantCountValue
+    // El elemento es del caballo (mismo cálculo que Horse.elemento_de): de ahí su color y su chibi.
+    const elemento = ELEMENTOS[(Number(p.horse_id) - 1) % ELEMENTOS.length]
     const div = document.createElement("div")
     div.className = "participant-row recien"
     div.dataset.horseId = p.horse_id
-    const color = `var(--caballo-${ELEMENTOS[index % ELEMENTOS.length]})`
+    const color = `var(--caballo-${elemento})`
     div.style.setProperty("--c", color)
-    const chibi = `/images/chibis/${ELEMENTOS[index % ELEMENTOS.length]}.webp`
-    div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-username"></span><span class="p-horse"></span>`
+    const chibi = `/images/chibis/${elemento}.webp`
+    div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-horse"></span><span class="p-username"></span>`
     if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
-    div.querySelector(".p-username").textContent = p.username
+    div.querySelector(".p-username").textContent = `de ${p.username}`
     div.querySelector(".p-horse").textContent = p.horse_name
     if (p.profile_username) {
       const button = document.createElement("button")
@@ -122,8 +123,8 @@ export default class extends Controller {
     }
     this.participantsListTarget.appendChild(div)
 
-    // Ese caballo ya no se puede elegir ni sumar.
-    document.querySelectorAll(`.picker-card[data-horse-id="${p.horse_id}"]`).forEach(el => el.remove())
+    // Ese caballo, y cualquiera de su mismo elemento, ya no se puede elegir ni sumar.
+    document.querySelectorAll(`.picker-card[data-horse-id="${p.horse_id}"], .picker-card[data-elemento="${elemento}"]`).forEach(el => el.remove())
 
     this.participantCountValue += 1
     this.playersCountTarget.textContent = `${this.participantCountValue}/${this.capacityValue} jugadores`
@@ -132,7 +133,7 @@ export default class extends Controller {
     this.statusBarTarget.classList.toggle("ready", remaining <= 0)
 
     // El caballo aparece en la largada.
-    this.whenReady(() => this.race.join({ id: p.horse_id, name: p.horse_name, username: p.username }))
+    this.whenReady(() => this.race.join({ id: p.horse_id, name: p.horse_name, username: p.username, element: elemento }))
   }
 
   copyLink(event) {

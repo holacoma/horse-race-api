@@ -120,8 +120,10 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     .map(buildGrandstand)
   buildGates()
 
-  // Todos los lugares se arman al cargar (así sus shaders se compilan juntos); los vacíos quedan ocultos.
-  const pool = Array.from({ length: N }, (_, i) => {
+  // Todos se arman al cargar (así sus shaders se compilan juntos); los que no corren quedan ocultos. Con el modelo hay
+  // uno por elemento: cada caballo tiene siempre el suyo, y al entrar toma el de su elemento y el próximo carril.
+  const POOL = horseModel ? Math.max(N, 12) : N
+  const pool = Array.from({ length: POOL }, (_, i) => {
     const h = horseModel ? buildProHorse(horseModel, i) : buildHorse(i)
     h.x = 0
     h.v = 0
@@ -140,8 +142,12 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   const pickFireHorse = () => { fireHorse = mine?.setFire ? mine : horses.find(h => h.setFire) || null }
   function join(p) {
     if (horses.some(h => h.id === p.id)) return
-    const h = pool.find(h => !h.active)
+    const h = pool.find(h => !h.active && p.element && h.element === p.element) || pool.find(h => !h.active)
     if (!h) return
+    const lane = horses.length
+    h.z = (lane - (N - 1) / 2) * LANE
+    h.rank = lane
+    h.root.position.z = h.z
     Object.assign(h, { id: p.id, name: p.name, username: p.username, active: true })
     h.root.visible = true
     horses.push(h)
