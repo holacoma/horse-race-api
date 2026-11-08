@@ -191,3 +191,13 @@ label { font-weight: 700; }
 /* El contenido va por encima de la franja. */
 .app, .app-solo { position: relative; z-index: 1; }
 body:has(.pradera) .app-main, body:has(.pradera) .app-solo { padding-bottom: min(400px, 46vh); }
+
+/* Nombre de caballo: etiqueta negra en letra gótica, apenas torcida, con la sombra en el color de su elemento (--c). */
+.nombre-caballo {
+  display: inline-block; max-width: 100%; padding: 1px 10px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--noche-1); color: var(--noche-12); font: 400 17px/1.15 var(--fuente-gotica); letter-spacing: .01em;
+  transform: rotate(-2deg); box-shadow: 3px 3px 0 var(--c, var(--carmesi));
+}
+
+/* Dentro de botones (tarjetas para elegir) el botón no le pisa el color. */
+button .nombre-caballo { color: var(--noche-12) !important; }

@@ -59,7 +59,7 @@ body::before, body::after { display: none; }
 @keyframes entra { from { transform: translateX(-14px) scale(.96); opacity: 0; } }
 .p-chibi { width: 40px; height: 40px; object-fit: contain; flex: none; margin: -8px 0 -6px; }
 /* Primero el caballo, grande y en su color; abajo, chico, de quién es. */
-.participant-row .p-horse { flex: 1; min-width: 0; font: 400 16px/1.1 var(--fuente-titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.participant-row .p-horse { flex: 0 1 auto; min-width: 0; margin-right: auto; font-size: 16px; }
 .participant-row .p-username { color: var(--texto-suave); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
 .profile-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: .7; flex: none; }
 .profile-btn:hover { opacity: 1; }
@@ -76,7 +76,7 @@ body::before, body::after { display: none; }
 }
 .picker-card:nth-child(n) { transform: none; }
 .picker-card:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-1deg); }
-.picker-card .card-name { display: block; font: 400 14px var(--fuente-titulo); margin: 0; }
+.picker-card .card-name { margin: 2px auto 0; font-size: 15px; }
 /* Para elegir, la imagen manda: el chibi grande arriba y el nombre abajo. */
 .picker-chibi { display: block; width: 100%; height: 92px; object-fit: contain; margin: 0 auto 4px; transition: transform .15s; }
 .picker-card:hover .picker-chibi { transform: scale(1.08) rotate(-3deg); }

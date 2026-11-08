@@ -31,13 +31,14 @@ class RacesController < WebController
     @participants         = @race.participants.includes(:user).order(:created_at)
     @my_participant       = @race.participants.find_by(user: current_user)
     @is_creator           = @race.creator_id == current_user.id
-    @all_available_horses = @race.available_horses.sample(@race.capacity) if @is_creator
+    # Para elegir y para sumar, un caballo por elemento: así cada opción se ve distinta.
+    @all_available_horses = @race.available_horses.shuffle.uniq(&:elemento).first(@race.capacity) if @is_creator
 
     favorite_ids   = current_user.favorite_horse_ids
     available      = @race.available_horses
     fav_available  = available.select { |h| favorite_ids.include?(h.id) }
-    others         = available.reject { |h| favorite_ids.include?(h.id) }.sample(4 - fav_available.size)
-    @available_horses    = fav_available + others
+    others         = available.reject { |h| favorite_ids.include?(h.id) }.shuffle
+    @available_horses    = (fav_available + others).uniq(&:elemento).first([ fav_available.size, 4 ].max)
     @favorite_horse_ids  = favorite_ids
     @seconds_to_start    = @race.running? ? [ @race.started_at + RaceSimulationJob::PRELUDE_SEC - Time.current, 0 ].max : nil
   end

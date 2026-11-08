@@ -1,7 +1,7 @@
 <% content_for :title, "#{@race.slug} — Resultados" %>
 <% content_for :page_title, @race.slug %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-results.css?v=6">
+  <link rel="stylesheet" href="/css/race-results.css?v=7">
 <% end %>
 
 <%
@@ -37,7 +37,7 @@
       <li class="results-row<%= " is-me" if participant == @my_participant %>">
         <span class="results-position"><%= medals[position] || position %></span>
         <%= retrato_de(participant.horse_id) %>
-        <span class="results-horse"><%= participant.horse_name %></span>
+        <span class="results-horse nombre-caballo" style="--c: <%= color_de(participant.horse_id) %>"><%= participant.horse_name %></span>
         <span class="results-player"><%= participant.display_name %></span>
         <% if participant == @my_participant %><span class="results-tu">Tú</span><% end %>
       </li>
