@@ -51,7 +51,7 @@ canvas { display: block; position: fixed; inset: 0; }
   opacity: 0; transition: opacity .15s;
 }
 .hud-lead i { grid-row: span 2; width: 20px; height: 20px; border: 2px solid var(--texto); clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%); }
-.hud-lead b { font: 800 clamp(24px, 3vw, 42px) var(--fuente-gotica); line-height: 1; letter-spacing: .01em; text-shadow: var(--ecos); }
+.hud-lead b { font: 400 clamp(24px, 3vw, 42px) var(--fuente-gotica); line-height: 1; letter-spacing: .01em; text-shadow: var(--ecos); }
 .hud-lead small { font: 600 clamp(12px, 1vw, 15px) var(--fuente-texto); opacity: .9; }
 
 /* Puesto sobre cada caballo en las tomas generales y en la llegada. */
@@ -89,7 +89,7 @@ canvas { display: block; position: fixed; inset: 0; }
   padding: 14px 44px 14px 30px; opacity: 0; text-align: center; white-space: nowrap;
   background: color-mix(in oklch, var(--fondo) 88%, transparent); color: var(--texto);
   border: 3px solid transparent; border-image: var(--franjas) 1; border-left-width: 8px;
-  font: 800 clamp(30px, 6vw, 72px) var(--fuente-gotica); letter-spacing: .01em; text-shadow: var(--ecos);
+  font: 400 clamp(30px, 6vw, 72px) var(--fuente-gotica); letter-spacing: .01em; text-shadow: var(--ecos);
   transition: opacity .15s, transform .35s cubic-bezier(.2, 1.9, .4, 1);
 }
 .hud-win small { display: block; font: 600 .32em var(--fuente-texto); text-transform: none; letter-spacing: 0; text-shadow: none; color: var(--texto-suave); }

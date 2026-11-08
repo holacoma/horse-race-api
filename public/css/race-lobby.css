@@ -47,7 +47,7 @@ body::before, body::after { display: none; }
   grid-column: 2; grid-row: 1; justify-self: start; align-self: end; padding: 2px 12px; white-space: nowrap; border-radius: 99px; transform: rotate(-3deg);
   background: var(--acento); color: var(--sobre-acento); font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase;
 }
-.tu-caballo b { grid-column: 2; grid-row: 2; margin-top: 6px; align-self: start; font: 800 30px/1 var(--fuente-gotica); overflow-wrap: anywhere; text-shadow: 2px 2px 0 var(--carmesi); }
+.tu-caballo b { grid-column: 2; grid-row: 2; margin-top: 6px; align-self: start; font: 400 30px/1 var(--fuente-gotica); overflow-wrap: anywhere; text-shadow: 2px 2px 0 var(--carmesi); }
 .section-title { margin: 6px 0 0; }
 
 #participants-list { display: flex; flex-direction: column; gap: 6px; }

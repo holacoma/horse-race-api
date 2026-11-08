@@ -11,7 +11,7 @@
 /* El costado oscuro: la regla en negro y carmesí, como una etiqueta que no debería estar ahí. */
 .inicio-regla {
   max-width: 30ch; text-wrap: balance; padding: 6px 14px; background: var(--noche-1); color: var(--noche-12);
-  font: 600 19px/1.2 var(--fuente-gotica); letter-spacing: .01em; transform: rotate(1.2deg);
+  font: 400 19px/1.2 var(--fuente-gotica); letter-spacing: .01em; transform: rotate(1.2deg);
   box-shadow: 4px 4px 0 var(--carmesi);
 }
 .inicio-jugar { margin-top: 18px; }

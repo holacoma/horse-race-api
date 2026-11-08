@@ -185,7 +185,16 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
       post jugar_path
     end
     assert_redirected_to race_path(newest)
-    assert_equal [ "TestRider" ], newest.participants.map { |p| p.user.username }
+    assert_equal [ "TestRider" ], newest.participants.filter_map { |p| p.user&.username }
+  end
+
+  test "POST /jugar fills the free seats with bettors and starts the race" do
+    post jugar_path
+    race = Race.order(:created_at).last
+
+    assert_equal race.capacity, race.participants.count
+    assert_equal race.capacity, race.participants.map(&:horse_id).uniq.size
+    assert race.running?
   end
 
   test "POST /jugar opens a room when none has a free seat" do
@@ -198,7 +207,7 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     end
     race = Race.order(:created_at).last
     assert_redirected_to race_path(race)
-    assert_equal 1, race.participants.count
+    assert_equal [ "TestRider" ], race.participants.filter_map { |p| p.user&.username }
   end
 
   test "POST /jugar takes you back to the room you are already in" do

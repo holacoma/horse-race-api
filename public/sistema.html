@@ -27,7 +27,7 @@
   [data-fase="carrera"] .marca::after { content: ""; display: block; height: 2px; margin-top: 12px; background: var(--acento); box-shadow: var(--linea-de-luz); }
   [data-fase="fuera"] .marca { color: var(--acento-texto); letter-spacing: .04em; }
   /* El costado oscuro, en las dos fases: la regla en negro, carmesí y letra gótica. */
-  .regla { display: inline-block; margin: 14px 0 0; padding: 5px 14px; background: var(--noche-1); color: var(--noche-12); font: 600 18px/1.2 var(--fuente-gotica); transform: rotate(1.2deg); box-shadow: 4px 4px 0 var(--carmesi); }
+  .regla { display: inline-block; margin: 14px 0 0; padding: 5px 14px; background: var(--noche-1); color: var(--noche-12); font: 400 18px/1.2 var(--fuente-gotica); transform: rotate(1.2deg); box-shadow: 4px 4px 0 var(--carmesi); }
   /* Dibujo del caballo (Spider-Verse): mismo marcado y piezas que en el juego. */
   .dibujo-caballo { display: block; width: 100%; height: auto; overflow: visible; }
   .dibujo-caballo .dc-pelo { fill: var(--c, var(--superficie)); }
@@ -48,7 +48,7 @@
   .tu-caballo-demo { display: grid; grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; padding: 12px 16px 12px 10px; border-radius: var(--radio); background: var(--noche-1); color: var(--noche-12); box-shadow: 6px 6px 0 var(--carmesi); transform: rotate(-1deg); }
   .tu-caballo-demo .dibujo-caballo { grid-row: 1 / 3; transform: rotate(-4deg) translateY(-6px); }
   .tu-caballo-demo .cartel { justify-self: start; align-self: end; padding: 2px 12px; border-radius: 99px; transform: rotate(-3deg); background: var(--rosa-dia-9); color: #fff; font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; }
-  .tu-caballo-demo b { align-self: start; margin-top: 6px; font: 800 30px/1 var(--fuente-gotica); text-shadow: 2px 2px 0 var(--carmesi); }
+  .tu-caballo-demo b { align-self: start; margin-top: 6px; font: 400 30px/1 var(--fuente-gotica); text-shadow: 2px 2px 0 var(--carmesi); }
 
   /* Pestañas sobrias, iguales en las dos fases: texto y una raya debajo de la activa. */
   .pestanas { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid var(--borde-sutil); }
@@ -249,7 +249,7 @@
   /* La marca, como los títulos de Persona: texto blanco con sombras duras sobre un bloque negro inclinado con canto carmesí. */
   [data-fase="carrera"] .marca {
     position: relative; isolation: isolate; display: inline-block; padding: 8px 34px 12px 18px;
-    font: 800 72px/1 var(--fuente-gotica); letter-spacing: .01em; text-transform: none; color: var(--noche-12); text-shadow: var(--ecos);
+    font: 400 72px/1 var(--fuente-gotica); letter-spacing: .01em; text-transform: none; color: var(--noche-12); text-shadow: var(--ecos);
     transform: rotate(-4deg); transform-origin: left bottom;
   }
   [data-fase="carrera"] .marca::before {
@@ -386,24 +386,17 @@
     <div class="letras">
       <div class="tarjeta"><b>Título</b><div class="muestra" style="font-family: var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas)">Elegí tu caballo</div><code>--fuente-titulo</code></div>
       <div class="tarjeta"><b>Texto</b><div class="muestra" style="font: 600 20px/1.4 var(--fuente-texto)">Tocá los que quieras, uno atrás de otro.</div><code>--fuente-texto</code></div>
-      <div class="tarjeta"><b>Gótica</b><div class="muestra" style="font: 800 40px/1 var(--fuente-gotica)">Ganó Hoof Hearted</div><code>--fuente-gotica</code>
+      <div class="tarjeta"><b>Gótica</b><div class="muestra" style="font: 400 40px/1 var(--fuente-gotica)">Ganó Hoof Hearted</div><code>--fuente-gotica</code>
         <p class="nota" data-solo="fuera">De día, solo en el costado oscuro: tu caballo y la regla.</p><p class="nota" data-solo="carrera">De noche, en los títulos: la marca, quién va primero y quién ganó.</p></div>
     </div>
 
-    <p class="nota" style="margin-top: 28px">Opciones para la marca, en esta fase. La primera es la de hoy.</p>
+    <p class="nota" style="margin-top: 28px" data-solo="fuera">Opciones para la marca de día. La primera es la de hoy.</p>
     <div class="opciones-marca" data-solo="fuera">
       <div><span style="font-family: 'Mochiy Pop One'">Club Race</span><small>Mochiy Pop One · hoy</small></div>
       <div><span style="font-family: 'Hachi Maru Pop'">Club Race</span><small>Hachi Maru Pop</small></div>
       <div><span style="font-family: 'Rampart One'">Club Race</span><small>Rampart One</small></div>
       <div><span style="font-family: 'Potta One'">Club Race</span><small>Potta One</small></div>
       <div><span style="font-family: 'Dela Gothic One'">Club Race</span><small>Dela Gothic One</small></div>
-    </div>
-    <div class="opciones-marca" data-solo="carrera">
-      <div><span style="font: 800 40px 'Grenze Gotisch'">Club Race</span><small>Grenze Gotisch · hoy</small></div>
-      <div><span style="font-family: 'UnifrakturMaguntia'">Club Race</span><small>UnifrakturMaguntia</small></div>
-      <div><span style="font-family: 'Pirata One'">Club Race</span><small>Pirata One</small></div>
-      <div><span style="font-family: 'New Rocker'">Club Race</span><small>New Rocker</small></div>
-      <div><span style="font-family: 'Metal Mania'">Club Race</span><small>Metal Mania</small></div>
     </div>
 
     <h3>Semánticos</h3>
@@ -513,12 +506,11 @@
     <ul class="correcciones">
       <li><b>Escena de la sala</b>La 3D detrás de la sala, de día, sigue siendo la del prototipo: cartel naranja y árboles low-poly. No es kawaii ni gótica.</li>
       <li><b>Nombres</b>La mitad del catálogo son caballos famosos reales (Secretariat, Man o' War, Seabiscuit…) y los nombres con chiste están en inglés (Hoof Hearted, Neigh Sayer).</li>
-      <li><b>Sala ajena</b>En una sala que abrió otro, por ejemplo entrando con «Jugar ya», no se pueden sumar caballos ni largar. Si el creador se va, la sala larga recién cuando se llena.</li>
+      <li><b>Sala ajena</b>Entrando desde la lista a una sala que abrió otro, no se pueden sumar caballos ni largar. Si el creador se va, la sala larga recién cuando se llena.</li>
       <li><b>Panel con hueco</b>En una sala ajena, sin elegir ni sumar caballos, el panel queda con un hueco grande abajo.</li>
       <li><b>Salas viejas</b>Las salas vacías quedan para siempre en la lista del inicio.</li>
       <li><b>Dibujo sin color al elegir</b>El color sale del carril (orden de llegada), no del caballo: al elegir, los dibujos van en tinta y el color aparece recién al entrar.</li>
       <li><b>Medallas</b>Las de resultados son emojis del sistema, sin el estilo del juego.</li>
-      <li><b>Transición a resultados</b>Una vez la transición de vista tiró «Transition was aborted» al pasar de la carrera a resultados. No se repitió.</li>
       <li><b>Carrera 2D</b>Quedó sin uso: /live lleva a la sala.</li>
       <li><b>Celular</b>No se midió el rendimiento de la 3D.</li>
     </ul>

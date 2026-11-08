@@ -154,7 +154,7 @@ const PHASES = {
       "patron": "radial-gradient(circle, color-mix(in oklch, var(--rosa-dia-7) 75%, transparent) 3.2px, transparent 3.8px) 0 0 / 30px 30px",
       "fuente-titulo": "\"Mochiy Pop One\", \"Fredoka\", system-ui, sans-serif",
       "fuente-texto": "\"Nunito\", system-ui, sans-serif",
-      "fuente-gotica": "\"Grenze Gotisch\", Georgia, serif",
+      "fuente-gotica": "\"New Rocker\", Georgia, serif",
       "titulo-espaciado": "0.01em", "titulo-mayusculas": "none",
       // Textura de papel gastado, apenas: la calma se conserva. Las piezas, un poco giradas, como pegadas a mano.
       "textura": noise(0.65, "0.36 0.27 0.16", 0.5), "textura-opacidad": "0.35", "textura-mezcla": "multiply",
@@ -178,7 +178,7 @@ const PHASES = {
       "sombra": "none", "sombra-presionada": "none", "patron": "none",
       "fuente-titulo": "\"Chakra Petch\", system-ui, sans-serif",
       "fuente-texto": "\"Chakra Petch\", system-ui, sans-serif",
-      "fuente-gotica": "\"Grenze Gotisch\", Georgia, serif",
+      "fuente-gotica": "\"New Rocker\", Georgia, serif",
       "titulo-espaciado": "0.16em", "titulo-mayusculas": "uppercase",
       // Gótico y sucio (Devil May Cry), no buena onda, ni cyberpunk, ni Hotline Miami: tinta y no luz. Grano y piezas torcidas; sin trama de puntos de fondo.
       "textura": noise(0.9, "1 1 1", 0.55), "textura-opacidad": "0.16", "textura-mezcla": "overlay",
@@ -196,7 +196,7 @@ const PHASES = {
 // ── CSS ────────────────────────────────────────────────────────────────────────────
 const lines = []
 lines.push("/* Club Race · Identidad. Generado por script/colores.mjs: cambiar ahí y volver a correrlo. */")
-lines.push('@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fredoka:wght@500;600;700&family=Grenze+Gotisch:wght@600;800&family=Mochiy+Pop+One&family=Nunito:wght@500;700;800&display=swap");')
+lines.push('@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fredoka:wght@500;600;700&family=New+Rocker&family=Mochiy+Pop+One&family=Nunito:wght@500;700;800&display=swap");')
 lines.push("")
 lines.push(":root {")
 lines.push("  /* Primitivas: escalas de 12 pasos, compartidas por las dos fases.")
