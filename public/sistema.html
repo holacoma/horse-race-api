@@ -8,6 +8,7 @@
 <link rel="icon" href="data:,">
 <!-- La identidad es la misma que usa el juego: todo lo que se ve acá sale de este archivo. -->
 <link rel="stylesheet" href="css/identidad.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&family=Rampart+One&family=Potta+One&family=Dela+Gothic+One&family=UnifrakturMaguntia&family=Pirata+One&family=New+Rocker&family=Metal+Mania&display=swap">
 <style>
   /* Las dos fases viven en identidad.css: [data-fase="fuera"] (de día) y [data-fase="carrera"] (de noche).
      Esta página solo arma la vitrina; cambia de fase poniendo data-fase en <html>. */
@@ -33,6 +34,15 @@
   .dibujo-caballo .dc-desfase { fill: var(--desfase, var(--caballo-cosmos)); opacity: .55; }
   .dibujo-caballo .dc-crin { fill: #111; }
   .dibujo-caballo .dc-linea { fill: none; stroke: #111; stroke-width: 3.4; stroke-linejoin: round; }
+  .correcciones { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .correcciones li { background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-left: 4px solid var(--carmesi); border-radius: var(--radio-chico); clip-path: var(--recorte); padding: 12px 16px; font-size: 14px; color: var(--texto-suave); }
+  .correcciones b { display: block; color: var(--texto); font: 700 14px var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas); margin-bottom: 4px; }
+  .opciones-marca { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+  .opciones-marca > div { display: grid; gap: 8px; justify-items: center; padding: 18px 12px 12px; background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); }
+  .opciones-marca span { font-size: 30px; line-height: 1.1; white-space: nowrap; }
+  [data-fase="fuera"] .opciones-marca span { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
+  [data-fase="carrera"] .opciones-marca span { color: var(--noche-12); text-shadow: var(--ecos); }
+  .opciones-marca small { color: var(--texto-apagado); font-size: 12px; }
   .letras { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .letras .muestra { font-size: 34px; line-height: 1.1; margin: 6px 0 10px; }
   .tu-caballo-demo { display: grid; grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; padding: 12px 16px 12px 10px; border-radius: var(--radio); background: var(--noche-1); color: var(--noche-12); box-shadow: 6px 6px 0 var(--carmesi); transform: rotate(-1deg); }
@@ -40,15 +50,14 @@
   .tu-caballo-demo .cartel { justify-self: start; align-self: end; padding: 2px 12px; border-radius: 99px; transform: rotate(-3deg); background: var(--rosa-dia-9); color: #fff; font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; }
   .tu-caballo-demo b { align-self: start; margin-top: 6px; font: 800 30px/1 var(--fuente-gotica); text-shadow: 2px 2px 0 var(--carmesi); }
 
-  .pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  /* Pestañas sobrias, iguales en las dos fases: texto y una raya debajo de la activa. */
+  .pestanas { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid var(--borde-sutil); }
   .pestana {
-    font: 700 14px var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas);
-    padding: 10px 18px; cursor: pointer; text-decoration: none;
-    color: var(--texto-suave); background: var(--elemento); border: var(--borde-ancho) solid var(--borde);
-    border-radius: var(--radio-chico); clip-path: var(--recorte);
+    font: 600 16px var(--fuente-texto); padding: 10px 0; margin-bottom: -1px; cursor: pointer; text-decoration: none;
+    color: var(--texto-suave); border-bottom: 3px solid transparent;
   }
-  .pestana[aria-current="page"] { color: var(--sobre-acento); background: var(--acento); border-color: var(--acento); box-shadow: var(--sombra); }
-  [data-fase="carrera"] .pestana[aria-current="page"] { box-shadow: var(--brillo-acento); }
+  .pestana:hover { color: var(--texto); }
+  .pestana[aria-current="page"] { color: var(--texto); border-bottom-color: var(--acento); }
   .pestana:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
   .bajada { color: var(--texto-suave); max-width: 62ch; margin: 0 0 44px; }
 
@@ -226,10 +235,10 @@
     background-image: linear-gradient(color-mix(in oklch, var(--superficie) 90%, transparent), color-mix(in oklch, var(--superficie) 90%, transparent)), var(--textura);
     box-shadow: none; border-color: transparent;
   }
-  /* Borde de tinta: blanco fino, con el lado marcado en carmesí. Quieto. */
+  /* Borde fino y apenas sobre la superficie, con el lado marcado en carmesí. Quieto. */
   [data-fase="carrera"] .tarjeta::after, [data-fase="carrera"] .caballo::after, [data-fase="carrera"] .panel::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    border: 2px solid var(--noche-12); border-left: calc(var(--borde-marcado) * 2) solid var(--carmesi);
+    border: 1px solid var(--borde); border-left: var(--borde-marcado) solid var(--carmesi);
   }
   [data-fase="carrera"] .tarjeta { border-left-color: transparent; }
   [data-fase="carrera"] h2, [data-fase="carrera"] h3 {
@@ -240,8 +249,8 @@
   /* La marca, como los títulos de Persona: texto blanco con sombras duras sobre un bloque negro inclinado con canto carmesí. */
   [data-fase="carrera"] .marca {
     position: relative; isolation: isolate; display: inline-block; padding: 8px 34px 12px 18px;
-    font-size: 66px; letter-spacing: .02em; color: var(--noche-12); text-shadow: var(--ecos);
-    transform: rotate(-4deg) skewX(-12deg); transform-origin: left bottom;
+    font: 800 72px/1 var(--fuente-gotica); letter-spacing: .01em; text-transform: none; color: var(--noche-12); text-shadow: var(--ecos);
+    transform: rotate(-4deg); transform-origin: left bottom;
   }
   [data-fase="carrera"] .marca::before {
     content: ""; position: absolute; inset: 0; z-index: -1;
@@ -249,16 +258,15 @@
     clip-path: polygon(0 12%, 100% 0, 96% 100%, 3% 90%);
   }
   [data-fase="carrera"] .marca::after { content: none; }
-  [data-fase="carrera"] .pestana[aria-current="page"] { background: var(--carmesi); color: var(--noche-12); text-shadow: 2px 2px 0 var(--noche-1); border-color: transparent; box-shadow: none; }
   [data-fase="carrera"] .bajada { transform: rotate(-0.6deg); }
   [data-fase="carrera"] .neon-tile { box-shadow: none; }
   /* Al entrar a la carrera: un bloque carmesí cruza en diagonal y deja un flash blanco seco. Solo transform y opacidad. */
   .corte { position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden; }
-  .corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 60%; background: var(--carmesi); transform: skewX(-18deg) translateX(0); }
+  .corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -90%; width: 60%; background: var(--carmesi); transform: skewX(-18deg) translateX(0); }
   .corte::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; }
   .corte.ya::before { animation: cruce .38s cubic-bezier(.7, 0, .3, 1) both; }
   .corte.ya::after { animation: flash .38s steps(1) both; }
-  @keyframes cruce { to { transform: skewX(-18deg) translateX(330%); } }
+  @keyframes cruce { to { transform: skewX(-18deg) translateX(420%); } }
   @keyframes flash { 0%, 35% { opacity: 0; } 36% { opacity: .9; } 46%, 100% { opacity: 0; } }
 
   /* De día: papel gastado, piezas pegadas a mano, la marca como sello. */
@@ -283,7 +291,6 @@
   [data-fase="fuera"] h2 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
   [data-fase="fuera"] h3::before { content: "♥ "; color: var(--acento); }
   [data-fase="fuera"] .boton:hover { transform: translateY(-2px) rotate(-1.5deg); }
-  [data-fase="fuera"] .pestana[aria-current="page"] { color: #fff; }
   .corazones { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
   .corazones i { position: absolute; bottom: -40px; font-style: normal; color: var(--rosa-dia-8); opacity: .5; animation: subir linear infinite; }
   @keyframes subir { from { transform: translateY(0) rotate(-12deg); } to { transform: translateY(-115vh) rotate(18deg); } }
@@ -381,6 +388,22 @@
       <div class="tarjeta"><b>Texto</b><div class="muestra" style="font: 600 20px/1.4 var(--fuente-texto)">Tocá los que quieras, uno atrás de otro.</div><code>--fuente-texto</code></div>
       <div class="tarjeta"><b>Gótica</b><div class="muestra" style="font: 800 40px/1 var(--fuente-gotica)">Ganó Hoof Hearted</div><code>--fuente-gotica</code>
         <p class="nota" data-solo="fuera">De día, solo en el costado oscuro: tu caballo y la regla.</p><p class="nota" data-solo="carrera">De noche, en los títulos: la marca, quién va primero y quién ganó.</p></div>
+    </div>
+
+    <p class="nota" style="margin-top: 28px">Opciones para la marca, en esta fase. La primera es la de hoy.</p>
+    <div class="opciones-marca" data-solo="fuera">
+      <div><span style="font-family: 'Mochiy Pop One'">Club Race</span><small>Mochiy Pop One · hoy</small></div>
+      <div><span style="font-family: 'Hachi Maru Pop'">Club Race</span><small>Hachi Maru Pop</small></div>
+      <div><span style="font-family: 'Rampart One'">Club Race</span><small>Rampart One</small></div>
+      <div><span style="font-family: 'Potta One'">Club Race</span><small>Potta One</small></div>
+      <div><span style="font-family: 'Dela Gothic One'">Club Race</span><small>Dela Gothic One</small></div>
+    </div>
+    <div class="opciones-marca" data-solo="carrera">
+      <div><span style="font: 800 40px 'Grenze Gotisch'">Club Race</span><small>Grenze Gotisch · hoy</small></div>
+      <div><span style="font-family: 'UnifrakturMaguntia'">Club Race</span><small>UnifrakturMaguntia</small></div>
+      <div><span style="font-family: 'Pirata One'">Club Race</span><small>Pirata One</small></div>
+      <div><span style="font-family: 'New Rocker'">Club Race</span><small>New Rocker</small></div>
+      <div><span style="font-family: 'Metal Mania'">Club Race</span><small>Metal Mania</small></div>
     </div>
 
     <h3>Semánticos</h3>
@@ -482,6 +505,23 @@
       tema oscuro con elevación por superficies (<a href="https://uxcel.com/blog/mastering-elevation-for-dark-ui-a-comprehensive-guide-342">Uxcel</a>),
       colores categóricos por distancia en OKLab (<a href="https://pypi.org/project/okpalette/0.2.0/">okpalette</a>).
       Se genera con <code>script/colores.mjs</code>.</p>
+  </section>
+
+  <section id="correcciones">
+    <h2>Correcciones</h2>
+    <p class="nota">Lo que hoy se ve mal en el juego, tal como está.</p>
+    <ul class="correcciones">
+      <li><b>Escena de la sala</b>La 3D detrás de la sala, de día, sigue siendo la del prototipo: cartel naranja y árboles low-poly. No es kawaii ni gótica.</li>
+      <li><b>Nombres</b>La mitad del catálogo son caballos famosos reales (Secretariat, Man o' War, Seabiscuit…) y los nombres con chiste están en inglés (Hoof Hearted, Neigh Sayer).</li>
+      <li><b>Sala ajena</b>En una sala que abrió otro, por ejemplo entrando con «Jugar ya», no se pueden sumar caballos ni largar. Si el creador se va, la sala larga recién cuando se llena.</li>
+      <li><b>Panel con hueco</b>En una sala ajena, sin elegir ni sumar caballos, el panel queda con un hueco grande abajo.</li>
+      <li><b>Salas viejas</b>Las salas vacías quedan para siempre en la lista del inicio.</li>
+      <li><b>Dibujo sin color al elegir</b>El color sale del carril (orden de llegada), no del caballo: al elegir, los dibujos van en tinta y el color aparece recién al entrar.</li>
+      <li><b>Medallas</b>Las de resultados son emojis del sistema, sin el estilo del juego.</li>
+      <li><b>Transición a resultados</b>Una vez la transición de vista tiró «Transition was aborted» al pasar de la carrera a resultados. No se repitió.</li>
+      <li><b>Carrera 2D</b>Quedó sin uso: /live lleva a la sala.</li>
+      <li><b>Celular</b>No se midió el rendimiento de la 3D.</li>
+    </ul>
   </section>
 </div>
 <div class="copiado" id="copiado" role="status"></div>

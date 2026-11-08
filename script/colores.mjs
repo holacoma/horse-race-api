@@ -164,7 +164,11 @@ const PHASES = {
   carrera: {
     selector: '[data-fase="carrera"]',
     note: "Durante la carrera: gótico y sucio (Devil May Cry). De noche, tinta y no luz, recta y desbalanceada: sin bordes redondos, cajas asimétricas y letra gótica en los títulos.",
-    colors: semantic("noche", n => n, "var(--noche-1)", "noche"),
+    // Las acciones principales van en un solo color por fase: carmesí de noche (el naranja queda para el caballo de fuego).
+    // Bordes apenas sobre la superficie: líneas finas que separan, no que marcan.
+    colors: { ...semantic("noche", n => n, "var(--noche-1)", "noche", "rojo"),
+      "acento": "var(--carmesi)", "acento-encima": "oklch(0.62 0.22 25)", "sobre-acento": "var(--noche-12)",
+      "borde-sutil": "var(--noche-4)", "borde": "var(--noche-5)", "borde-fuerte": "var(--noche-7)" },
     rest: {
       "radio": "0px", "radio-chico": "0px", "corte": "16px", "borde-ancho": "1px",
       // Desbalanceado: un lado marcado más grueso y una esquina cortada; las etiquetas, con el borde derecho inclinado.
@@ -176,9 +180,9 @@ const PHASES = {
       "fuente-texto": "\"Chakra Petch\", system-ui, sans-serif",
       "fuente-gotica": "\"Grenze Gotisch\", Georgia, serif",
       "titulo-espaciado": "0.16em", "titulo-mayusculas": "uppercase",
-      // LSD con filo (Devil May Cry, Persona), no buena onda, ni cyberpunk, ni Hotline Miami: tinta y no luz. Grano, trama de puntos de cómic y piezas torcidas.
+      // Gótico y sucio (Devil May Cry), no buena onda, ni cyberpunk, ni Hotline Miami: tinta y no luz. Grano y piezas torcidas; sin trama de puntos de fondo.
       "textura": noise(0.9, "1 1 1", 0.55), "textura-opacidad": "0.16", "textura-mezcla": "overlay",
-      "rayas": "radial-gradient(circle, rgb(255 255 255 / 0.06) 0.9px, transparent 1.4px) 0 0 / 5px 5px",
+      "rayas": "none",
       // Tinta, no luz: de noche los halos son sombras duras desplazadas, como en un cómic impreso.
       "halo-suave": "2px 2px 0 var(--noche-1)",
       "halo-medio": "3px 3px 0 var(--noche-1), 5px 5px 0 var(--carmesi)",
