@@ -450,6 +450,41 @@
       <div class="lista-caballos" id="caballos"></div>
     </div>
 
+    <h3>Chibis: estilos a elegir</h3>
+    <p class="nota">Tres direcciones sacadas de tus referencias de Pinterest: sin stickers, contraste de color y lo edgy en la actitud. Cada una con fuego, hielo y electricidad, en la tarjeta del picker (de día) y en la fila de la sala (de noche).</p>
+    <style>
+      .estilos-chibi { display: grid; gap: 22px; margin-top: 12px; }
+      .estilo-chibi { display: grid; grid-template-columns: minmax(160px, 220px) 1fr; gap: 18px; align-items: center; }
+      .estilo-chibi > div:first-child b { display: block; font: 400 24px var(--fuente-gotica); }
+      .estilo-chibi > div:first-child span { font-size: 14px; opacity: .8; }
+      .estilo-muestras { display: flex; flex-wrap: wrap; gap: 12px; }
+      .ec-dia { display: flex; gap: 10px; padding: 12px; background: #f6efe3; border-radius: 16px; }
+      .ec-tarjeta { width: 104px; display: grid; justify-items: center; gap: 6px; padding: 8px 6px 10px; background: #fffaf2; border: 2px solid #e6d9c4; border-radius: 14px; }
+      .ec-tarjeta img, .ec-noche img { width: 84px; height: 72px; object-fit: contain; }
+      .ec-nombre { padding: 1px 8px 3px; background: #14080c; color: #fff; font: 400 14px var(--fuente-gotica); transform: rotate(-3deg); box-shadow: 3px 3px 0 var(--c); white-space: nowrap; }
+      .ec-noche { display: grid; gap: 6px; padding: 10px 12px; background: #0e080b; min-width: 230px; }
+      .ec-fila { display: flex; align-items: center; gap: 10px; color: #cfc8bd; font-size: 13px; border-left: 3px solid var(--c); padding-left: 8px; }
+      .ec-noche img { width: 52px; height: 44px; }
+      @media (max-width: 640px) { .estilo-chibi { grid-template-columns: 1fr; } }
+    </style>
+    <div class="estilos-chibi" id="estilos-chibi"></div>
+    <script>
+      {
+        const ESTILOS = [
+          ["umbreon", "Umbreon", "Cuerpo negro y marcas del elemento que brillan. La más pareja entre caballos; se lee más zorro que caballo."],
+          ["actitud", "Actitud", "Cara de «no me importa», trazo suelto y el color en la crin. Graciosa; el cuerpo quedó bollo, más oveja que caballo."],
+          ["tinta", "Tinta P5", "Silueta negra con trama. No salió: siluetas sueltas y sin un diseño común."]
+        ]
+        const EL = [["fuego", "Brasa Fiada"], ["hielo", "Escarcha"], ["electricidad", "Voltio"]]
+        document.getElementById("estilos-chibi").innerHTML = ESTILOS.map(([id, nombre, nota]) => `
+          <div class="estilo-chibi"><div><b>${nombre}</b><span>${nota}</span></div>
+            <div class="estilo-muestras">
+              <div class="ec-dia">${EL.map(([e, n]) => `<div class="ec-tarjeta" style="--c: var(--caballo-${e})"><img src="prototipos/chibis-estilos/${id}-${e}.webp" alt=""><span class="ec-nombre">${n}</span></div>`).join("")}</div>
+              <div class="ec-noche">${EL.map(([e, n]) => `<div class="ec-fila" style="--c: var(--caballo-${e})"><img src="prototipos/chibis-estilos/${id}-${e}.webp" alt=""><span class="ec-nombre">${n}</span> de Apostador</div>`).join("")}</div>
+            </div></div>`).join("")
+      }
+    </script>
+
     <div data-solo="carrera">
       <h3>Previsualización</h3>
       <p class="nota">Los 12 corriendo, con su número encima: así se distinguen juntos y en movimiento.</p>
