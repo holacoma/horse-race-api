@@ -25,7 +25,20 @@
   .marca { font: 700 36px/1 var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; }
   [data-fase="carrera"] .marca::after { content: ""; display: block; height: 2px; margin-top: 12px; background: var(--acento); box-shadow: var(--linea-de-luz); }
   [data-fase="fuera"] .marca { color: var(--acento-texto); letter-spacing: .04em; }
-  .regla { color: var(--texto-apagado); font-size: 13px; margin: 10px 0 0; }
+  /* El costado oscuro, en las dos fases: la regla en negro, carmesí y letra gótica. */
+  .regla { display: inline-block; margin: 14px 0 0; padding: 5px 14px; background: var(--noche-1); color: var(--noche-12); font: 600 18px/1.2 var(--fuente-gotica); transform: rotate(1.2deg); box-shadow: 4px 4px 0 var(--carmesi); }
+  /* Dibujo del caballo (Spider-Verse): mismo marcado y piezas que en el juego. */
+  .dibujo-caballo { display: block; width: 100%; height: auto; overflow: visible; }
+  .dibujo-caballo .dc-pelo { fill: var(--c, var(--superficie)); }
+  .dibujo-caballo .dc-desfase { fill: var(--desfase, var(--caballo-cosmos)); opacity: .55; }
+  .dibujo-caballo .dc-crin { fill: #111; }
+  .dibujo-caballo .dc-linea { fill: none; stroke: #111; stroke-width: 3.4; stroke-linejoin: round; }
+  .letras { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .letras .muestra { font-size: 34px; line-height: 1.1; margin: 6px 0 10px; }
+  .tu-caballo-demo { display: grid; grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; padding: 12px 16px 12px 10px; border-radius: var(--radio); background: var(--noche-1); color: var(--noche-12); box-shadow: 6px 6px 0 var(--carmesi); transform: rotate(-1deg); }
+  .tu-caballo-demo .dibujo-caballo { grid-row: 1 / 3; transform: rotate(-4deg) translateY(-6px); }
+  .tu-caballo-demo .cartel { justify-self: start; align-self: end; padding: 2px 12px; border-radius: 99px; transform: rotate(-3deg); background: var(--rosa-dia-9); color: #fff; font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; }
+  .tu-caballo-demo b { align-self: start; margin-top: 6px; font: 800 30px/1 var(--fuente-gotica); text-shadow: 2px 2px 0 var(--carmesi); }
 
   .pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
   .pestana {
@@ -125,8 +138,7 @@
     padding: 12px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center;
     cursor: pointer; font: inherit; color: inherit; text-align: left; box-shadow: var(--sombra);
   }
-  .chip { grid-row: span 2; width: 34px; height: 34px; border-radius: 50%; }
-  [data-fase="carrera"] .chip { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); }
+  .caballo .dibujo-caballo { grid-row: span 2; width: 44px; margin: -6px 0 -4px; }
   .caballo b { font: 700 14px var(--fuente-titulo); }
   .caballo small { color: var(--texto-apagado); font: 11px ui-monospace, monospace; }
 
@@ -286,6 +298,27 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="dc-cabeza" d="M24 98 C22 80 24 62 32 48 C36 40 40 34 42 28 L40 11 L50 24 C58 25 66 30 72 38 C78 46 86 56 91 64 C94 69 93 76 88 78 C82 80 76 79 71 76 C66 73 62 70 58 70 C54 76 54 86 58 98 Z"/>
+    <path id="dc-crin" d="M43 27 L31 28 L38 34 L23 39 L33 44 L18 53 L29 56 L15 67 L26 69 L14 82 L24 83 L16 98 L30 98 C26 80 27 62 35 48 C38 42 41 35 43 27 Z"/>
+    <g id="dc-detalle">
+      <path d="M58 70 C62 62 66 58 72 56" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M59.5 40 Q64 35 69 40 Q64 44 59.5 40 Z" fill="#111"/>
+      <circle cx="65.6" cy="38.8" r="1.1" fill="#fff"/>
+      <path d="M83.5 68.5 q3 -2.4 5.4 1 q-3 1.2 -5.4 -1 Z" fill="#111"/>
+    </g>
+    <clipPath id="dc-recorte"><use href="#dc-cabeza"/></clipPath>
+    <pattern id="dc-puntos" width="4.6" height="4.6" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+      <circle cx="2.3" cy="2.3" r="1.25" fill="#111"/>
+    </pattern>
+    <linearGradient id="dc-sombra" x1="1" y1="0" x2="0" y2="1">
+      <stop offset=".42" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="dc-mascara"><rect x="-10" y="-10" width="120" height="120" fill="url(#dc-sombra)"/></mask>
+  </defs>
+</svg>
 <div class="corte" id="corte" aria-hidden="true"></div>
 <div class="corazones" data-solo="fuera" aria-hidden="true"><i style="left:6%; font-size:22px; animation-duration:9s; animation-delay:-0.0s">♥</i><i style="left:14%; font-size:16px; animation-duration:14s; animation-delay:-1.7s">♥</i><i style="left:23%; font-size:26px; animation-duration:11s; animation-delay:-3.4s">♥</i><i style="left:31%; font-size:14px; animation-duration:17s; animation-delay:-5.1s">♥</i><i style="left:42%; font-size:20px; animation-duration:8s; animation-delay:-6.8s">♥</i><i style="left:51%; font-size:30px; animation-duration:13s; animation-delay:-8.5s">♥</i><i style="left:60%; font-size:18px; animation-duration:16s; animation-delay:-10.2s">♥</i><i style="left:68%; font-size:24px; animation-duration:10s; animation-delay:-11.9s">♥</i><i style="left:77%; font-size:15px; animation-duration:19s; animation-delay:-13.6s">♥</i><i style="left:85%; font-size:28px; animation-duration:12s; animation-delay:-15.3s">♥</i><i style="left:93%; font-size:19px; animation-duration:15s; animation-delay:-17.0s">♥</i><i style="left:47%; font-size:12px; animation-duration:21s; animation-delay:-18.7s">♥</i></div>
 <div class="page">
@@ -300,8 +333,8 @@
     <a class="pestana" href="#fuera" data-tab="fuera">Fuera de la carrera</a>
     <a class="pestana" href="#carrera" data-tab="carrera">Durante la carrera</a>
   </nav>
-  <p class="bajada" data-solo="fuera">Lobby, apuestas y resultados. De día y kawaii, como una novela visual: rosa, redondeada, con lunares y corazones. Y cada tanto algo raro asoma.</p>
-  <p class="bajada" data-solo="carrera">La carrera. De noche: LSD con filo, como Devil May Cry o Persona. Rojo y negro, tinta y no luz: sombras duras, trama de cómic, recortes fuertes y nada circular.</p>
+  <p class="bajada" data-solo="fuera">Lobby, apuestas y resultados. De día y kawaii, como una novela visual: rosa, redondeada, con lunares y corazones. Y un costado oscuro: lo tuyo y la regla van en negro, carmesí y letra gótica.</p>
+  <p class="bajada" data-solo="carrera">La carrera. De noche: gótica y sucia, como Devil May Cry. Rojo y negro, tinta y no luz: sombras duras, trama de cómic, letra gótica en los títulos, recortes fuertes y nada circular.</p>
 
   <section id="colores">
     <h2>Colores</h2>
@@ -340,6 +373,14 @@
       <div class="tarjeta"><b>Etiquetas</b>
         <div class="botones" id="etiquetas-forma"></div>
       </div>
+    </div>
+
+    <h3>Letra</h3>
+    <div class="letras">
+      <div class="tarjeta"><b>Título</b><div class="muestra" style="font-family: var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas)">Elegí tu caballo</div><code>--fuente-titulo</code></div>
+      <div class="tarjeta"><b>Texto</b><div class="muestra" style="font: 600 20px/1.4 var(--fuente-texto)">Tocá los que quieras, uno atrás de otro.</div><code>--fuente-texto</code></div>
+      <div class="tarjeta"><b>Gótica</b><div class="muestra" style="font: 800 40px/1 var(--fuente-gotica)">Ganó Hoof Hearted</div><code>--fuente-gotica</code>
+        <p class="nota" data-solo="fuera">De día, solo en el costado oscuro: tu caballo y la regla.</p><p class="nota" data-solo="carrera">De noche, en los títulos: la marca, quién va primero y quién ganó.</p></div>
     </div>
 
     <h3>Semánticos</h3>
@@ -419,6 +460,7 @@
         <div class="encabezado"><h4>Sala 7 · 2000 m</h4><span class="vivo">En vivo</span></div>
         <div id="panel-filas"></div>
       </div>
+      <div data-solo="fuera"><div class="tu-caballo-demo" id="tu-caballo-demo"></div></div>
       <div class="tarjeta" data-solo="fuera"><b>Resultado</b>
         <div class="estado" data-estado="exito">Ganó Fuego · cobrás 3,4 veces tu apuesta</div>
         <div class="estado" data-estado="info">Tu próxima carrera arranca en 2 minutos</div>
@@ -557,7 +599,9 @@ function render(phase) {
     })
   }
 
-  // Caballos.
+  // Caballos. El dibujo va siempre en el color de noche: el contorno de tinta lo separa del fondo claro.
+  const dibujo = color => `<svg class="dibujo-caballo" viewBox="-8 0 112 104" style="--c: ${color}" aria-hidden="true"><use href="#dc-cabeza" class="dc-desfase" transform="translate(5 -3)"></use><use href="#dc-cabeza" class="dc-pelo"></use><g clip-path="url(#dc-recorte)" mask="url(#dc-mascara)"><rect x="-10" y="-10" width="120" height="120" fill="url(#dc-puntos)" opacity="0.5"></rect></g><use href="#dc-crin" class="dc-crin"></use><use href="#dc-cabeza" class="dc-linea"></use><use href="#dc-detalle"></use></svg>`
+  $("tu-caballo-demo").innerHTML = `${dibujo("var(--caballo-fuego)")}<span class="cartel">Tu caballo</span><b>Hoof Hearted</b>`
   const background = resolve("--fondo")
   const list = $("caballos")
   list.replaceChildren()
@@ -583,7 +627,7 @@ function render(phase) {
   HORSES.forEach(horse => {
     const token = `--caballo-${horse}${night ? "" : "-tinta"}`
     const value = raw(token)
-    const card = el("button", "caballo", `<span class="chip" style="background:${value};${night ? " box-shadow: 3px 3px 0 var(--noche-1)" : ""}"></span><b style="${night ? "" : `color:${value}`}">${NAMES[horse]}</b><small>${value} · ${ratio(value, background).toFixed(1)}:1</small>`)
+    const card = el("button", "caballo", `${dibujo(`var(--caballo-${horse})`)}<b style="${night ? "" : `color:${value}`}">${NAMES[horse]}</b><small>${value} · ${ratio(value, background).toFixed(1)}:1</small>`)
     card.onclick = () => copy(`var(${token})`)
     list.append(card)
   })

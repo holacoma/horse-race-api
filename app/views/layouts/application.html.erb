@@ -9,19 +9,19 @@
   <%= csrf_meta_tags %>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous" defer></script>
   <%= javascript_importmap_tags %>
-  <link rel="stylesheet" href="/css/identidad.css">
-  <link rel="stylesheet" href="/css/club.css">
+  <link rel="stylesheet" href="/css/identidad.css?v=2">
+  <link rel="stylesheet" href="/css/club.css?v=2">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/buttons.css">
   <%= yield :head %>
 </head>
 <body data-controller="button-fx" data-action="click->button-fx#play:capture">
+<%= render "shared/dibujo_defs" %>
 <% if content_for?(:pantalla_completa) %>
   <%# La sala con la carrera 3D: toda la pantalla es de la escena, sin menú. %>
   <%= yield %>
 <% elsif logged_in? %>
   <div class="app">
-    <%= render "layouts/sidebar" %>
     <div class="app-page">
       <%= render "layouts/topbar" %>
       <main class="app-main"><%= yield %></main>

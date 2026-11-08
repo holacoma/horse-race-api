@@ -28,15 +28,7 @@ class ParticipantsController < WebController
       return render json: { error: participant.errors.full_messages.first }, status: :conflict
     end
 
-    ActionCable.server.broadcast("race_#{race.id}", {
-      type: "player_joined",
-      participant: {
-        username: participant.display_name,
-        horse_name: horse.name,
-        horse_id: horse.id,
-        profile_username: participant.user&.username
-      }
-    })
+    participant.announce_joined
 
     race.reload.start! if race.full? && race.pending?
 

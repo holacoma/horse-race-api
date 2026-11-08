@@ -1,5 +1,6 @@
+<%# Una sola barra: la marca lleva al inicio; a la derecha, tu perfil y salir. Nada más que decidir. %>
 <header class="app-top">
-  <span class="titulo-pagina"><%= content_for?(:page_title) ? yield(:page_title) : "" %></span>
+  <%= link_to "Club Race", root_path, class: "marca", data: { fx: "nav" } %>
   <div class="app-user">
     <%= link_to current_user.username, profile_path(current_user.username), data: { fx: "profile" } %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>

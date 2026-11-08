@@ -143,7 +143,7 @@ const semantic = (n, accent, ink, family, brand = "fuego") => ({
 const PHASES = {
   fuera: {
     selector: ':root, [data-fase="fuera"]',
-    note: "Fuera de la carrera: de día y kawaii, como una novela visual (Doki Doki): rosa, redondeada, con lunares y corazones. Sin brillos; la altura se marca con sombra.",
+    note: "Fuera de la carrera: de día y kawaii, como una novela visual (Doki Doki): rosa, redondeada, con lunares y corazones, y un costado oscuro (lo tuyo y la regla van en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra.",
     colors: semantic("arena", n => `${n}-dia`, "var(--arena-12)", "dia", "rosa"),
     rest: {
       "radio": "18px", "radio-chico": "10px", "corte": "0px", "borde-ancho": "2px",
@@ -154,6 +154,7 @@ const PHASES = {
       "patron": "radial-gradient(circle, color-mix(in oklch, var(--rosa-dia-7) 75%, transparent) 3.2px, transparent 3.8px) 0 0 / 30px 30px",
       "fuente-titulo": "\"Mochiy Pop One\", \"Fredoka\", system-ui, sans-serif",
       "fuente-texto": "\"Nunito\", system-ui, sans-serif",
+      "fuente-gotica": "\"Grenze Gotisch\", Georgia, serif",
       "titulo-espaciado": "0.01em", "titulo-mayusculas": "none",
       // Textura de papel gastado, apenas: la calma se conserva. Las piezas, un poco giradas, como pegadas a mano.
       "textura": noise(0.65, "0.36 0.27 0.16", 0.5), "textura-opacidad": "0.35", "textura-mezcla": "multiply",
@@ -162,7 +163,7 @@ const PHASES = {
   },
   carrera: {
     selector: '[data-fase="carrera"]',
-    note: "Durante la carrera: Tron. De noche, neón, recta y desbalanceada: sin bordes redondos y con cajas asimétricas.",
+    note: "Durante la carrera: gótico y sucio (Devil May Cry). De noche, tinta y no luz, recta y desbalanceada: sin bordes redondos, cajas asimétricas y letra gótica en los títulos.",
     colors: semantic("noche", n => n, "var(--noche-1)", "noche"),
     rest: {
       "radio": "0px", "radio-chico": "0px", "corte": "16px", "borde-ancho": "1px",
@@ -173,6 +174,7 @@ const PHASES = {
       "sombra": "none", "sombra-presionada": "none", "patron": "none",
       "fuente-titulo": "\"Chakra Petch\", system-ui, sans-serif",
       "fuente-texto": "\"Chakra Petch\", system-ui, sans-serif",
+      "fuente-gotica": "\"Grenze Gotisch\", Georgia, serif",
       "titulo-espaciado": "0.16em", "titulo-mayusculas": "uppercase",
       // LSD con filo (Devil May Cry, Persona), no buena onda, ni cyberpunk, ni Hotline Miami: tinta y no luz. Grano, trama de puntos de cómic y piezas torcidas.
       "textura": noise(0.9, "1 1 1", 0.55), "textura-opacidad": "0.16", "textura-mezcla": "overlay",
@@ -190,7 +192,7 @@ const PHASES = {
 // ── CSS ────────────────────────────────────────────────────────────────────────────
 const lines = []
 lines.push("/* Club Race · Identidad. Generado por script/colores.mjs: cambiar ahí y volver a correrlo. */")
-lines.push('@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fredoka:wght@500;600;700&family=Mochiy+Pop+One&family=Nunito:wght@500;700;800&display=swap");')
+lines.push('@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fredoka:wght@500;600;700&family=Grenze+Gotisch:wght@600;800&family=Mochiy+Pop+One&family=Nunito:wght@500;700;800&display=swap");')
 lines.push("")
 lines.push(":root {")
 lines.push("  /* Primitivas: escalas de 12 pasos, compartidas por las dos fases.")

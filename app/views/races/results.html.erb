@@ -1,22 +1,18 @@
 <% content_for :title, "#{@race.slug} — Resultados" %>
 <% content_for :page_title, @race.slug %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/race-results.css">
+  <link rel="stylesheet" href="/css/race-results.css?v=2">
 <% end %>
 
 <%
-  hues   = [ 0, 55, 110, 170, 220, 285 ]
   medals = { 1 => "🥇", 2 => "🥈", 3 => "🥉" }
-  sprite = "/images/#{@race.animal_type}/frame_1.png"
-  flip   = @race.animal_type == "horse" ? "transform:scaleX(-1);" : ""
   winner = @results.first
   my_position = @my_participant && @results.index(@my_participant) + 1
 %>
 
 <div class="results-wrap">
   <header class="results-hero">
-    <img src="<%= sprite %>" alt=""
-         style="<%= flip %>filter:hue-rotate(<%= hues[@lane_index[winner] % hues.size] %>deg)">
+    <%= dibujo_caballo(color_de_carril(@lane_index[winner]), clase: "results-dibujo") %>
     <div>
       <% if my_position == 1 %>
         <h1>🏆 ¡Ganaste!</h1>
@@ -40,8 +36,7 @@
     <% @results.each.with_index(1) do |participant, position| %>
       <li class="results-row<%= " is-me" if participant == @my_participant %>">
         <span class="results-position"><%= medals[position] || position %></span>
-        <img src="<%= sprite %>" alt=""
-             style="<%= flip %>filter:hue-rotate(<%= hues[@lane_index[participant] % hues.size] %>deg)">
+        <%= dibujo_caballo(color_de_carril(@lane_index[participant])) %>
         <span class="results-horse"><%= participant.horse_name %></span>
         <span class="results-player"><%= participant.display_name %></span>
       </li>

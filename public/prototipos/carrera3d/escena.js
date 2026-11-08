@@ -1411,13 +1411,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
           const h = announced ? state.winner : sorted[0]
           leadDot.style.background = hex(h.silk)
           lead.style.setProperty("--c", hex(h.silk))
-          leadName.textContent = announced ? `¡GANA ${h.name.toUpperCase()}!` : h.name.toUpperCase()
+          leadName.textContent = announced ? `¡Gana ${h.name}!` : h.name
           leadInfo.textContent = announced ? `apuesta de ${h.username}` : (sorted[1] ? `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m` : `a ${remaining} m`)
         }
       },
       showWin(h) {
         win.textContent = ""
-        win.append(`¡GANÓ ${h.name.toUpperCase()}!`)
+        win.append(`¡Ganó ${h.name}!`)
         const small = document.createElement("small")
         small.textContent = h === mine ? "¡ese es tu caballo!" : `apuesta de ${h.username}`
         win.append(small)

@@ -10,7 +10,8 @@
 .login-logo .marca::before, .login-logo .marca::after { position: absolute; font-size: .42em; animation: latido 1.6s ease-in-out infinite; }
 .login-logo .marca::before { content: "♥"; right: -.6em; top: -.25em; color: var(--acento); }
 .login-logo .marca::after { content: "✦"; left: -.6em; bottom: .1em; color: var(--ambar-dia-9); animation-delay: .8s; }
-.login-logo .regla { color: var(--texto-suave); margin-top: 14px; font-size: 14px; }
+/* El costado oscuro: la regla en negro, carmesí y letra gótica. */
+.login-logo .regla { display: inline-block; max-width: 30ch; text-wrap: balance; margin-top: 18px; padding: 6px 14px; background: var(--noche-1); color: var(--noche-12); font: 600 19px/1.2 var(--fuente-gotica); transform: rotate(1.2deg); box-shadow: 4px 4px 0 var(--carmesi); }
 .login-form-wrap { display: grid; gap: 18px; padding: 26px; transform: rotate(var(--giro)); }
 .login-form-wrap form { display: grid; gap: 14px; }
 .btn-google-pixel { width: 100%; }

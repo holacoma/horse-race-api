@@ -1,19 +1,55 @@
-/* Salas abiertas: tarjetas que parecen pegadas a mano, cada una apenas torcida. */
-.header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-.rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
-.room-card {
-  display: flex; align-items: center; gap: 14px; padding: 16px 18px;
-  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil);
-  border-radius: var(--radio); box-shadow: var(--sombra); clip-path: var(--recorte);
-  transform: rotate(calc(var(--giro) * -1));
+/* Inicio: la marca, "Jugar ya" en grande y las salas abiertas. Kawaii con su costado oscuro. */
+.inicio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 48px; align-items: start; padding-top: 24px; }
+.inicio-hero { display: grid; gap: 14px; justify-items: start; position: sticky; top: 24px; }
+.inicio-marca {
+  position: relative; font: 400 clamp(52px, 8vw, 92px)/.95 var(--fuente-titulo); color: var(--acento);
+  transform: rotate(-4deg); transform-origin: left bottom; margin: 0 0 6px;
+  text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 7px 8px 0 var(--rosa-dia-7);
+  animation: susto 12s steps(1) infinite;
 }
-.room-card:nth-child(2n) { transform: rotate(var(--giro)) translateY(4px); }
-.room-card:nth-child(3n) { transform: rotate(calc(var(--giro) * .4)); }
-.animal-emoji { font-size: 32px; width: 54px; height: 54px; display: grid; place-items: center; background: var(--acento-fondo); border-radius: 50%; flex: none; }
-.room-info { flex: 1; min-width: 0; }
-.room-slug { font: 700 17px var(--fuente-titulo); overflow-wrap: anywhere; }
-.room-meta { color: var(--texto-suave); font-size: 13px; }
-.room-right { display: grid; justify-items: end; gap: 8px; }
-.room-players { font: 700 14px var(--fuente-titulo); color: var(--texto-suave); }
-.btn-join { padding: 8px 16px; font-size: 14px; }
-.empty-state { grid-column: 1 / -1; padding: 40px; text-align: center; border: var(--borde-ancho) dashed var(--borde); border-radius: var(--radio); }
+.inicio-marca::after { content: "♥"; position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
+/* El costado oscuro: la regla en negro y carmesí, como una etiqueta que no debería estar ahí. */
+.inicio-regla {
+  max-width: 30ch; text-wrap: balance; padding: 6px 14px; background: var(--noche-1); color: var(--noche-12);
+  font: 600 19px/1.2 var(--fuente-gotica); letter-spacing: .01em; transform: rotate(1.2deg);
+  box-shadow: 4px 4px 0 var(--carmesi);
+}
+.inicio-jugar { margin-top: 18px; }
+.btn-jugar {
+  font: 400 34px/1 var(--fuente-titulo); padding: 22px 46px; border: none; cursor: pointer;
+  background: var(--acento); color: var(--sobre-acento); border-radius: var(--radio);
+  box-shadow: 0 6px 0 var(--rosa-dia-7), 0 14px 28px color-mix(in oklch, var(--acento) 35%, transparent);
+  transform: rotate(-1.5deg); transition: transform .12s, box-shadow .12s;
+}
+.btn-jugar:hover { transform: rotate(0deg) translateY(-2px) scale(1.03); }
+.btn-jugar:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--rosa-dia-7); }
+.inicio-ayuda { color: var(--texto-suave); font-size: 14px; max-width: 36ch; }
+.inicio-crear { font-weight: 800; font-size: 15px; text-decoration: none; }
+
+.inicio-salas h2 { font-size: 24px; margin-bottom: 14px; }
+.rooms-grid { display: grid; gap: 12px; }
+.room-card {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "slug unirse" "meta unirse" "lugares unirse";
+  gap: 2px 16px; align-items: center; padding: 14px 18px; text-decoration: none; color: var(--texto);
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio);
+  box-shadow: var(--sombra); transition: transform .12s, border-color .12s;
+}
+.room-card:nth-child(2n) { transform: rotate(calc(var(--giro) * .6)); }
+.room-card:nth-child(3n) { transform: rotate(calc(var(--giro) * -.6)); }
+.room-card:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-.5deg); }
+.room-slug { grid-area: slug; font: 400 18px var(--fuente-titulo); overflow-wrap: anywhere; }
+.room-meta { grid-area: meta; color: var(--texto-suave); font-size: 13px; }
+.room-lugares { grid-area: lugares; display: flex; gap: 5px; margin-top: 6px; }
+.room-lugares i { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed var(--borde); }
+.room-lugares i.ocupado { border: 2px solid var(--superficie); background: var(--c); box-shadow: 0 0 0 1.5px var(--c); }
+.room-unirse {
+  grid-area: unirse; font: 400 16px var(--fuente-titulo); padding: 9px 16px; border-radius: var(--radio-chico);
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde);
+}
+.empty-state { padding: 32px; text-align: center; border: var(--borde-ancho) dashed var(--borde); border-radius: var(--radio); }
+
+@media (max-width: 860px) {
+  .inicio { grid-template-columns: 1fr; gap: 32px; }
+  .inicio-hero { position: static; justify-items: center; text-align: center; }
+  .btn-jugar { font-size: 28px; padding: 18px 36px; }
+}

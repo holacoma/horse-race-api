@@ -67,6 +67,24 @@ class RacesController < WebController
     @lane_index     = @results.sort_by(&:created_at).each_with_index.to_h
   end
 
+  # Jugar ya: te suma a la sala abierta más reciente con lugar, o abre una, y te pone un caballo en la largada
+  # (uno de tus favoritos si hay alguno libre). Desde la sala se pueden sumar más.
+  # Si ya estás en una sala que no terminó, volvés a esa: un caballo por jugador.
+  def jugar
+    mine = Race.where(status: %i[pending running]).joins(:participants).where(participants: { user_id: current_user.id })
+               .order(created_at: :desc).first
+    return redirect_to race_path(mine) if mine
+
+    race = Race.where(is_public: true, status: :pending).order(created_at: :desc).includes(:participants)
+               .detect { |r| r.participants.size < r.capacity }
+    race ||= Race.create!(capacity: 6, distance: 2000, is_public: true, creator: current_user, slug: Race.pick_room_name[:slug])
+    favorites = current_user.favorite_horse_ids
+    horse = race.available_horses.find { |h| favorites.include?(h.id) } || race.available_horses.sample
+    race.participants.create!(user: current_user, horse_id: horse.id, horse_name: horse.name).announce_joined
+    race.reload.start! if race.full? && race.pending?
+    redirect_to race_path(race)
+  end
+
   def start
     if @race.start!
       render json: { id: @race.id, status: @race.status, race_started: true }

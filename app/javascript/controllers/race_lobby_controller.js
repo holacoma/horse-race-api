@@ -3,6 +3,8 @@ import { Controller } from "@hotwired/stimulus"
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
 const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
+// El mismo dibujo que RacesHelper#dibujo_caballo (las piezas están en shared/_dibujo_defs).
+const DIBUJO = '<svg class="dibujo-caballo p-dibujo" viewBox="-8 0 112 104" aria-hidden="true"><use href="#dc-cabeza" class="dc-desfase" transform="translate(5 -3)"></use><use href="#dc-cabeza" class="dc-pelo"></use><g clip-path="url(#dc-recorte)" mask="url(#dc-mascara)"><rect x="-10" y="-10" width="120" height="120" fill="url(#dc-puntos)" opacity="0.5"></rect></g><use href="#dc-crin" class="dc-crin"></use><use href="#dc-cabeza" class="dc-linea"></use><use href="#dc-detalle"></use></svg>'
 
 // La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
 // esperan en la largada y aparecen a medida que alguien se une. Al largar, la sala se corre y empieza el preludio.
@@ -24,6 +26,7 @@ export default class extends Controller {
 
   connect() {
     this.data3d = JSON.parse(document.getElementById("race-data").textContent)
+    this.myHorseId = this.data3d.myHorseId
     this.pending = []
     this.setupWebSocket()
     this.buildScene()
@@ -98,8 +101,10 @@ export default class extends Controller {
     const div = document.createElement("div")
     div.className = "participant-row recien"
     div.dataset.horseId = p.horse_id
-    div.style.setProperty("--c", `var(--caballo-${ELEMENTOS[index % ELEMENTOS.length]}-tinta)`)
-    div.innerHTML = `<i class="p-color"></i><span class="p-username"></span><span class="p-horse"></span>`
+    const color = `var(--caballo-${ELEMENTOS[index % ELEMENTOS.length]})`
+    div.style.setProperty("--c", color)
+    div.innerHTML = `${DIBUJO}<span class="p-username"></span><span class="p-horse"></span>`
+    if (String(p.horse_id) === String(this.myHorseId)) this.tuCaballoTarget.style.setProperty("--c", color)
     div.querySelector(".p-username").textContent = p.username
     div.querySelector(".p-horse").textContent = p.horse_name
     if (p.profile_username) {
@@ -145,7 +150,11 @@ export default class extends Controller {
       .then(data => {
         if (!data.ok) throw new Error(data.error || "No se pudo elegir ese caballo")
         this.horsePickerTarget.remove()
+        this.myHorseId = data.participant.horse_id
         this.tuCaballoNombreTarget.textContent = data.participant.horse_name
+        // Si el aviso de llegada ya pintó su fila, su color es el de tu caballo.
+        const row = this.participantsListTarget.querySelector(`[data-horse-id="${this.myHorseId}"]`)
+        if (row) this.tuCaballoTarget.style.setProperty("--c", row.style.getPropertyValue("--c"))
         this.tuCaballoTarget.hidden = false
         this.whenReady(() => this.race.setMine(data.participant.horse_id))
       })

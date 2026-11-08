@@ -175,4 +175,38 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert response.parsed_body["error"].present?
   end
+
+  test "POST /jugar joins the newest open room with a free seat" do
+    other = User.create!(username: "Rival")
+    Race.create!(is_public: true, status: :pending, capacity: 4, creator: other, slug: "vieja")
+    newest = Race.create!(is_public: true, status: :pending, capacity: 4, creator: other, slug: "nueva")
+
+    assert_no_difference "Race.count" do
+      post jugar_path
+    end
+    assert_redirected_to race_path(newest)
+    assert_equal [ "TestRider" ], newest.participants.map { |p| p.user.username }
+  end
+
+  test "POST /jugar opens a room when none has a free seat" do
+    full = Race.create!(is_public: true, status: :pending, capacity: 2, slug: "llena")
+    full.participants.create!(user: User.create!(username: "Rival"), horse_id: 1, horse_name: "Secretariat")
+    full.participants.create!(user: User.create!(username: "Otro"), horse_id: 2, horse_name: "Man o' War")
+
+    assert_difference "Race.count", 1 do
+      post jugar_path
+    end
+    race = Race.order(:created_at).last
+    assert_redirected_to race_path(race)
+    assert_equal 1, race.participants.count
+  end
+
+  test "POST /jugar takes you back to the room you are already in" do
+    post jugar_path
+    race = Race.order(:created_at).last
+    assert_no_difference [ "Race.count", "Participant.count" ] do
+      post jugar_path
+    end
+    assert_redirected_to race_path(race)
+  end
 end

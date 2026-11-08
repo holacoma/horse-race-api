@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "races#index"
+  post "/jugar", to: "races#jugar", as: :jugar
 
   get    "/login",                   to: "sessions#new",           as: :login
   get    "/auth/:provider/callback", to: "sessions#oauth_callback"

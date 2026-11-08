@@ -10,4 +10,12 @@ class Participant < ApplicationRecord
   def display_name
     user&.username || name
   end
+
+  # Avisa a la sala que alguien se sumó: la lista lo agrega y su caballo aparece en la largada 3D.
+  def announce_joined
+    ActionCable.server.broadcast("race_#{race_id}", {
+      type: "player_joined",
+      participant: { username: display_name, horse_name: horse_name, horse_id: horse_id, profile_username: user&.username }
+    })
+  end
 end

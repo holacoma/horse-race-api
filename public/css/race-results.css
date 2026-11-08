@@ -5,7 +5,7 @@
   background: var(--acento-fondo); border: var(--borde-ancho) solid var(--acento-borde);
   border-radius: var(--radio); box-shadow: var(--sombra); transform: rotate(-1.2deg);
 }
-.results-hero img { width: 120px; image-rendering: pixelated; flex: none; }
+.results-hero .dibujo-caballo { width: 120px; flex: none; transform: rotate(-5deg); }
 .results-hero h1 { font-size: 30px; color: var(--acento-texto); }
 .results-winner-horse { font-weight: 700; color: var(--texto-suave); }
 .results-my-position { margin-top: 6px; font-weight: 800; }
@@ -18,7 +18,7 @@
 .results-row:nth-child(2n) { transform: rotate(calc(var(--giro) * .5)); }
 .results-row.is-me { background: var(--acento-fondo); border-color: var(--acento-borde); }
 .results-position { font: 700 20px var(--fuente-titulo); text-align: center; }
-.results-row img { width: 52px; image-rendering: pixelated; }
+.results-row .dibujo-caballo { width: 44px; margin: -6px 0 -4px; }
 .results-horse { font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
 .results-player { color: var(--texto-suave); font-size: 14px; }
 @media (max-width: 520px) {
