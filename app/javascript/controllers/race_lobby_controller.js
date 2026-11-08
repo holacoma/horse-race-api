@@ -3,6 +3,9 @@ import { sonar, sonarCuandoSePueda, GOLPE_TIEMPO } from "sonidos"
 
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
+// Baja imágenes y espera a que estén listas para pintar (un error no traba: se sigue igual).
+const precargar = urls => Promise.all(urls.map(src => { const img = new Image(); img.src = src; return img.decode().catch(() => {}) }))
+
 const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
 
 // La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
@@ -32,6 +35,8 @@ export default class extends Controller {
   }
 
   disconnect() {
+    clearInterval(this.vigia)
+    this.yendoAResultados = true // al irse de la página no se reintenta
     if (this.socket) this.socket.close()
     this.race?.stop()
   }
@@ -40,7 +45,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=5"),
+      import("/prototipos/carrera3d/escena.js?v=6"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -64,6 +69,11 @@ export default class extends Controller {
     // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
     if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
     this.race.run()
+    // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
+    await Promise.all([
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
+      document.fonts.ready
+    ])
     this.cargandoTarget.hidden = true
   }
 
@@ -73,13 +83,35 @@ export default class extends Controller {
   }
 
   // ── Canal de la carrera ────────────────────────────────────────────────────────────
+  // Si se corta (o se cuelga: el servidor manda un ping cada 3 s), avisa "Reconectando…" y reintenta. Al volver,
+  // si la carrera terminó mientras tanto, pasa a resultados.
   setupWebSocket() {
     const wsUrl = (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/cable"
-    this.socket = new WebSocket(wsUrl)
+    const socket = new WebSocket(wsUrl)
+    this.socket = socket
     const identifier = JSON.stringify({ channel: "RaceChannel", race_id: this.raceIdValue })
+    this.ultimoMensaje = Date.now()
+    this.vigia ||= setInterval(() => {
+      if (this.socket?.readyState === WebSocket.OPEN && Date.now() - this.ultimoMensaje > 8000) this.socket.close()
+    }, 2000)
 
-    this.socket.onopen = () => this.socket.send(JSON.stringify({ command: "subscribe", identifier }))
-    this.socket.onmessage = event => {
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ command: "subscribe", identifier }))
+      if (this.desconectado) this.alReconectar()
+      this.desconectado = false
+      this.reintentos = 0
+      this.whenReady(() => this.race.setConectado(true))
+    }
+    socket.onclose = () => {
+      if (socket !== this.socket || this.yendoAResultados) return
+      this.desconectado = true
+      this.whenReady(() => this.race.setConectado(false))
+      const espera = Math.min(5000, 1000 * 2 ** (this.reintentos || 0))
+      this.reintentos = (this.reintentos || 0) + 1
+      setTimeout(() => this.setupWebSocket(), espera)
+    }
+    socket.onmessage = event => {
+      this.ultimoMensaje = Date.now()
       const msg = JSON.parse(event.data)
       if (msg.type === "welcome" || msg.type === "ping" || msg.type === "confirm_subscription") return
       const data = msg.message
@@ -92,10 +124,18 @@ export default class extends Controller {
       } else if (data.type === "progress") {
         this.whenReady(() => this.race.tick(data.participants))
       } else if (data.type === "finished") {
+        // La portada animada del ganador se baja ya, para el festejo.
+        precargar([`/images/retratos/victoria-${ELEMENTOS[(Number(data.winner?.id) - 1) % ELEMENTOS.length]}-anim.webp`])
         this.whenReady(() => this.race.finish(data.winner))
       }
     }
-    this.socket.onerror = () => console.error("WebSocket error")
+    socket.onerror = () => {}
+  }
+
+  async alReconectar() {
+    // Resultados redirige a la sala si la carrera no terminó: si responde, terminó y nos perdimos el final.
+    const r = await fetch(this.data3d.resultsUrl, { redirect: "manual" }).catch(() => null)
+    if (r && r.ok) this.goToResults()
   }
 
   addParticipant(p) {
@@ -231,6 +271,7 @@ export default class extends Controller {
   }
 
   goToResults() {
+    this.yendoAResultados = true
     const url = this.data3d.resultsUrl
     // La transición entre páginas (view transitions) la hace un fundido, sin corte.
     location.assign(url)

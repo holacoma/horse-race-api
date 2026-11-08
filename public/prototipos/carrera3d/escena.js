@@ -294,7 +294,12 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       if (list[i].t <= t) {
         const a = list[i], b = list[i + 1]
         // Sin datos nuevos sigue a su velocidad: al terminar la carrera, siempre; si solo se demora un mensaje, poco.
-        if (!b) return a.x + (h.lastV || 0) * (state.winner ? t - a.t : Math.min(t - a.t, 0.5))
+        // Reconectando: siguen corriendo a su velocidad hasta 8 s, sin cruzar la meta (eso lo dice el servidor).
+        if (!b) {
+          if (state.winner) return a.x + (h.lastV || 0) * (t - a.t)
+          const x = a.x + (h.lastV || 0) * Math.min(t - a.t, state.reconectando ? 8 : 0.5)
+          return state.reconectando ? Math.min(x, FINISH - 4) : x
+        }
         return a.x + (b.x - a.x) * ((t - a.t) / (b.t - a.t))
       }
     }
@@ -1365,6 +1370,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const rank = make("hud hud-rank")
     const count = make("hud hud-count")
     const win = make("hud hud-win")
+    const reco = make("hud hud-reco")
+    reco.textContent = "Reconectando…"
     const fps = showFps ? make("hud hud-fps") : null
     let nextList = 0
     let frames = 0
@@ -1486,6 +1493,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
           leadInfo.textContent = announced ? `apuesta de ${h.username}` : (sorted[1] ? `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m` : `a ${remaining} m`)
         }
       },
+      reconectando(si) { reco.classList.toggle("show", si) },
       showWin(h) {
         // La misma portada de victoria que en resultados: la del elemento del ganador, con el texto encima.
         win.textContent = ""
@@ -1536,6 +1544,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
   return {
     step, run, tick, finish, startIn, join, setMine,
+    setConectado(si) { state.reconectando = !si; hud.reconectando(!si) },
     stop() { if (frame) cancelAnimationFrame(frame) },
     // Para probar y grabar.
     debugCamera(pos, look, fov = 35) {
