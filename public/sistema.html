@@ -40,14 +40,14 @@
   .opciones-marca { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
   .opciones-marca > div { display: grid; gap: 8px; justify-items: center; padding: 18px 12px 12px; background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); }
   .opciones-marca span { font-size: 30px; line-height: 1.1; white-space: nowrap; }
-  [data-fase="fuera"] .opciones-marca span { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
+  [data-fase="fuera"] .opciones-marca span { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--arena-7); }
   [data-fase="carrera"] .opciones-marca span { color: var(--noche-12); text-shadow: var(--ecos); }
   .opciones-marca small { color: var(--texto-apagado); font-size: 12px; }
   .letras { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .letras .muestra { font-size: 34px; line-height: 1.1; margin: 6px 0 10px; }
   .tu-caballo-demo { display: grid; grid-template-columns: 96px 1fr; column-gap: 12px; align-items: center; padding: 12px 16px 12px 10px; border-radius: var(--radio); background: var(--noche-1); color: var(--noche-12); box-shadow: 6px 6px 0 var(--carmesi); transform: rotate(-1deg); }
   .tu-caballo-demo .dibujo-caballo { grid-row: 1 / 3; transform: rotate(-4deg) translateY(-6px); }
-  .tu-caballo-demo .cartel { justify-self: start; align-self: end; padding: 2px 12px; border-radius: 99px; transform: rotate(-3deg); background: var(--rosa-dia-9); color: #fff; font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; }
+  .tu-caballo-demo .cartel { justify-self: start; align-self: end; padding: 2px 12px; border-radius: 99px; transform: rotate(-3deg); background: var(--carmesi); color: #fff; font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; }
   .tu-caballo-demo b { align-self: start; margin-top: 6px; font: 400 30px/1 var(--fuente-gotica); text-shadow: 2px 2px 0 var(--carmesi); }
 
   /* Pestañas sobrias, iguales en las dos fases: texto y una raya debajo de la activa. */
@@ -270,25 +270,25 @@
   @keyframes flash { 0%, 35% { opacity: 0; } 36% { opacity: .9; } 46%, 100% { opacity: 0; } }
 
   /* De día: papel gastado, piezas pegadas a mano, la marca como sello. */
-  /* De día, kawaii al máximo, como una novela visual: la marca rosa con contorno blanco, corazón y brillito que laten,
-     títulos de tarjeta como la etiqueta de nombre de un diálogo, lunares y corazones que suben.
-     Y cada tanto algo raro asoma: un susto de un instante, como en Doki Doki. */
+  /* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco, corazón carmesí y brillito que laten,
+     títulos de tarjeta como etiquetas de tinta, lunares crema apenas visibles.
+     Y cada tanto algo raro asoma: un susto de un instante. */
   [data-fase="fuera"] .marca {
     position: relative; display: inline-block; font-size: 60px; letter-spacing: .02em; color: var(--acento);
     transform: rotate(-3deg); transform-origin: left bottom;
-    text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 6px 7px 0 var(--rosa-dia-7);
+    text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 6px 7px 0 var(--arena-7);
     animation: susto 11s steps(1) infinite;
   }
   [data-fase="fuera"] .marca::before, [data-fase="fuera"] .marca::after { position: absolute; font-size: .42em; color: var(--acento); animation: latido 1.6s ease-in-out infinite; }
-  [data-fase="fuera"] .marca::before { content: "♥"; right: -.55em; top: -.25em; }
+  [data-fase="fuera"] .marca::before { content: "♥"; right: -.55em; top: -.25em; color: var(--carmesi); }
   [data-fase="fuera"] .marca::after { content: "✦"; left: -.6em; bottom: .1em; color: var(--ambar-dia-9); animation-delay: .8s; height: auto; margin: 0; background: none; display: block; }
-  [data-fase="fuera"] .tarjeta { margin-top: 18px; background-image: linear-gradient(color-mix(in oklch, var(--superficie) 70%, transparent), color-mix(in oklch, var(--superficie) 70%, transparent)), var(--textura); border-color: var(--rosa-dia-6); }
+  [data-fase="fuera"] .tarjeta { margin-top: 18px; background-image: linear-gradient(color-mix(in oklch, var(--superficie) 70%, transparent), color-mix(in oklch, var(--superficie) 70%, transparent)), var(--textura); border-color: var(--arena-7); }
   [data-fase="fuera"] .tarjeta > b {
     display: inline-block; margin: -32px 0 12px -8px; padding: 5px 16px;
-    background: var(--acento); color: #fff; border-radius: 14px 14px 14px 4px; box-shadow: 0 3px 0 var(--rosa-dia-7);
+    background: var(--acento); color: #fff; border-radius: 14px 14px 14px 4px; box-shadow: 0 3px 0 var(--arena-7);
     font: 400 13px var(--fuente-titulo); letter-spacing: .02em; text-transform: none;
   }
-  [data-fase="fuera"] h2 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
+  [data-fase="fuera"] h2 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--arena-7); }
   [data-fase="fuera"] h3::before { content: "♥ "; color: var(--acento); }
   [data-fase="fuera"] .boton:hover { transform: translateY(-2px) rotate(-1.5deg); }
   .corazones { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -327,7 +327,6 @@
   </defs>
 </svg>
 <div class="corte" id="corte" aria-hidden="true"></div>
-<div class="corazones" data-solo="fuera" aria-hidden="true"><i style="left:6%; font-size:22px; animation-duration:9s; animation-delay:-0.0s">♥</i><i style="left:14%; font-size:16px; animation-duration:14s; animation-delay:-1.7s">♥</i><i style="left:23%; font-size:26px; animation-duration:11s; animation-delay:-3.4s">♥</i><i style="left:31%; font-size:14px; animation-duration:17s; animation-delay:-5.1s">♥</i><i style="left:42%; font-size:20px; animation-duration:8s; animation-delay:-6.8s">♥</i><i style="left:51%; font-size:30px; animation-duration:13s; animation-delay:-8.5s">♥</i><i style="left:60%; font-size:18px; animation-duration:16s; animation-delay:-10.2s">♥</i><i style="left:68%; font-size:24px; animation-duration:10s; animation-delay:-11.9s">♥</i><i style="left:77%; font-size:15px; animation-duration:19s; animation-delay:-13.6s">♥</i><i style="left:85%; font-size:28px; animation-duration:12s; animation-delay:-15.3s">♥</i><i style="left:93%; font-size:19px; animation-duration:15s; animation-delay:-17.0s">♥</i><i style="left:47%; font-size:12px; animation-duration:21s; animation-delay:-18.7s">♥</i></div>
 <div class="page">
   <header class="cabecera">
     <div>
@@ -340,7 +339,7 @@
     <a class="pestana" href="#fuera" data-tab="fuera">Fuera de la carrera</a>
     <a class="pestana" href="#carrera" data-tab="carrera">Durante la carrera</a>
   </nav>
-  <p class="bajada" data-solo="fuera">Lobby, apuestas y resultados. De día y kawaii, como una novela visual: rosa, redondeada, con lunares y corazones. Y un costado oscuro: lo tuyo y la regla van en negro, carmesí y letra gótica.</p>
+  <p class="bajada" data-solo="fuera">Lobby, apuestas y resultados. De día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Las acciones van en tinta; el carmesí, solo en detalles chicos. Y un costado oscuro: lo tuyo y la regla van en negro, carmesí y letra gótica.</p>
   <p class="bajada" data-solo="carrera">La carrera. De noche: gótica y sucia, como Devil May Cry. Rojo y negro, tinta y no luz: sombras duras, trama de cómic, letra gótica en los títulos, recortes fuertes y nada circular.</p>
 
   <section id="colores">

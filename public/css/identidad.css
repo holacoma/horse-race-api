@@ -51,7 +51,7 @@
   --halo-fuerte: 0 0 1px currentColor, 0 0 4px currentColor, 0 0 14px color-mix(in oklch, currentColor 80%, transparent), 0 0 40px color-mix(in oklch, currentColor 45%, transparent);
 }
 
-/* Fuera de la carrera: de día y kawaii, como una novela visual (Doki Doki): rosa, redondeada, con lunares y corazones, y un costado oscuro (lo tuyo y la regla van en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra. */
+/* Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos y el costado oscuro (lo tuyo y la regla, en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra. */
 :root, [data-fase="fuera"] {
   color-scheme: light;
   --fondo: var(--arena-1);
@@ -66,12 +66,12 @@
   --texto: var(--arena-12);
   --texto-suave: var(--arena-11);
   --texto-apagado: var(--arena-10);
-  --acento: var(--rosa-dia-9);
-  --acento-encima: var(--rosa-dia-10);
-  --acento-texto: var(--rosa-dia-11);
-  --acento-fondo: var(--rosa-dia-3);
-  --acento-borde: var(--rosa-dia-7);
-  --sobre-acento: var(--arena-12);
+  --acento: var(--arena-12);
+  --acento-encima: var(--arena-11);
+  --acento-texto: var(--arena-12);
+  --acento-fondo: var(--arena-3);
+  --acento-borde: var(--arena-8);
+  --sobre-acento: var(--arena-1);
   --peligro: var(--rojo-dia-9);
   --peligro-texto: var(--rojo-dia-11);
   --peligro-fondo: var(--rojo-dia-3);
@@ -92,9 +92,9 @@
   --borde-marcado: 2px;
   --recorte: none;
   --recorte-etiqueta: none;
-  --sombra: 0 3px 0 var(--rosa-dia-6), 0 8px 18px color-mix(in oklch, var(--rosa-dia-9) 16%, transparent);
-  --sombra-presionada: 0 1px 0 var(--rosa-dia-6);
-  --patron: radial-gradient(circle, color-mix(in oklch, var(--rosa-dia-7) 75%, transparent) 3.2px, transparent 3.8px) 0 0 / 30px 30px;
+  --sombra: 0 3px 0 var(--arena-7), 0 8px 18px color-mix(in oklch, var(--arena-12) 10%, transparent);
+  --sombra-presionada: 0 1px 0 var(--arena-7);
+  --patron: radial-gradient(circle, color-mix(in oklch, var(--arena-7) 45%, transparent) 2.6px, transparent 3.2px) 0 0 / 30px 30px;
   --fuente-titulo: "Mochiy Pop One", "Fredoka", system-ui, sans-serif;
   --fuente-texto: "Nunito", system-ui, sans-serif;
   --fuente-gotica: "New Rocker", Georgia, serif;

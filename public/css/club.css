@@ -45,16 +45,16 @@ h3 { font-size: 17px; margin-bottom: 6px; }
 .app-user a { text-decoration: none; }
 .app-main { flex: 1; padding: 32px; max-width: 1100px; width: 100%; margin: 0 auto; }
 
-/* De día, kawaii: la marca rosa con contorno blanco, un corazón que late y, cada tanto, el susto. */
+/* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco, un corazón carmesí que late y, cada tanto, el susto. */
 .app-top .marca { display: inline-block; font: 400 26px var(--fuente-titulo); text-decoration: none; }
 [data-fase="fuera"] .app-top .marca {
   position: relative; color: var(--acento);
-  text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 5px 0 var(--rosa-dia-7);
+  text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 5px 0 var(--arena-7);
   animation: susto 13s steps(1) infinite;
 }
-[data-fase="fuera"] .app-top .marca::after { content: "♥"; position: absolute; right: -.7em; top: -.3em; font-size: .5em; animation: latido 1.6s ease-in-out infinite; }
+[data-fase="fuera"] .app-top .marca::after { content: "♥"; color: var(--carmesi); position: absolute; right: -.7em; top: -.3em; font-size: .5em; animation: latido 1.6s ease-in-out infinite; }
 [data-fase="fuera"] .section-title::before { content: "♥ "; color: var(--acento); }
-[data-fase="fuera"] h1 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
+[data-fase="fuera"] h1 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--arena-7); }
 
 /* De noche, la marca va en blanco con ecos secos, inclinada como un título de Persona. */
 [data-fase="carrera"] .app-top .marca { font: 400 32px var(--fuente-gotica); color: var(--noche-12); text-shadow: var(--ecos); transform: rotate(-4deg); }

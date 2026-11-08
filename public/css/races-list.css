@@ -3,11 +3,11 @@
 .inicio-hero { display: grid; gap: 14px; justify-items: start; position: sticky; top: 24px; }
 .inicio-marca {
   position: relative; font: 400 clamp(52px, 8vw, 92px)/.95 var(--fuente-titulo); color: var(--acento);
-  transform: rotate(-4deg); transform-origin: left bottom; margin: 0 0 6px;
-  text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 7px 8px 0 var(--rosa-dia-7);
+  transform: rotate(-4deg); transform-origin: left bottom; margin: 0 0 6px; width: min-content;
+  text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 7px 8px 0 var(--arena-7);
   animation: susto 12s steps(1) infinite;
 }
-.inicio-marca::after { content: "♥"; position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
+.inicio-marca::after { content: "♥"; color: var(--carmesi); position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
 /* El costado oscuro: la regla en negro y carmesí, como una etiqueta que no debería estar ahí. */
 .inicio-regla {
   max-width: 30ch; text-wrap: balance; padding: 6px 14px; background: var(--noche-1); color: var(--noche-12);
@@ -18,11 +18,11 @@
 .btn-jugar {
   font: 400 34px/1 var(--fuente-titulo); padding: 22px 46px; border: none; cursor: pointer;
   background: var(--acento); color: var(--sobre-acento); border-radius: var(--radio);
-  box-shadow: 0 6px 0 var(--rosa-dia-7), 0 14px 28px color-mix(in oklch, var(--acento) 35%, transparent);
+  box-shadow: 0 6px 0 var(--arena-7), 0 14px 28px color-mix(in oklch, var(--acento) 35%, transparent);
   transform: rotate(-1.5deg); transition: transform .12s, box-shadow .12s;
 }
 .btn-jugar:hover { transform: rotate(0deg) translateY(-2px) scale(1.03); }
-.btn-jugar:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--rosa-dia-7); }
+.btn-jugar:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--arena-7); }
 .inicio-ayuda { color: var(--texto-suave); font-size: 14px; max-width: 36ch; }
 .inicio-crear { font-weight: 800; font-size: 15px; text-decoration: none; }
 

@@ -143,15 +143,18 @@ const semantic = (n, accent, ink, family, brand = "fuego") => ({
 const PHASES = {
   fuera: {
     selector: ':root, [data-fase="fuera"]',
-    note: "Fuera de la carrera: de día y kawaii, como una novela visual (Doki Doki): rosa, redondeada, con lunares y corazones, y un costado oscuro (lo tuyo y la regla van en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra.",
-    colors: semantic("arena", n => `${n}-dia`, "var(--arena-12)", "dia", "rosa"),
+    note: "Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos y el costado oscuro (lo tuyo y la regla, en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra.",
+    // Las acciones, en tinta sobre crema, como un cartel de madera de Animal Crossing.
+    colors: { ...semantic("arena", n => `${n}-dia`, "var(--arena-12)", "dia", "rosa"),
+      "acento": "var(--arena-12)", "acento-encima": "var(--arena-11)", "sobre-acento": "var(--arena-1)",
+      "acento-texto": "var(--arena-12)", "acento-fondo": "var(--arena-3)", "acento-borde": "var(--arena-8)" },
     rest: {
       "radio": "18px", "radio-chico": "10px", "corte": "0px", "borde-ancho": "2px",
       "borde-marcado": "2px", "recorte": "none", "recorte-etiqueta": "none",
-      "sombra": "0 3px 0 var(--rosa-dia-6), 0 8px 18px color-mix(in oklch, var(--rosa-dia-9) 16%, transparent)",
-      "sombra-presionada": "0 1px 0 var(--rosa-dia-6)",
-      // Lunares rosas de fondo, como el menú de una novela visual.
-      "patron": "radial-gradient(circle, color-mix(in oklch, var(--rosa-dia-7) 75%, transparent) 3.2px, transparent 3.8px) 0 0 / 30px 30px",
+      "sombra": "0 3px 0 var(--arena-7), 0 8px 18px color-mix(in oklch, var(--arena-12) 10%, transparent)",
+      "sombra-presionada": "0 1px 0 var(--arena-7)",
+      // Lunares crema, apenas: papel de cuaderno, no menú rosa.
+      "patron": "radial-gradient(circle, color-mix(in oklch, var(--arena-7) 45%, transparent) 2.6px, transparent 3.2px) 0 0 / 30px 30px",
       "fuente-titulo": "\"Mochiy Pop One\", \"Fredoka\", system-ui, sans-serif",
       "fuente-texto": "\"Nunito\", system-ui, sans-serif",
       "fuente-gotica": "\"New Rocker\", Georgia, serif",
