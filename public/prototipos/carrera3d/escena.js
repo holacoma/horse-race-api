@@ -216,7 +216,6 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   const confetti = buildConfetti()
   const post = buildPost()
   const hud = buildHud()
-  participants.forEach(join)
 
   const state = {
     clock: 0, rt: 0, timeScale: 1, intensity: 0, impact: 0, portal: 0,
@@ -225,6 +224,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     leaderX: 0, leaderOffset: 0, lastLeader: null, raceStart: null, celebrating: false, doneFired: false, shot: null, shotChanged: 0,
     order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null
   }
+  // Los que ya estaban en la sala entran después de armar el estado (join mira si la carrera largó).
+  participants.forEach(join)
 
   // ── Datos ─────────────────────────────────────────────────────────────────────────
   // Si la página abre tarde, el preludio ya va avanzado y se entra directo al inframundo.
