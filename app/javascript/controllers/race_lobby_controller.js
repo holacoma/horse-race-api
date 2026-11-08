@@ -42,7 +42,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=3"),
+      import("/prototipos/carrera3d/escena.js?v=4"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -54,7 +54,7 @@ export default class extends Controller {
       horseModel,
       myId: data.myHorseId,
       showFps: false,
-      onCount: text => sonar(text === "¡YA!" ? "ya" : "tic"),
+      onCount: text => (text === "¡YA!" ? sonar("ya") : sonar("cuenta", Number(text))),
       onCross: () => sonar("meta"),
       onCelebrate: () => { this.resultsTarget.hidden = false; sonar("ganador") },
       onDone: () => this.goToResults()

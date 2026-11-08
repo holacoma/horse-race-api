@@ -1,16 +1,20 @@
-// Sonidos de Club Race, sintetizados con Web Audio (sin archivos).
-// Uno grande: "tiempo", el mundo que se detiene al largar. El resto, cortos y simples, para dejarle lugar.
-//   click   botones
-//   tic     carretes de la tragamonedas y la cuenta 3, 2, 1
-//   ya      la largada, después de la cuenta
-//   premio  la tragamonedas da un nombre
-//   moneda  llega un caballo a la sala
-//   meta    el ganador cruza la meta
-//   ganador el festejo
+// Sonidos y música de Club Race, sintetizados con Web Audio.
+// Fuera de la carrera suena lofi, tranquilo. La carrera es metal: al largar el tiempo se detiene (si hay un archivo
+// public/sonidos/the-world.*, suena ese; si no, uno sintetizado), en la largada entra un riff de guitarra que sigue al
+// galope mientras corren, la cuenta y la meta son golpes fuertes y el ganador tiene una fanfarria de guitarra.
+// La UI (clic, carretes, monedas) queda chica, para dejarle lugar a lo demás.
 
 let ctx = null
 let master = null
+let sfx = null
 let reverb = null
+let distorsion = null
+let ruido = null
+let theWorld = null
+const musicas = {}
+
+// Momento en que pega el golpe de "tiempo", para sincronizar lo visual.
+export const GOLPE_TIEMPO = 0.6
 
 // El navegador no deja sonar hasta que la persona toca algo: el contexto se crea o se reanuda con el primer gesto.
 function audio() {
@@ -18,14 +22,26 @@ function audio() {
     const Ctx = window.AudioContext || window.webkitAudioContext
     if (!Ctx) return null
     ctx = new Ctx()
+    // Fuerte pero sin saturar: todo pasa por un compresor.
+    const compresor = ctx.createDynamicsCompressor()
+    compresor.threshold.value = -16
+    compresor.knee.value = 8
+    compresor.ratio.value = 5
+    compresor.attack.value = 0.004
+    compresor.release.value = 0.2
     master = ctx.createGain()
-    master.gain.value = 0.8
-    master.connect(ctx.destination)
+    master.gain.value = 1.1
+    master.connect(compresor).connect(ctx.destination)
+    sfx = ctx.createGain()
+    sfx.connect(master)
     reverb = ctx.createConvolver()
-    reverb.buffer = impulse(2.6, 2.2)
+    reverb.buffer = impulso(2.6, 2.2)
     const wet = ctx.createGain()
-    wet.gain.value = 0.55
+    wet.gain.value = 0.5
     reverb.connect(wet).connect(master)
+    distorsion = new Float32Array(2048).map((_, i) => Math.tanh(((i / 2047) * 2 - 1) * 10))
+    ruido = buffer(2, () => Math.random() * 2 - 1)
+    cargarTheWorld()
   }
   if (ctx.state === "suspended") ctx.resume().catch(() => {})
   return ctx
@@ -34,129 +50,327 @@ for (const type of ["pointerdown", "keydown", "touchstart"]) {
   addEventListener(type, audio, { capture: true, passive: true })
 }
 
-function impulse(seconds, decay) {
+const ahora = () => ctx.currentTime
+
+function buffer(seconds, sample, channels = 1) {
   const length = Math.floor(ctx.sampleRate * seconds)
-  const buffer = ctx.createBuffer(2, length, ctx.sampleRate)
-  for (let c = 0; c < 2; c++) {
-    const data = buffer.getChannelData(c)
-    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay)
+  const b = ctx.createBuffer(channels, length, ctx.sampleRate)
+  for (let c = 0; c < channels; c++) {
+    const data = b.getChannelData(c)
+    for (let i = 0; i < length; i++) data[i] = sample(i / length)
   }
-  return buffer
+  return b
+}
+const impulso = (seconds, decay) => buffer(seconds, x => (Math.random() * 2 - 1) * Math.pow(1 - x, decay), 2)
+
+// El archivo de The World, si está (el layout lo anuncia con <meta name="sonido-the-world">).
+function cargarTheWorld() {
+  const url = document.querySelector('meta[name="sonido-the-world"]')?.content
+  if (!url) return
+  fetch(url).then(r => r.arrayBuffer()).then(data => ctx.decodeAudioData(data)).then(b => { theWorld = b }).catch(() => {})
 }
 
-function noiseBuffer(seconds) {
-  const length = Math.floor(ctx.sampleRate * seconds)
-  const buffer = ctx.createBuffer(1, length, ctx.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1
-  return buffer
-}
-
-// Un tono con envolvente: sube en `attack` y cae exponencial hasta `start + dur`.
-function tone({ type = "sine", freq, to = null, at = 0, dur, gain = 0.2, attack = 0.005, wet = 0, out = master }) {
-  const t = ctx.currentTime + at
+// ── Piezas ──────────────────────────────────────────────────────────────────────────
+function tono({ t = ahora(), type = "sine", freq, to = null, dur, gain = 0.2, attack = 0.005, wet = 0, out = sfx, detune = 0 }) {
   const osc = ctx.createOscillator()
   const env = ctx.createGain()
   osc.type = type
+  osc.detune.value = detune
   osc.frequency.setValueAtTime(freq, t)
   if (to) osc.frequency.exponentialRampToValueAtTime(to, t + dur)
   env.gain.setValueAtTime(0.0001, t)
   env.gain.exponentialRampToValueAtTime(gain, t + attack)
   env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
   osc.connect(env).connect(out)
-  if (wet) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
+  if (wet && out === sfx) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
   osc.start(t)
   osc.stop(t + dur + 0.05)
 }
 
-// Ruido filtrado con envolvente; `sweep` mueve la frecuencia del filtro de `freq` a `sweep`.
-function noise({ at = 0, dur, gain = 0.2, filter = "bandpass", freq = 2000, sweep = null, q = 1, attack = 0.003, rise = false, wet = 0 }) {
-  const t = ctx.currentTime + at
+function soplo({ t = ahora(), dur, gain = 0.2, filter = "bandpass", freq = 2000, sweep = null, q = 1, attack = 0.003, rise = false, wet = 0, out = sfx }) {
   const src = ctx.createBufferSource()
-  src.buffer = noiseBuffer(dur + 0.1)
+  src.buffer = ruido
+  src.loop = true
   const f = ctx.createBiquadFilter()
   f.type = filter
   f.Q.value = q
   f.frequency.setValueAtTime(freq, t)
   if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t + dur)
   const env = ctx.createGain()
+  env.gain.setValueAtTime(0.0001, t)
   if (rise) {
     // Al revés: crece hasta el final y se corta seco, como un platillo invertido.
-    env.gain.setValueAtTime(0.0001, t)
     env.gain.exponentialRampToValueAtTime(gain, t + dur)
     env.gain.setValueAtTime(0.0001, t + dur + 0.01)
   } else {
-    env.gain.setValueAtTime(0.0001, t)
     env.gain.exponentialRampToValueAtTime(gain, t + attack)
     env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
   }
-  src.connect(f).connect(env).connect(master)
-  if (wet) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
-  src.start(t)
-  src.stop(t + dur + 0.1)
+  src.connect(f).connect(env).connect(out)
+  if (wet && out === sfx) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
+  src.start(t, Math.random())
+  src.stop(t + dur + 0.05)
 }
 
-const tick = (at, freq, gain, wet = 0) => {
-  noise({ at, dur: 0.03, gain, freq, q: 6, wet })
-  tone({ type: "triangle", freq: freq * 0.5, at, dur: 0.05, gain: gain * 0.6, wet })
+// Batería.
+const bombo = (t, gain = 0.9, out = sfx) => {
+  tono({ t, freq: 150, to: 42, dur: 0.32, gain, attack: 0.002, out })
+  soplo({ t, dur: 0.015, gain: gain * 0.35, filter: "highpass", freq: 3000, out })
+}
+const caja = (t, gain = 0.6, out = sfx) => {
+  soplo({ t, dur: 0.2, gain, freq: 1900, q: 0.7, out, wet: 0.15 })
+  tono({ t, type: "triangle", freq: 190, to: 160, dur: 0.12, gain: gain * 0.5, out })
+}
+const platillo = (t, gain = 0.35, out = sfx) => soplo({ t, dur: 1.8, gain, filter: "highpass", freq: 5500, attack: 0.002, out, wet: 0.3 })
+const charles = (t, gain = 0.1, out = sfx) => soplo({ t, dur: 0.045, gain, filter: "highpass", freq: 8000, out })
+const tambor = (t, freq, gain = 0.9) => {
+  tono({ t, freq, to: freq * 0.5, dur: 0.7, gain, attack: 0.003, wet: 0.4 })
+  soplo({ t, dur: 0.18, gain: gain * 0.5, filter: "lowpass", freq: 900, wet: 0.3 })
 }
 
-const SONIDOS = {
-  click() { tone({ freq: 880, to: 520, dur: 0.07, gain: 0.08 }) },
-
-  tic() { tick(0, 2400, 0.12) },
-
-  ya() {
-    tone({ type: "triangle", freq: 660, to: 1320, dur: 0.18, gain: 0.16 })
-    noise({ dur: 0.25, gain: 0.08, filter: "highpass", freq: 3000 })
-  },
-
-  premio() {
-    [1047, 1319, 1568].forEach((freq, i) => tone({ type: "triangle", freq, at: i * 0.07, dur: 0.22, gain: 0.12, wet: 0.2 }))
-  },
-
-  // Un tintineo de moneda: parciales inarmónicos que caen rápido.
-  moneda() {
-    [[2350, 0.1], [3530, 0.06], [5170, 0.04]].forEach(([freq, gain]) => tone({ freq, dur: 0.35, gain, wet: 0.15 }))
-    ;[[2350 * 1.06, 0.07], [3530 * 1.06, 0.04]].forEach(([freq, gain]) => tone({ freq, at: 0.08, dur: 0.3, gain, wet: 0.15 }))
-  },
-
-  meta() {
-    tone({ freq: 90, to: 40, dur: 0.6, gain: 0.5 })
-    noise({ dur: 0.35, gain: 0.25, filter: "lowpass", freq: 1500, wet: 0.4 })
-  },
-
-  ganador() {
-    [784, 1047, 1319, 1568].forEach((freq, i) =>
-      tone({ type: "triangle", freq, at: i * 0.09, dur: i === 3 ? 0.7 : 0.18, gain: 0.13, wet: 0.3 }))
-  },
-
-  // El mundo se detiene: crece al revés, golpe grave con campana metálica, y un reloj que se frena hasta quedar quieto.
-  tiempo() {
-    const swell = 0.6
-    noise({ dur: swell, gain: 0.35, freq: 300, sweep: 7000, q: 0.7, rise: true })
-    tone({ freq: 70, to: 300, dur: swell, gain: 0.12, attack: swell * 0.9 })
-
-    tone({ freq: 75, to: 32, at: swell, dur: 1.4, gain: 0.7 })
-    noise({ at: swell, dur: 0.3, gain: 0.35, filter: "lowpass", freq: 1200, wet: 0.6 })
-    // Campana: parciales de una campana real (1, 2.76, 5.40, 8.93), con mucha reverberación.
-    ;[[1, 0.22], [2.76, 0.12], [5.4, 0.07], [8.93, 0.04]].forEach(([ratio, gain]) =>
-      tone({ freq: 196 * ratio, at: swell, dur: 2.6, gain, wet: 0.9 }))
-    // Zumbido quieto mientras el tiempo está parado.
-    tone({ freq: 55, at: swell + 0.1, dur: 3, gain: 0.08, attack: 0.4 })
-
-    // El reloj: tic, tac, cada vez más lento y más bajo.
-    ;[0.95, 1.4, 1.95, 2.65, 3.5].forEach((at, i) => tick(at, i % 2 ? 1500 : 2100, 0.16 - i * 0.025, 0.5))
+// Guitarra distorsionada: power chord (raíz, quinta y octava) con dos voces desafinadas, distorsión y caja.
+// Apagada (palm mute) es corta y oscura; abierta suena llena.
+function guitarra(t, raiz, dur, { apagada = false, gain = 0.3, out = sfx } = {}) {
+  const pre = ctx.createGain()
+  pre.gain.value = 0.5
+  const shaper = ctx.createWaveShaper()
+  shaper.curve = distorsion
+  shaper.oversample = "2x"
+  const parlante = ctx.createBiquadFilter()
+  parlante.type = "lowpass"
+  parlante.frequency.value = apagada ? 1100 : 3600
+  parlante.Q.value = 0.9
+  const cuerpo = ctx.createBiquadFilter()
+  cuerpo.type = "peaking"
+  cuerpo.frequency.value = 110
+  cuerpo.gain.value = 5
+  const env = ctx.createGain()
+  env.gain.setValueAtTime(0.0001, t)
+  env.gain.exponentialRampToValueAtTime(gain, t + 0.004)
+  env.gain.setValueAtTime(gain, t + dur * (apagada ? 0.35 : 0.75))
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+  pre.connect(shaper).connect(parlante).connect(cuerpo).connect(env).connect(out)
+  for (const f of [raiz, raiz * 1.5, raiz * 2]) {
+    for (const cents of [-9, 9]) {
+      const o = ctx.createOscillator()
+      o.type = "sawtooth"
+      o.frequency.value = f
+      o.detune.value = cents
+      o.connect(pre)
+      o.start(t)
+      o.stop(t + dur + 0.05)
+    }
   }
 }
 
-// Momento en que pega el golpe de "tiempo", para sincronizar lo visual.
-export const GOLPE_TIEMPO = 0.6
+// Piano eléctrico suave para el lofi.
+function rhodes(t, notas, dur, gain, out) {
+  notas.forEach((f, i) => {
+    tono({ t: t + i * 0.014, freq: f, dur, gain, attack: 0.02, out, detune: (Math.random() - 0.5) * 16 })
+    tono({ t: t + i * 0.014, freq: f * 2, dur: dur * 0.35, gain: gain * 0.2, attack: 0.01, out })
+  })
+}
 
-export function sonar(nombre) {
+// Afinación baja (drop D): las raíces de los power chords.
+const NOTA = { D: 73.42, F: 87.31, G: 98.0, Gs: 103.83, A: 110.0, C: 130.81 / 2, Bb: 116.54 }
+const DIECISEISAVO = 60 / 170 / 4
+
+// ── Música ─────────────────────────────────────────────────────────────────────────
+// Agenda compás por compás un poco antes de que suenen, para que no se corte si el navegador se atrasa.
+function agendar(compas, duracion, desde) {
+  let n = 0
+  let proximo = desde
+  const paso = () => {
+    while (proximo < ahora() + 0.4) { compas(n++, proximo); proximo += duracion }
+  }
+  paso()
+  return setInterval(paso, 90)
+}
+
+function parar(nombre, fundido = 0.3) {
+  const m = musicas[nombre]
+  if (!m || !ctx) return
+  delete musicas[nombre]
+  clearInterval(m.timer)
+  const t = ahora()
+  m.bus.gain.cancelScheduledValues(t)
+  m.bus.gain.setValueAtTime(m.bus.gain.value, t)
+  m.bus.gain.linearRampToValueAtTime(0.0001, t + fundido)
+  m.fuentes?.forEach(s => s.stop(t + fundido + 0.05))
+  setTimeout(() => m.bus.disconnect(), (fundido + 5) * 1000)
+}
+
+// Lofi: Fmaj7, Em7, Dm7, Cmaj7 a 72 bpm, con bajo, batería con swing y disco viejo.
+const LOFI = [
+  [87.31, [174.61, 220.0, 261.63, 329.63]],
+  [82.41, [164.81, 196.0, 246.94, 293.66]],
+  [73.42, [146.83, 174.61, 220.0, 261.63]],
+  [65.41, [130.81, 164.81, 196.0, 246.94]]
+]
+function lofi() {
+  if (musicas.lofi || musicas.carrera) return
+  const bus = ctx.createGain()
+  const filtro = ctx.createBiquadFilter()
+  filtro.type = "lowpass"
+  filtro.frequency.value = 2600
+  bus.connect(filtro).connect(master)
+  bus.gain.setValueAtTime(0.0001, ahora())
+  bus.gain.linearRampToValueAtTime(0.55, ahora() + 2.5)
+
+  // El disco: siseo bajo y crujidos sueltos.
+  const disco = ctx.createBufferSource()
+  disco.buffer = buffer(3, () => (Math.random() * 2 - 1) * 0.02 + (Math.random() < 0.0007 ? (Math.random() * 2 - 1) * 0.7 : 0))
+  disco.loop = true
+  const discoGain = ctx.createGain()
+  discoGain.gain.value = 0.5
+  disco.connect(discoGain).connect(bus)
+  disco.start()
+
+  const negra = 60 / 72
+  const timer = agendar((n, t) => {
+    const [bajo, acorde] = LOFI[n % LOFI.length]
+    rhodes(t, acorde, negra * 3.6, 0.06, bus)
+    rhodes(t + negra * 2.5, acorde.slice(1), negra * 1.4, 0.035, bus)
+    tono({ t, freq: bajo, dur: negra * 1.8, gain: 0.25, attack: 0.01, out: bus })
+    tono({ t: t + negra * 2.5, freq: bajo, dur: negra, gain: 0.16, attack: 0.01, out: bus })
+    bombo(t, 0.5, bus)
+    bombo(t + negra * 2.5, 0.38, bus)
+    caja(t + negra, 0.2, bus)
+    caja(t + negra * 3, 0.2, bus)
+    for (let k = 0; k < 8; k++) charles(t + (k * negra) / 2 + (k % 2 ? negra * 0.12 : 0), k % 2 ? 0.03 : 0.045, bus)
+  }, negra * 4, ahora() + 0.1)
+  musicas.lofi = { bus, timer, fuentes: [disco] }
+}
+
+// Durante la carrera: el riff de galope (corchea y dos semicorcheas en cada tiempo) con doble bombo,
+// sobre D, D, F, C; el último tiempo de cada vuelta abre un acorde.
+function galope(desde) {
+  parar("lofi", 0.2)
+  const bus = ctx.createGain()
+  bus.gain.value = 0.85
+  bus.connect(master)
+  const s = DIECISEISAVO
+  const VUELTA = ["D", "D", "F", "C"]
+  const timer = agendar((n, t) => {
+    const raiz = NOTA[VUELTA[n % VUELTA.length]]
+    if (n % 4 === 0) platillo(t, 0.22, bus)
+    for (const tiempo of [0, 4, 8, 12]) {
+      if (n % 4 === 3 && tiempo === 12) {
+        guitarra(t + tiempo * s, NOTA.A, s * 4, { gain: 0.3, out: bus })
+        bombo(t + tiempo * s, 0.8, bus)
+        continue
+      }
+      for (const k of [0, 2, 3]) {
+        guitarra(t + (tiempo + k) * s, raiz, s * 0.95, { apagada: true, gain: 0.26, out: bus })
+        bombo(t + (tiempo + k) * s, 0.55, bus)
+      }
+      charles(t + tiempo * s, 0.08, bus)
+    }
+    caja(t + 4 * s, 0.5, bus)
+    caja(t + 12 * s, 0.5, bus)
+  }, s * 16, desde)
+  musicas.carrera = { bus, timer }
+}
+
+// ── Sonidos ────────────────────────────────────────────────────────────────────────
+const SONIDOS = {
+  // UI: chicos.
+  click() { tono({ freq: 880, to: 520, dur: 0.07, gain: 0.1 }) },
+  tic() {
+    soplo({ dur: 0.03, gain: 0.14, freq: 2400, q: 6 })
+    tono({ type: "triangle", freq: 1200, dur: 0.05, gain: 0.08 })
+  },
+  premio() {
+    [1047, 1319, 1568].forEach((freq, i) => tono({ t: ahora() + i * 0.07, type: "triangle", freq, dur: 0.22, gain: 0.14, wet: 0.2 }))
+  },
+  // Un tintineo de moneda: parciales inarmónicos que caen rápido.
+  moneda() {
+    [[2350, 0.12], [3530, 0.07], [5170, 0.05]].forEach(([freq, gain]) => tono({ freq, dur: 0.35, gain, wet: 0.15 }))
+    ;[[2350 * 1.06, 0.08], [3530 * 1.06, 0.05]].forEach(([freq, gain]) => tono({ t: ahora() + 0.08, freq, dur: 0.3, gain, wet: 0.15 }))
+  },
+
+  // La carrera: fuertes.
+  // El mundo se detiene. Corta el lofi como una cinta que se frena.
+  tiempo() {
+    parar("lofi", 0.45)
+    if (theWorld) {
+      const src = ctx.createBufferSource()
+      src.buffer = theWorld
+      src.connect(sfx)
+      src.start()
+      return
+    }
+    const t = ahora()
+    const crece = GOLPE_TIEMPO
+    soplo({ t, dur: crece, gain: 0.5, freq: 300, sweep: 7000, q: 0.7, rise: true })
+    tono({ t, freq: 70, to: 300, dur: crece, gain: 0.18, attack: crece * 0.9 })
+    tono({ t: t + crece, freq: 75, to: 30, dur: 1.6, gain: 1 })
+    soplo({ t: t + crece, dur: 0.35, gain: 0.5, filter: "lowpass", freq: 1200, wet: 0.6 })
+    // Campana: parciales de una campana real (1, 2.76, 5.40, 8.93), con mucha reverberación.
+    ;[[1, 0.3], [2.76, 0.16], [5.4, 0.09], [8.93, 0.05]].forEach(([ratio, gain]) =>
+      tono({ t: t + crece, freq: 196 * ratio, dur: 2.8, gain, wet: 0.9 }))
+    tono({ t: t + crece + 0.1, freq: 55, dur: 3, gain: 0.12, attack: 0.4 })
+    // El reloj: tic, tac, cada vez más lento y más bajo.
+    ;[0.95, 1.4, 1.95, 2.65, 3.5].forEach((at, i) => {
+      soplo({ t: t + at, dur: 0.03, gain: 0.22 - i * 0.035, freq: i % 2 ? 1500 : 2100, q: 6, wet: 0.5 })
+      tono({ t: t + at, type: "triangle", freq: i % 2 ? 750 : 1050, dur: 0.05, gain: 0.12 - i * 0.02, wet: 0.5 })
+    })
+  },
+
+  // 3, 2, 1: tambores graves que suben.
+  cuenta(n) {
+    const t = ahora()
+    tambor(t, { 3: 62, 2: 74, 1: 88 }[n] || 70, 1)
+    guitarra(t, NOTA.D, 0.5, { apagada: true, gain: 0.35 })
+    platillo(t, 0.12)
+  },
+
+  // ¡Ya!: el riff de largada, dos compases, y sigue el galope mientras corren.
+  ya() {
+    const t = ahora() + 0.02
+    const s = DIECISEISAVO
+    // [semicorchea, nota, duración en semicorcheas, apagada]
+    const RIFF = [
+      [0, "D", 1, 1], [1, "D", 1, 1], [2, "D", 1, 1], [3, "F", 2, 0], [5, "D", 1, 1], [6, "D", 1, 1], [7, "Gs", 2, 0],
+      [9, "D", 1, 1], [10, "D", 1, 1], [11, "A", 2, 0], [13, "G", 1, 0], [14, "F", 2, 0],
+      [16, "D", 8, 0], [24, "D", 1, 1], [25, "D", 1, 1], [26, "D", 1, 1], [27, "C", 2, 0], [29, "D", 1, 1], [30, "Bb", 2, 0]
+    ]
+    for (const [paso, nota, largo, apagada] of RIFF) {
+      guitarra(t + paso * s, NOTA[nota], s * largo, { apagada: !!apagada, gain: 0.34 })
+      bombo(t + paso * s, apagada ? 0.6 : 0.85)
+    }
+    ;[4, 12, 20, 28].forEach(paso => caja(t + paso * s, 0.6))
+    platillo(t, 0.4)
+    platillo(t + 16 * s, 0.4)
+    galope(t + 32 * s)
+  },
+
+  // Meta: corta el galope con un golpe y un acorde abierto que queda sonando.
+  meta() {
+    parar("carrera", 0.06)
+    const t = ahora()
+    bombo(t, 1)
+    tambor(t, 50, 1)
+    platillo(t, 0.5)
+    guitarra(t, NOTA.D, 2.2, { gain: 0.38 })
+  },
+
+  // Ganador: fanfarria de power chords que sube.
+  ganador() {
+    const t = ahora()
+    ;[["D", 0], ["F", 0.2], ["G", 0.4], ["A", 0.6]].forEach(([nota, at], i) => {
+      guitarra(t + at, NOTA[nota], i === 3 ? 1.8 : 0.22, { gain: 0.34 })
+      bombo(t + at, 0.8)
+    })
+    platillo(t + 0.6, 0.45)
+    caja(t + 0.6, 0.6)
+  }
+}
+
+export function sonar(nombre, ...args) {
   const fn = SONIDOS[nombre]
   if (!fn || !audio() || ctx.state !== "running") return false
-  try { fn() } catch (error) { console.warn("sonido", nombre, error) }
+  try { fn(...args) } catch (error) { console.warn("sonido", nombre, error) }
   // Registro de lo que sonó, para las pruebas.
   window.__sonados = [...(window.__sonados || []), nombre]
   return true
@@ -172,3 +386,17 @@ export function sonarCuandoSePueda(nombre, vence = 1500) {
   const c = audio()
   if (c) c.resume().then(intento).catch(() => {})
 }
+
+// Lofi en todas las pantallas fuera de la carrera: arranca apenas el navegador deja sonar.
+function musicaDeFondo() {
+  if (document.documentElement.dataset.fase === "carrera") return
+  const intento = () => {
+    if (document.documentElement.dataset.fase === "carrera" || musicas.lofi || !audio() || ctx.state !== "running") return
+    lofi()
+    window.__sonados = [...(window.__sonados || []), "lofi"]
+  }
+  intento()
+  for (const type of ["pointerdown", "keydown"]) addEventListener(type, intento, { passive: true })
+  audio()?.resume().then(intento).catch(() => {})
+}
+musicaDeFondo()

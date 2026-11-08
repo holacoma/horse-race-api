@@ -9,6 +9,9 @@
   <%# La transición entre páginas va en línea: así la página la pide desde el primer cuadro, antes de que carguen las hojas. %>
   <style>@view-transition { navigation: auto; }</style>
   <%= csrf_meta_tags %>
+  <%# Si dejás un archivo public/sonidos/the-world.* (mp3, ogg, wav o m4a), suena ese al largar en vez del sintetizado. %>
+  <% the_world = Dir[Rails.public_path.join("sonidos", "the-world.{mp3,ogg,wav,m4a}").to_s].first %>
+  <% if the_world %><meta name="sonido-the-world" content="/sonidos/<%= File.basename(the_world) %>"><% end %>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous" defer></script>
   <%= javascript_importmap_tags %>
   <link rel="stylesheet" href="/css/identidad.css?v=5">
