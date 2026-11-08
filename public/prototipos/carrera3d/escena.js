@@ -171,15 +171,26 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     h.boom = new THREE.Sprite(m); h.boom.position.set(0, 1.4, 0); h.boom.userData.desde = state.clock
     h.root.add(h.boom)
   }
-  // Preludio: los 3 favoritos se presentan uno tras otro, cada uno unos 2,3 s, a partir de los 2,2 s.
-  const FAVORITOS = { desde: 2.2, cada: 2.6, dura: 2.3 }
+  // Preludio: los 3 favoritos se presentan uno tras otro, cada uno unos 2,3 s, a partir de los 2,2 s. Corte a su
+  // primer plano en 3D y, al rato, la escena se congela (como The World): deja de dibujarse, queda en blanco y negro
+  // teñida de su color, y encima entra la tarjeta. Al terminar, la escena sigue.
+  const FAVORITOS = { desde: 2.2, cada: 2.6, dura: 2.3, congela: 0.4 }
   function presentarFavoritos() {
     const t = state.clock - state.preludeStart
-    if (state.started || !state.favoritos || !(t >= 0)) return hud.favorito(null)
+    state.favorito = null
+    state.congelado = false
+    if (state.started || !state.favoritos || !(t >= 0)) {
+      renderer.domElement.classList.remove("congelado")
+      return hud.favorito(null)
+    }
     const i = Math.floor((t - FAVORITOS.desde) / FAVORITOS.cada)
-    const dentro = (t - FAVORITOS.desde) - i * FAVORITOS.cada < FAVORITOS.dura
-    const h = i >= 0 && dentro ? horses.find(x => x.id === state.favoritos[i]) : null
-    hud.favorito(h || null, i + 1)
+    const enTarjeta = (t - FAVORITOS.desde) - i * FAVORITOS.cada
+    const h = i >= 0 && enTarjeta < FAVORITOS.dura ? horses.find(x => x.id === state.favoritos[i]) : null
+    state.favorito = h || null
+    // Mientras el caballo no esté en su primer plano no se congela (el corte tiene que verse antes).
+    state.congelado = !!h && enTarjeta >= FAVORITOS.congela
+    hud.favorito(state.congelado ? h : null, i + 1)
+    renderer.domElement.classList.toggle("congelado", state.congelado)
   }
 
   function actualizarExplosiones() {
@@ -438,7 +449,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     placeCamera(realDt)
     updateLighting()
     hud.update()
-    render(realDt)
+    // Congelado: no se dibuja, así queda en pantalla el último cuadro.
+    if (!state.congelado) render(realDt)
   }
 
   function animateHorses(realDt, dt) {
@@ -592,7 +604,16 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       // Preludio: del aire a la cara de los caballos, y recién después el 3, 2, 1.
       const t = state.clock - state.preludeStart
       const span = (from, to) => Math.min(1, Math.max(0, (t - from) / (to - from)))
-      if (t < 3.6) {
+      if (state.favorito) {
+        // Presentación de un favorito: su cara a tres cuartos, desde delante del cajón, un poco de abajo.
+        const h = state.favorito
+        const lado = h.z > 0 ? 1 : -1
+        shot = "favorito"
+        pos = [h.x + 4.6, 1.35, h.z + lado * 1.9]
+        look = [h.x + 1.2, 2.0, h.z]
+        fov = 30
+        roll = -0.1 * lado
+      } else if (t < 3.6) {
         const u = span(0, 3.6)
         shot = "preludio-aire"
         pos = [80 - 66 * u, 27 - 14 * u, WIDTH * 0.95]

@@ -114,12 +114,13 @@ canvas { display: block; position: fixed; inset: 0; }
 
 /* Con portada: la ilustración del elemento del ganador, como en resultados, y el texto en un bloque negro encima. */
 .hud-win.con-portada {
-  width: min(760px, 82vw); aspect-ratio: 16 / 9; padding: 0; display: flex; align-items: flex-end; white-space: normal; text-align: left;
-  background: var(--portada-anim, none) center 30% / cover no-repeat, var(--noche-1) var(--portada) center 30% / cover no-repeat;
+  width: min(760px, 82vw, 110vh); aspect-ratio: 1216 / 832; padding: 0; display: flex; align-items: center; white-space: normal; text-align: left;
+  background: linear-gradient(90deg, rgb(0 0 0 / .6), transparent 55%), var(--portada-anim, none) right center / cover no-repeat,
+    var(--noche-1) var(--portada) right center / cover no-repeat;
   border: 3px solid var(--noche-1); border-left-width: 3px;
   box-shadow: 10px 10px 0 var(--carmesi);
 }
-.hud-win.con-portada .hud-win-texto { margin: 0 0 18px 18px; padding: 8px 20px 10px; background: var(--noche-1); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); font-size: clamp(26px, 4vw, 52px); }
+.hud-win.con-portada .hud-win-texto { max-width: 46%; margin: 0 0 0 4%; padding: 8px 20px 10px; background: var(--noche-1); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); font-size: clamp(26px, 4vw, 52px); }
 
 /* Se cortó la conexión: aviso arriba, en la tinta de la carrera, mientras reintenta. */
 .hud-reco {
@@ -131,19 +132,33 @@ canvas { display: block; position: fixed; inset: 0; }
 
 /* Tarjeta de presentación de un favorito (preludio): pantalla completa, a lo Persona 5. Fondo negro con un corte en
    el color de su elemento, el retrato grande a la derecha y el nombre en gótica a la izquierda. Entra de costado. */
+/* La escena congelada detrás de la tarjeta: sin color, más dura, y un tinte del elemento encima (el ::before). */
+canvas.congelado { filter: grayscale(1) contrast(1.7) brightness(.62); }
 .hud-favorito {
   inset: 0; z-index: 30; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; pointer-events: none; opacity: 0;
-  background: linear-gradient(115deg, var(--noche-1) 0 48%, var(--c) 48% 51%, var(--noche-1) 51% 100%);
+  background: linear-gradient(90deg, rgb(0 0 0 / .7), transparent 60%);
 }
-.hud-favorito img { position: absolute; right: 0; top: 0; height: 100%; width: 58%; object-fit: cover; object-position: center 25%; clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); }
+.hud-favorito::before { content: ""; position: absolute; inset: 0; background: var(--c); mix-blend-mode: color; opacity: .55; }
+/* Fogonazo al congelar. */
+.hud-favorito::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; }
+.hud-favorito.show::after { animation: favorito-flash .35s ease-out; }
+@keyframes favorito-flash { from { opacity: .85; } to { opacity: 0; } }
+/* El retrato entra en un corte diagonal desde la derecha, con un filo del color del elemento. */
+.hud-favorito img {
+  position: absolute; right: 0; top: 0; height: 100%; width: 46%; object-fit: cover; object-position: center 25%;
+  clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%); filter: drop-shadow(-8px 0 0 var(--c));
+}
+.hud-favorito.show img { animation: favorito-corte .4s cubic-bezier(.2, 1.2, .4, 1) both; }
+@keyframes favorito-corte { from { transform: translateX(60%); } to { transform: none; } }
 .favorito-texto { position: relative; z-index: 1; display: grid; gap: 6px; padding: 0 0 0 6vw; max-width: 52%; transform: rotate(-4deg); }
 .favorito-texto small { justify-self: start; padding: 2px 12px; background: var(--carmesi); color: #fff; font: 700 clamp(12px, 1.6vw, 18px) var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; }
 .favorito-texto b { font: 400 clamp(38px, 7vw, 96px)/.95 var(--fuente-gotica); color: var(--noche-12); text-shadow: 4px 4px 0 var(--c), 8px 7px 0 var(--carmesi); overflow-wrap: anywhere; }
 .favorito-texto span { color: var(--noche-11, #cfc8bd); font: 600 clamp(13px, 1.6vw, 18px) var(--fuente-texto); }
-.hud-favorito.show { opacity: 1; animation: favorito-entra .45s cubic-bezier(.2, 1.3, .4, 1) both; }
-@keyframes favorito-entra { from { transform: translateX(-30%) skewX(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.hud-favorito.show { opacity: 1; }
+.hud-favorito.show .favorito-texto { animation: favorito-entra .45s cubic-bezier(.2, 1.3, .4, 1) both; }
+@keyframes favorito-entra { from { transform: translateX(-40%) rotate(-4deg) skewX(-8deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
 @media (max-width: 640px) {
-  .hud-favorito { align-items: flex-end; background: var(--noche-1); }
+  .hud-favorito { align-items: flex-end; background: linear-gradient(0deg, rgb(0 0 0 / .75), transparent 55%); }
   .hud-favorito img { width: 100%; height: 62%; clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%); }
   .favorito-texto { max-width: none; padding: 0 6vw 9vh; }
 }
