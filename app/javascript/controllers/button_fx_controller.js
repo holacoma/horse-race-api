@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { sonar } from "sonidos"
 
 // Lo que dura la animación de clic antes de cambiar de página.
 const HOLD_MS = 320
@@ -16,6 +17,7 @@ export default class extends Controller {
     if (holds) event.preventDefault()
     if (holds && this.holding) return
 
+    sonar("click")
     this.restartAnimation(button)
     if (holds) this.navigateAfterHold(button)
     else button.addEventListener("animationend", () => button.classList.remove("fx-click"), { once: true })

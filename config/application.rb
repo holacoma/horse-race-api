@@ -45,7 +45,7 @@ module HorseRaceApi
     # ActionDispatch::Static doesn't reliably serve from arbitrary roots in this context,
     # so we use Rack::Static inserted before all other middleware.
     config.middleware.insert_before 0, Rack::Static,
-      urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /controllers],
+      urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /sonidos.js /controllers],
       root: Rails.root.join("app/javascript").to_s,
       # Las URLs no llevan digest: el navegador tiene que revalidar para ver los cambios.
       header_rules: [ [ :all, { "cache-control" => "no-cache" } ] ]

@@ -69,7 +69,7 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, showFps = true }) {
+export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true }) {
   const FINISH = distance
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
@@ -179,8 +179,15 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     state.preludeStart = state.countdownEnd - PRELUDE_SECONDS
   }
 
+  // La largada suena una vez: con el cartel "¡YA!" o, si la carrera arranca antes de mostrarlo, con el primer avance.
+  function ya() {
+    if (state.yaFired) return
+    state.yaFired = true
+    onCount?.("¡YA!")
+  }
+
   function tick(list) {
-    if (!state.started) state.raceStart = state.clock
+    if (!state.started) { state.raceStart = state.clock; ya() }
     state.started = true
     state.lastTick = state.rt
     list.forEach(({ id, position }) => {
@@ -316,6 +323,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
     if (state.winner && racing && state.winner.x >= FINISH - 0.4) {
       state.crossedAt = state.clock
+      if (!state.crossFired) { state.crossFired = true; onCross?.(state.winner) }
       state.crossRt = state.rt
       state.impact = 1
     }
@@ -1389,7 +1397,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         // Durante el preludio la pantalla es del hipódromo: sin lista ni números hasta el 3, 2, 1.
         rank.style.opacity = state.started || left <= 3 ? 1 : 0
         if (state.countdownEnd !== null && state.clock < state.countdownEnd + 0.5 && !state.started) {
-          count.textContent = left > 3 ? "" : left > 0 ? String(Math.ceil(left)) : "¡YA!"
+          const text = left > 3 ? "" : left > 0 ? String(Math.ceil(left)) : "¡YA!"
+          if (text !== count.textContent) { count.textContent = text; if (text === "¡YA!") ya(); else if (text) onCount?.(text) }
         } else if (state.started && state.clock) {
           count.textContent = ""
         }

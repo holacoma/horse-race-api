@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { sonar, sonarCuandoSePueda, GOLPE_TIEMPO } from "sonidos"
 
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
@@ -41,7 +42,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js"),
+      import("/prototipos/carrera3d/escena.js?v=3"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -53,13 +54,17 @@ export default class extends Controller {
       horseModel,
       myId: data.myHorseId,
       showFps: false,
-      onCelebrate: () => { this.resultsTarget.hidden = false },
+      onCount: text => sonar(text === "¡YA!" ? "ya" : "tic"),
+      onCross: () => sonar("meta"),
+      onCelebrate: () => { this.resultsTarget.hidden = false; sonar("ganador") },
       onDone: () => this.goToResults()
     })
     window.__sala = { race: this.race }
     // Lo que llegó mientras cargaba la escena.
     this.pending.splice(0).forEach(fn => fn())
     if (data.running) this.race.startIn(data.secondsToStart ?? 0)
+    // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
+    if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
     this.race.run()
     this.cargandoTarget.hidden = true
   }
@@ -97,6 +102,7 @@ export default class extends Controller {
 
   addParticipant(p) {
     if (document.querySelector(`#participants-list [data-horse-id="${p.horse_id}"]`)) return
+    sonar("moneda")
     const index = this.participantCountValue
     const div = document.createElement("div")
     div.className = "participant-row recien"
@@ -205,15 +211,19 @@ export default class extends Controller {
   onRaceStarted() {
     if (this.started) return
     this.started = true
+    // El mundo se detiene: el sonido crece y el corte cruza justo con el golpe.
+    sonarCuandoSePueda("tiempo")
     const cut = this.corteTarget
-    cut.classList.remove("ya")
-    void cut.offsetWidth
-    cut.classList.add("ya")
+    setTimeout(() => {
+      cut.classList.remove("ya")
+      void cut.offsetWidth
+      cut.classList.add("ya")
+    }, GOLPE_TIEMPO * 1000 - 160)
     // El cambio de fase, justo cuando el bloque tapa la pantalla.
     setTimeout(() => {
       document.documentElement.dataset.fase = "carrera"
       this.element.classList.add("en-carrera")
-    }, 160)
+    }, GOLPE_TIEMPO * 1000)
     this.whenReady(() => this.race.startIn(13))
   }
 

@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { sonar } from "sonidos"
 
 // Tragamonedas de un formulario. Cada carrete se gira de a una palabra (flechas o rueda del mouse) para elegir
 // el nombre; la palanca sortea sin enviar. Al enviar: si elegiste o sorteaste, entra con ese nombre; si no, gira y
@@ -70,6 +71,7 @@ export default class extends Controller {
       { duration: NUDGE.ms, easing: NUDGE.easing }
     )
     this.nudges[r] = animation
+    sonar("tic")
     animation.finished.then(() => strip.replaceChildren(...[-1, 0, 1].map(d => cell(at(d))))).catch(() => {})
     this.chose()
   }
@@ -85,6 +87,7 @@ export default class extends Controller {
     await this.roll(true)
     this.chose()
     this.machineTarget.classList.add("won")
+    sonar("premio")
   }
 
   async spin(event) {
@@ -98,6 +101,7 @@ export default class extends Controller {
     this.buttonTarget.disabled = true
     this.buttonTarget.classList.replace("is-primary", "is-disabled")
     this.machineTarget.classList.add("won")
+    sonar("premio")
     setTimeout(() => this.element.submit(), chosen ? CHOSEN_PAUSE : REVEAL_PAUSE)
   }
 
@@ -171,6 +175,7 @@ export default class extends Controller {
 
   reelStopped(reel, index, word) {
     reel.classList.remove("spinning")
+    sonar("tic")
     this.revealed[index] = word
     this.displayTarget.textContent = this.revealed.filter(Boolean).join(" ")
     this.machineTarget.animate(
