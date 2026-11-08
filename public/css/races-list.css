@@ -53,3 +53,6 @@
   .inicio-hero { position: static; justify-items: center; text-align: center; }
   .btn-jugar { font-size: 28px; padding: 18px 36px; }
 }
+
+/* La marca va dentro de la ventana a la pradera. */
+.inicio-cartel { position: relative; isolation: isolate; padding: 22px 64px 26px 30px; margin-bottom: 8px; }

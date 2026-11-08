@@ -1,7 +1,6 @@
 // Sonidos y música de Club Race, sintetizados con Web Audio.
-// Fuera de la carrera suena lofi, tranquilo. La carrera es metal: al largar el tiempo se detiene (si hay un archivo
-// public/sonidos/the-world.*, suena ese; si no, uno sintetizado), en la largada entra un riff de guitarra que sigue al
-// galope mientras corren, la cuenta y la meta son golpes fuertes y el ganador tiene una fanfarria de guitarra.
+// Sin música por ahora (llegan archivos). La carrera es metal: al largar el tiempo se detiene (si hay un archivo
+// public/sonidos/the-world.*, suena ese; si no, uno sintetizado), en la largada entra un riff de guitarra, la cuenta y la meta son golpes fuertes y el ganador tiene una fanfarria de guitarra.
 // La UI (clic, carretes, monedas) queda chica, para dejarle lugar a lo demás.
 
 let ctx = null
@@ -11,7 +10,6 @@ let reverb = null
 let distorsion = null
 let ruido = null
 let theWorld = null
-const musicas = {}
 
 // Momento en que pega el golpe de "tiempo", para sincronizar lo visual.
 export const GOLPE_TIEMPO = 0.6
@@ -163,114 +161,9 @@ function guitarra(t, raiz, dur, { apagada = false, gain = 0.3, out = sfx } = {})
   }
 }
 
-// Piano eléctrico suave para el lofi.
-function rhodes(t, notas, dur, gain, out) {
-  notas.forEach((f, i) => {
-    tono({ t: t + i * 0.014, freq: f, dur, gain, attack: 0.02, out, detune: (Math.random() - 0.5) * 16 })
-    tono({ t: t + i * 0.014, freq: f * 2, dur: dur * 0.35, gain: gain * 0.2, attack: 0.01, out })
-  })
-}
-
 // Afinación baja (drop D): las raíces de los power chords.
 const NOTA = { D: 73.42, F: 87.31, G: 98.0, Gs: 103.83, A: 110.0, C: 130.81 / 2, Bb: 116.54 }
 const DIECISEISAVO = 60 / 170 / 4
-
-// ── Música ─────────────────────────────────────────────────────────────────────────
-// Agenda compás por compás un poco antes de que suenen, para que no se corte si el navegador se atrasa.
-function agendar(compas, duracion, desde) {
-  let n = 0
-  let proximo = desde
-  const paso = () => {
-    while (proximo < ahora() + 0.4) { compas(n++, proximo); proximo += duracion }
-  }
-  paso()
-  return setInterval(paso, 90)
-}
-
-function parar(nombre, fundido = 0.3) {
-  const m = musicas[nombre]
-  if (!m || !ctx) return
-  delete musicas[nombre]
-  clearInterval(m.timer)
-  const t = ahora()
-  m.bus.gain.cancelScheduledValues(t)
-  m.bus.gain.setValueAtTime(m.bus.gain.value, t)
-  m.bus.gain.linearRampToValueAtTime(0.0001, t + fundido)
-  m.fuentes?.forEach(s => s.stop(t + fundido + 0.05))
-  setTimeout(() => m.bus.disconnect(), (fundido + 5) * 1000)
-}
-
-// Lofi: Fmaj7, Em7, Dm7, Cmaj7 a 72 bpm, con bajo, batería con swing y disco viejo.
-const LOFI = [
-  [87.31, [174.61, 220.0, 261.63, 329.63]],
-  [82.41, [164.81, 196.0, 246.94, 293.66]],
-  [73.42, [146.83, 174.61, 220.0, 261.63]],
-  [65.41, [130.81, 164.81, 196.0, 246.94]]
-]
-function lofi() {
-  if (musicas.lofi || musicas.carrera) return
-  const bus = ctx.createGain()
-  const filtro = ctx.createBiquadFilter()
-  filtro.type = "lowpass"
-  filtro.frequency.value = 2600
-  bus.connect(filtro).connect(master)
-  bus.gain.setValueAtTime(0.0001, ahora())
-  bus.gain.linearRampToValueAtTime(0.55, ahora() + 2.5)
-
-  // El disco: siseo bajo y crujidos sueltos.
-  const disco = ctx.createBufferSource()
-  disco.buffer = buffer(3, () => (Math.random() * 2 - 1) * 0.02 + (Math.random() < 0.0007 ? (Math.random() * 2 - 1) * 0.7 : 0))
-  disco.loop = true
-  const discoGain = ctx.createGain()
-  discoGain.gain.value = 0.5
-  disco.connect(discoGain).connect(bus)
-  disco.start()
-
-  const negra = 60 / 72
-  const timer = agendar((n, t) => {
-    const [bajo, acorde] = LOFI[n % LOFI.length]
-    rhodes(t, acorde, negra * 3.6, 0.06, bus)
-    rhodes(t + negra * 2.5, acorde.slice(1), negra * 1.4, 0.035, bus)
-    tono({ t, freq: bajo, dur: negra * 1.8, gain: 0.25, attack: 0.01, out: bus })
-    tono({ t: t + negra * 2.5, freq: bajo, dur: negra, gain: 0.16, attack: 0.01, out: bus })
-    bombo(t, 0.5, bus)
-    bombo(t + negra * 2.5, 0.38, bus)
-    caja(t + negra, 0.2, bus)
-    caja(t + negra * 3, 0.2, bus)
-    for (let k = 0; k < 8; k++) charles(t + (k * negra) / 2 + (k % 2 ? negra * 0.12 : 0), k % 2 ? 0.03 : 0.045, bus)
-  }, negra * 4, ahora() + 0.1)
-  musicas.lofi = { bus, timer, fuentes: [disco] }
-}
-
-// Durante la carrera: el riff de galope (corchea y dos semicorcheas en cada tiempo) con doble bombo,
-// sobre D, D, F, C; el último tiempo de cada vuelta abre un acorde.
-function galope(desde) {
-  parar("lofi", 0.2)
-  const bus = ctx.createGain()
-  bus.gain.value = 0.85
-  bus.connect(master)
-  const s = DIECISEISAVO
-  const VUELTA = ["D", "D", "F", "C"]
-  const timer = agendar((n, t) => {
-    const raiz = NOTA[VUELTA[n % VUELTA.length]]
-    if (n % 4 === 0) platillo(t, 0.22, bus)
-    for (const tiempo of [0, 4, 8, 12]) {
-      if (n % 4 === 3 && tiempo === 12) {
-        guitarra(t + tiempo * s, NOTA.A, s * 4, { gain: 0.3, out: bus })
-        bombo(t + tiempo * s, 0.8, bus)
-        continue
-      }
-      for (const k of [0, 2, 3]) {
-        guitarra(t + (tiempo + k) * s, raiz, s * 0.95, { apagada: true, gain: 0.26, out: bus })
-        bombo(t + (tiempo + k) * s, 0.55, bus)
-      }
-      charles(t + tiempo * s, 0.08, bus)
-    }
-    caja(t + 4 * s, 0.5, bus)
-    caja(t + 12 * s, 0.5, bus)
-  }, s * 16, desde)
-  musicas.carrera = { bus, timer }
-}
 
 // ── Sonidos ────────────────────────────────────────────────────────────────────────
 const SONIDOS = {
@@ -290,9 +183,8 @@ const SONIDOS = {
   },
 
   // La carrera: fuertes.
-  // El mundo se detiene. Corta el lofi como una cinta que se frena.
+  // El mundo se detiene.
   tiempo() {
-    parar("lofi", 0.45)
     if (theWorld) {
       const src = ctx.createBufferSource()
       src.buffer = theWorld
@@ -325,7 +217,7 @@ const SONIDOS = {
     platillo(t, 0.12)
   },
 
-  // ¡Ya!: el riff de largada, dos compases, y sigue el galope mientras corren.
+  // ¡Ya!: el riff de largada, dos compases.
   ya() {
     const t = ahora() + 0.02
     const s = DIECISEISAVO
@@ -342,12 +234,10 @@ const SONIDOS = {
     ;[4, 12, 20, 28].forEach(paso => caja(t + paso * s, 0.6))
     platillo(t, 0.4)
     platillo(t + 16 * s, 0.4)
-    galope(t + 32 * s)
   },
 
-  // Meta: corta el galope con un golpe y un acorde abierto que queda sonando.
+  // Meta: un golpe y un acorde abierto que queda sonando.
   meta() {
-    parar("carrera", 0.06)
     const t = ahora()
     bombo(t, 1)
     tambor(t, 50, 1)
@@ -387,16 +277,3 @@ export function sonarCuandoSePueda(nombre, vence = 1500) {
   if (c) c.resume().then(intento).catch(() => {})
 }
 
-// Lofi en todas las pantallas fuera de la carrera: arranca apenas el navegador deja sonar.
-function musicaDeFondo() {
-  if (document.documentElement.dataset.fase === "carrera") return
-  const intento = () => {
-    if (document.documentElement.dataset.fase === "carrera" || musicas.lofi || !audio() || ctx.state !== "running") return
-    lofi()
-    window.__sonados = [...(window.__sonados || []), "lofi"]
-  }
-  intento()
-  for (const type of ["pointerdown", "keydown"]) addEventListener(type, intento, { passive: true })
-  audio()?.resume().then(intento).catch(() => {})
-}
-musicaDeFondo()

@@ -4,8 +4,11 @@
 import * as THREE from "three"
 import { shared, toon } from "./caballo.js"
 
-const EYES = [new THREE.Vector3(11.2, 156, 111), new THREE.Vector3(-12.6, 156, 111)]
-const EYE_RADIUS = 3.3
+// Los ojos, a esta altura y profundidad de la cabeza, sobre la superficie de cada lado. La cabeza del modelo no es
+// simétrica (un lado llega a x 11 y el otro a -9,5): espejar un ojo deja el otro flotando fuera de la cara, sin pintarse.
+const EYE_AT = { y: 156, z: 111, window: 3.5 }
+const EYE_RADIUS = 4.2
+const EYE_GLOW = 15
 const MANE = { fromZ: 26, toZ: 104, midline: 4.5 }
 // En la pose original una pata trasera va estirada más atrás que la cola, pero mucho más abajo.
 const TAIL = { behindZ: -146, aboveY: 105, midline: 9 }
@@ -77,8 +80,8 @@ const FIRE_APPLY = `
   // Borde fino: solo donde la superficie ya casi no mira a la cámara.
   float rim = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 5.0);
   vec3 burned = uBody * (0.5 + vn(m * 13.0)) + lit + uRim * rim * (1.5 + 1.1 * uPulse);
-  float eye = 1.0 - smoothstep(${(EYE_RADIUS * 0.42).toFixed(2)}, ${EYE_RADIUS.toFixed(2)}, min(distance(vBase, uEyes[0]), distance(vBase, uEyes[1])));
-  outgoingLight = mix(burned, uEye * 11.0, eye);
+  float eye = 1.0 - smoothstep(${(EYE_RADIUS * 0.45).toFixed(2)}, ${EYE_RADIUS.toFixed(2)}, min(distance(vBase, uEyes[0]), distance(vBase, uEyes[1])));
+  outgoingLight = mix(burned, uEye * ${EYE_GLOW.toFixed(1)}, eye);
 `
 
 // Los puntos de la malla que arden: la cresta del cuello por tramos y la cola entera.
@@ -206,10 +209,90 @@ function buildFlames(model, palette) {
   }
 }
 
+// El punto más afuera de cada lado de la cabeza, a la altura del ojo, sobre la malla ya suavizada (aRef).
+function eyesOn(ref) {
+  const p = ref.array
+  const right = new THREE.Vector3(-Infinity, EYE_AT.y, EYE_AT.z)
+  const left = new THREE.Vector3(Infinity, EYE_AT.y, EYE_AT.z)
+  for (let i = 0; i < ref.count; i++) {
+    const x = p[i * 3], y = p[i * 3 + 1], z = p[i * 3 + 2]
+    if (Math.abs(y - EYE_AT.y) > EYE_AT.window || Math.abs(z - EYE_AT.z) > EYE_AT.window) continue
+    if (x > right.x) right.set(x, y, z)
+    if (x < left.x) left.set(x, y, z)
+  }
+  return [right, left]
+}
+
+// Destello de cada ojo: un punto brillante apenas afuera de la cara, que sigue a la cabeza. Pintado sobre la piel, el
+// ojo queda de canto y de frente casi no se ve; el destello se ve desde cualquier ángulo (la cabeza tapa el de atrás).
+const EYE_OUT = 1.6 // unidades del modelo hacia afuera de la cara
+const EYE_SPRITE = 0.16 // metros
+function buildEyeGlow(model, palette) {
+  const ref = model.geometry.attributes.aRef
+  const nearest = target => {
+    let best = Infinity, index = 0
+    for (let i = 0; i < ref.count; i++) {
+      const d = (ref.getX(i) - target.x) ** 2 + (ref.getY(i) - target.y) ** 2 + (ref.getZ(i) - target.z) ** 2
+      if (d < best) { best = d; index = i }
+    }
+    return index
+  }
+  const vertices = model.eyes.map(nearest)
+  const sides = model.eyes.map(e => Math.sign(e.x))
+  const base = model.geometry.attributes.position.array
+  const deltas = model.geometry.morphAttributes.position.map(attribute => attribute.array)
+  const positions = new Float32Array(6)
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  const points = new THREE.Points(geometry, new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uViewHeight: shared.uViewHeight, uEye: { value: palette.eye } },
+    vertexShader: `
+      uniform float uViewHeight;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = uViewHeight * 0.5 * projectionMatrix[1][1] * ${EYE_SPRITE.toFixed(3)} / max(0.2, -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3 uEye;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float core = 1.0 - smoothstep(0.0, 0.35, d);
+        float halo = pow(1.0 - d, 2.2);
+        gl_FragColor = vec4(uEye * (6.0 * core + 2.2 * halo) + vec3(core), core + halo * 0.8);
+      }`
+  }))
+  points.frustumCulled = false
+  const point = [0, 0, 0]
+  return {
+    points,
+    update(influences, bend) {
+      vertices.forEach((vertex, k) => {
+        point[0] = base[vertex * 3]; point[1] = base[vertex * 3 + 1]; point[2] = base[vertex * 3 + 2]
+        for (let j = 0; j < influences.length; j++) {
+          const w = influences[j]
+          if (w < 0.001) continue
+          for (let axis = 0; axis < 3; axis++) point[axis] += w * deltas[j][vertex * 3 + axis]
+        }
+        bend(vertex, point)
+        point[0] += sides[k] * EYE_OUT
+        const s = model.scale
+        positions[k * 3] = (point[2] - model.centerZ) * s
+        positions[k * 3 + 1] = point[1] * s
+        positions[k * 3 + 2] = -point[0] * s
+      })
+      geometry.attributes.position.needsUpdate = true
+    }
+  }
+}
+
 export function buildFire(model, element) {
+  model.eyes ||= eyesOn(model.geometry.attributes.aRef)
   const palette = paletteOf(element)
   const uniforms = {
-    uPulse: { value: 0 }, uFireT: shared.uTime, uUnit: { value: model.scale }, uEyes: { value: EYES },
+    uPulse: { value: 0 }, uFireT: shared.uTime, uUnit: { value: model.scale }, uEyes: { value: model.eyes },
     uLine: { value: palette.line }, uCore: { value: palette.core }, uRim: { value: palette.rim },
     uEye: { value: palette.eye }, uBody: { value: palette.body }
   }
@@ -229,17 +312,20 @@ export function buildFire(model, element) {
   material.customProgramCacheKey = () => "toon-fuego"
 
   const flames = buildFlames(model, palette)
+  const eyes = buildEyeGlow(model, palette)
   let flare = 0
 
   return {
     material,
     flames: flames.points,
+    eyes: eyes.points,
     edge: palette.line, // color del contorno
     // flare: 0 llama normal, 1 llamarada (al largar).
     set(next) { flare = next },
     update(dt, phase, metersPerSecond, influences, bend) {
       uniforms.uPulse.value = Math.pow(0.5 + 0.5 * Math.sin(phase * Math.PI * 2), 2)
       flames.update(dt, flare, metersPerSecond, influences, bend)
+      eyes.update(influences, bend)
     }
   }
 }

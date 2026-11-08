@@ -1,12 +1,15 @@
 <% content_for :title, "Club Race" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-list.css?v=7">
+  <link rel="stylesheet" href="/css/races-list.css?v=8">
 <% end %>
 
 <%# Dos cosas para hacer, nada más: jugar ya, o elegir una sala de las abiertas (o armar una para tus amigos). %>
 <section class="inicio">
   <div class="inicio-hero">
-    <h1 class="inicio-marca brilla-texto" data-texto="Club Race">Club Race</h1>
+    <div class="inicio-cartel">
+      <%= render "shared/ventana_pradera" %>
+      <h1 class="inicio-marca brilla-texto" data-texto="Club Race">Club Race</h1>
+    </div>
     <p class="inicio-regla">La primera regla del Club Race es: no se habla del Club Race.</p>
     <%= button_to "Jugar ya", jugar_path, class: "btn-jugar brilla", form_class: "inicio-jugar", data: { fx: "start" } %>
     <p class="inicio-ayuda">Te suma a una sala abierta con tu caballo. Si no hay ninguna, abre una.</p>

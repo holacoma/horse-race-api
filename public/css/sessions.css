@@ -1,6 +1,6 @@
 /* Entrada: la marca grande y torcida, la regla, y una tarjeta con las dos formas de entrar. */
 .login { width: 100%; max-width: 440px; display: grid; gap: 26px; }
-.login-logo { text-align: center; }
+.login-logo { position: relative; isolation: isolate; text-align: center; padding: 30px 24px 24px; }
 .login-logo .marca {
   position: relative; display: inline-block; transform: rotate(-3deg);
   font: 400 clamp(44px, 12vw, 68px)/1 var(--fuente-titulo); color: var(--acento);

@@ -375,6 +375,7 @@ export function buildProHorse(model, index) {
   const mesh = new THREE.Mesh(model.geometry, withRest(fire.material, rest))
   holder.add(mesh)
   root.add(fire.flames)
+  root.add(fire.eyes)
   const hull = new THREE.Mesh(model.geometry, withRest(outline({ width: 0.02 / model.scale, color: fire.edge.clone().multiplyScalar(0.9), grow: true }), rest))
   hull.morphTargetInfluences = mesh.morphTargetInfluences
   hull.morphTargetDictionary = mesh.morphTargetDictionary
