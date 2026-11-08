@@ -47,7 +47,7 @@
     <%# Tu caballo, bien claro: grande, con su color y un cartel. %>
     <div class="tu-caballo" data-race-lobby-target="tuCaballo" style="<%= "--c: #{color_de(@my_participant.horse_id)}" if @my_participant %>"<%= ' hidden' unless @my_participant %>>
       <span class="tu-cartel">Tu caballo</span>
-      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de(@my_participant.horse_id)}.webp" if @my_participant %>">
+      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de(@my_participant.horse_id)}.webp?v=2" if @my_participant %>">
       <b data-race-lobby-target="tuCaballoNombre"><%= @my_participant&.horse_name %></b>
     </div>
 

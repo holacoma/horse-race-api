@@ -45,7 +45,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=9"),
+      import("/prototipos/carrera3d/escena.js?v=10"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -72,7 +72,7 @@ export default class extends Controller {
     this.race.run()
     // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
     await Promise.all([
-      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp`, `/images/retratos/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=2`, `/images/retratos/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
       document.fonts.ready
     ])
     this.cargandoTarget.hidden = true
@@ -150,7 +150,7 @@ export default class extends Controller {
     div.dataset.horseId = p.horse_id
     const color = `var(--caballo-${elemento})`
     div.style.setProperty("--c", color)
-    const chibi = `/images/chibis/${elemento}.webp`
+    const chibi = `/images/chibis/${elemento}.webp?v=2`
     div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-horse nombre-caballo"></span><span class="p-username"></span>`
     if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
     div.querySelector(".p-username").textContent = `de ${p.username}`

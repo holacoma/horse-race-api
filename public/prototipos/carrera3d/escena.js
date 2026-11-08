@@ -150,7 +150,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   function chibiDe(h) {
     if (!h.element || h.chibi) return h.chibi
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false }))
-    texturas.load(`/images/chibis/${h.element}.webp`, t => {
+    texturas.load(`/images/chibis/${h.element}.webp?v=2`, t => {
       t.colorSpace = THREE.SRGBColorSpace
       s.material.map = t; s.material.needsUpdate = true
       s.scale.set(2.6 * t.image.width / t.image.height, 2.6, 1)
