@@ -9,7 +9,7 @@ import { buildProHorse } from "./caballo-pro.js"
 const RENDER_DELAY = 0.34 // se dibuja apenas en el pasado para interpolar entre dos mensajes del servidor
 const OPENING_SECONDS = 3.2
 const SHOT_SECONDS = 4.5 // una toma cada varios segundos: a esta velocidad, cortes por metros serían un parpadeo
-const FIRE_DELAY = 0.25 // la transformación arranca justo después del ¡YA!
+const FIRE_DELAY = 0.25 // la llamarada arranca justo después del ¡YA!
 const FIRE_SECONDS = 2
 const FIRE_CASCADE = 0.14 // segundos entre un carril y el siguiente
 const ARRIVAL_SECONDS = 2.4 // antes de cruzar, la cámara se planta pasando la meta
@@ -69,7 +69,7 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, distance = 2000, horseModel = null, myId = null, effects = true, capture = false, onCelebrate = null, onDone = null, showFps = true }) {
+export function createRace({ participants, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, showFps = true }) {
   const FINISH = distance
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
@@ -145,11 +145,11 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   const hud = buildHud()
 
   const state = {
-    clock: 0, rt: 0, timeScale: 1, intensity: 0, impact: 0, effects, portal: 0,
+    clock: 0, rt: 0, timeScale: 1, intensity: 0, impact: 0, portal: 0,
     countdownEnd: null, preludeStart: Infinity, started: false, winner: null, crossedAt: null, lastTick: null,
     tape: [], resume: null, crossRt: 0, impactStage: null,
     leaderX: 0, leaderOffset: 0, lastLeader: null, raceStart: null, celebrating: false, doneFired: false, shot: null, shotChanged: 0,
-    order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null, fireFade: 1
+    order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null
   }
 
   // ── Datos ─────────────────────────────────────────────────────────────────────────
@@ -275,16 +275,19 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     state.leaderX = leader.x + state.leaderOffset
     state.leader = leader
     state.order = [...horses].sort((a, b) => b.x - a.x)
-    uSpeed.value = state.effects && !stage ? Math.min(1, Math.abs(leader.v) / TOP_SPEED) : 0
+    uSpeed.value = !stage ? Math.min(1, Math.abs(leader.v) / TOP_SPEED) : 0
     if (racing && state.started && state.arrival === null && FINISH - leader.x < Math.max(30, Math.abs(leader.v) * ARRIVAL_SECONDS)) {
       state.arrival = { from: leader.x }
     }
 
+    // Arden desde el principio. Al largar la llama se aviva, en cascada: primero el tuyo, después carril por carril.
+    // Sube rápido y se apaga despacio.
     const fireSince = state.countdownEnd === null ? -1 : state.clock - state.countdownEnd - FIRE_DELAY
-    state.fireFade = damp(state.fireFade, stage === "festejo" ? 0 : 1, 14, realDt)
-    // En cascada: primero el tuyo, después los de al lado, carril por carril.
     const fireLane = horses.indexOf(fireHorse)
-    horses.forEach((h, i) => h.setFire?.(clamp((fireSince - Math.abs(i - fireLane) * FIRE_CASCADE) / FIRE_SECONDS, 0, 1), state.fireFade))
+    horses.forEach((h, i) => {
+      const x = (fireSince - Math.abs(i - fireLane) * FIRE_CASCADE) / FIRE_SECONDS
+      h.setFire?.(x > 0 && x < 1 ? Math.sin(Math.PI * Math.sqrt(x)) : 0)
+    })
 
     if (state.winner && racing && state.winner.x >= FINISH - 0.4) {
       state.crossedAt = state.clock
@@ -297,7 +300,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
     if (stage) goal = stage === "festejo" ? 0 : 0.85
     state.intensity = damp(state.intensity, goal, stage === "festejo" ? 14 : 5, realDt)
     state.impact = Math.max(0, state.impact - realDt / 0.22)
-    uI.value = state.effects ? state.intensity : 0
+    uI.value = state.intensity
 
     if (crossedFor > CELEBRATE_AFTER && !state.celebrating) {
       state.celebrating = true
@@ -1212,7 +1215,7 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
         compositeMaterial.uniforms.tPrev.value = rtPrevious.texture
         compositeMaterial.uniforms.uImpact.value = impact
         compositeMaterial.uniforms.uLens.value = lensAmount()
-        compositeMaterial.uniforms.uPortal.value = state.effects ? state.portal : 0
+        compositeMaterial.uniforms.uPortal.value = state.portal
         pass(compositeMaterial, rtCurrent)
 
         blitMaterial.uniforms.tMap.value = rtCurrent.texture
@@ -1226,11 +1229,11 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
   }
 
   function render() {
-    post.run(state.effects ? state.impact : 0)
+    post.run(state.impact)
   }
 
   function lensAmount() {
-    return state.effects ? (uWorld.value * 0.5 + uI.value * 0.6 + state.portal * 0.4) * (1 - 0.8 * state.clarity) : 0
+    return (uWorld.value * 0.5 + uI.value * 0.6 + state.portal * 0.4) * (1 - 0.8 * state.clarity)
   }
 
   // ── Interfaz ──────────────────────────────────────────────────────────────────────
@@ -1394,8 +1397,6 @@ export function createRace({ participants, distance = 2000, horseModel = null, m
 
   return {
     step, run, tick, finish, startIn,
-    setEffects(on) { state.effects = on },
-    get effects() { return state.effects },
     stop() { if (frame) cancelAnimationFrame(frame) },
     // Para probar y grabar.
     debugCamera(pos, look, fov = 35) {

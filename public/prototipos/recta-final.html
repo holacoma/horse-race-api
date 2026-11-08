@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-fase="carrera">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prototipo: carrera 3D simulada</title>
 <link rel="icon" href="data:,">
+<link rel="stylesheet" href="/css/identidad.css">
 <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css">
 <script type="importmap">
   { "imports": {
@@ -16,7 +17,6 @@
 <body>
 <div class="controls">
   <button id="again">▶ Otra carrera</button>
-  <button id="fx">Efectos: sí</button>
 </div>
 <script type="module">
 // Simula al servidor con el mismo formato y la misma cadencia que RaceSimulationJob.
@@ -38,8 +38,7 @@ let seed = Number(params.get("seed")) || Math.floor(Math.random() * 1e9)
 const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
 
 const myId = Number(params.get("yo")) || 1 // igual que en el prototipo real: el primero de la lista es el tuyo
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
-const race = createRace({ participants, distance: DISTANCE, horseModel, myId, capture: CAPTURE, effects: !reducedMotion, showFps: !CAPTURE })
+const race = createRace({ participants, distance: DISTANCE, horseModel, myId, capture: CAPTURE, showFps: !CAPTURE })
 
 // Igual que RaceSimulationJob: aceleran hasta su velocidad tope, y los de atrás recuperan algo.
 const positions = participants.map(() => 0)
@@ -71,9 +70,6 @@ function drive(dt) {
 
 window.__proto = { step(dt) { drive(dt); race.step(dt) }, info: () => race.info(), race }
 
-const fx = document.getElementById("fx")
-fx.textContent = `Efectos: ${race.effects ? "sí" : "no"}`
-fx.addEventListener("click", () => { race.setEffects(!race.effects); fx.textContent = `Efectos: ${race.effects ? "sí" : "no"}` })
 document.getElementById("again").addEventListener("click", () => location.reload())
 
 if (!CAPTURE) {

@@ -6,10 +6,10 @@
 .back-link a[data-fx],
 a.pp-link[data-fx] { display: inline-block; }
 
-/* NES.css pone azul y subrayado todo enlace bajo el mouse. */
+/* Los enlaces con efecto no se subrayan al pasar el mouse. */
 a[data-fx]:hover { text-decoration: none; }
 a.btn-join:hover,
-a.btn-primary:hover { color: var(--color-bg); }
+a.btn-primary:hover { color: var(--sobre-acento); }
 
 /* ── Al pasar el mouse ────────────────────── */
 @media (hover: hover) {
@@ -70,8 +70,8 @@ a.btn-primary:hover { color: var(--color-bg); }
   50% { transform: scale(1.05); }
 }
 @keyframes fx-create-click {
-  0%   { transform: scale(1); box-shadow: 0 0 0 0 var(--color-primary); }
-  35%  { transform: scale(1.1); box-shadow: 0 0 0 6px var(--color-primary); }
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 var(--acento); }
+  35%  { transform: scale(1.1); box-shadow: 0 0 0 6px var(--acento); }
   100% { transform: scale(1); box-shadow: 0 0 0 22px transparent; }
 }
 

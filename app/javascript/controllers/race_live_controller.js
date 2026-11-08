@@ -25,7 +25,7 @@ export default class extends Controller {
   fitTrack() {
     const track = this.trackTarget
     const above = track.getBoundingClientRect().top + window.scrollY
-    const below = parseFloat(getComputedStyle(track.closest(".pixel-main")).paddingBottom)
+    const below = parseFloat(getComputedStyle(track.closest(".app-main")).paddingBottom)
     track.style.setProperty("--page-chrome", `${above + below}px`)
   }
 

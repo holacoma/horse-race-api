@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es" data-fase="fuera">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Club Race · Sistema</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="data:,">
+<!-- La identidad es la misma que usa el juego: todo lo que se ve acá sale de este archivo. -->
+<link rel="stylesheet" href="css/identidad.css">
+<style>
+  /* Las dos fases viven en identidad.css: [data-fase="fuera"] (de día) y [data-fase="carrera"] (de noche).
+     Esta página solo arma la vitrina; cambia de fase poniendo data-fase en <html>. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); background-image: var(--patron); color: var(--texto); font: 500 15px/1.5 var(--fuente-texto); transition: background .25s, color .25s; }
+  .page {
+    max-width: 1180px; margin: 0 auto; padding-block: 36px 96px;
+    padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+  }
+  [data-fase="fuera"] [data-solo="carrera"], [data-fase="carrera"] [data-solo="fuera"] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  .titulo { font-family: var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas); }
+  header.cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+  .marca { font: 700 36px/1 var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; }
+  [data-fase="carrera"] .marca::after { content: ""; display: block; height: 2px; margin-top: 12px; background: var(--acento); box-shadow: var(--linea-de-luz); }
+  [data-fase="fuera"] .marca { color: var(--acento-texto); letter-spacing: .04em; }
+  .regla { color: var(--texto-apagado); font-size: 13px; margin: 10px 0 0; }
+
+  .pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pestana {
+    font: 700 14px var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas);
+    padding: 10px 18px; cursor: pointer; text-decoration: none;
+    color: var(--texto-suave); background: var(--elemento); border: var(--borde-ancho) solid var(--borde);
+    border-radius: var(--radio-chico); clip-path: var(--recorte);
+  }
+  .pestana[aria-current="page"] { color: var(--sobre-acento); background: var(--acento); border-color: var(--acento); box-shadow: var(--sombra); }
+  [data-fase="carrera"] .pestana[aria-current="page"] { box-shadow: var(--brillo-acento); }
+  .pestana:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+  .bajada { color: var(--texto-suave); max-width: 62ch; margin: 0 0 44px; }
+
+  h2 { font: 700 22px/1.2 var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas); margin: 0 0 24px; text-wrap: balance; }
+  h3 { font: 700 13px/1 var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; color: var(--texto-suave); margin: 52px 0 16px; }
+  .nota { color: var(--texto-apagado); font-size: 13px; margin: -6px 0 16px; }
+  code { font: 12px/1.4 ui-monospace, monospace; color: var(--texto-suave); }
+
+  /* Tarjeta base: toma la forma de la fase (redondeada y con sombra de día; recta, recortada y con borde marcado de noche). */
+  .tarjeta {
+    background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio);
+    box-shadow: var(--sombra); clip-path: var(--recorte); padding: 18px; min-width: 0;
+  }
+  [data-fase="carrera"] .tarjeta { border-left: var(--borde-marcado) solid var(--borde-fuerte); padding: 18px 26px 18px 18px; }
+  .tarjeta > b { display: block; font: 700 12px var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; color: var(--texto-suave); margin-bottom: 14px; }
+
+  /* Capas */
+  .capas { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 14px; }
+  .capas .tarjeta > b { color: var(--texto); }
+  .capas p { margin: 0; color: var(--texto-suave); font-size: 13.5px; }
+  .flecha { align-self: center; color: var(--acento); font-size: 22px; }
+  .cadena { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 12px; font: 11px ui-monospace, monospace; color: var(--texto-suave); }
+  .cadena i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--texto) 15%, transparent); }
+
+  /* Escalas */
+  .escalas { display: grid; grid-template-columns: 96px repeat(12, 1fr); gap: 4px; }
+  .grupo { font-size: 11px; color: var(--texto-apagado); letter-spacing: .08em; text-transform: uppercase; padding: 0 2px 6px; border-bottom: 1px solid var(--borde-sutil); margin-bottom: 4px; }
+  .fila { font: 700 12px var(--fuente-titulo); letter-spacing: .06em; text-transform: uppercase; align-self: center; color: var(--texto-suave); }
+  .paso {
+    height: 54px; border: 0; cursor: pointer; border-radius: var(--radio-chico); font: 700 11px var(--fuente-texto);
+    display: grid; place-items: end start; padding: 6px 7px; box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--texto) 8%, transparent);
+  }
+  .paso:hover, .paso:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; z-index: 1; }
+  .leyenda { font-size: 10.5px; line-height: 1.25; color: var(--texto-apagado); padding: 6px 2px 0; }
+
+  /* Forma */
+  .formas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: start; }
+  .boton {
+    font: 700 14px var(--fuente-titulo); letter-spacing: var(--titulo-espaciado); text-transform: var(--titulo-mayusculas);
+    padding: 11px 18px; border: var(--borde-ancho) solid transparent; cursor: pointer;
+    border-radius: var(--radio-chico); clip-path: var(--recorte);
+  }
+  .boton.principal { background: var(--acento); color: var(--sobre-acento); box-shadow: var(--sombra); }
+  .boton.principal:hover { background: var(--acento-encima); }
+  .boton.principal:active { box-shadow: var(--sombra-presionada); transform: translateY(2px); }
+  [data-fase="carrera"] .boton.principal:hover { box-shadow: var(--brillo-acento); }
+  [data-fase="carrera"] .boton { padding: 11px 26px 11px 16px; border-left: var(--borde-marcado) solid color-mix(in oklch, var(--texto) 60%, transparent); }
+  .boton.secundario { background: var(--elemento); color: var(--texto); border-color: var(--borde); }
+  .boton.secundario:hover { background: var(--elemento-encima); border-color: var(--borde-fuerte); }
+  .boton:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+  .botones { display: flex; gap: 10px; flex-wrap: wrap; }
+  .etiqueta {
+    display: inline-block; font: 800 13px var(--fuente-titulo); padding: 2px 9px; border-radius: var(--radio-chico);
+    clip-path: var(--recorte-etiqueta);
+  }
+  [data-fase="carrera"] .etiqueta { padding: 2px 14px 2px 7px; }
+  .medidas { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font: 12px ui-monospace, monospace; color: var(--texto-suave); }
+
+  /* Semánticos */
+  .semanticos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .token { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .token + .token { margin-top: 10px; }
+  .ratio { font: 700 11px ui-monospace, monospace; padding: 2px 6px; border-radius: var(--radio-chico); background: var(--elemento); color: var(--texto-suave); white-space: nowrap; }
+  .capa-1 { background: var(--fondo); border: 1px solid var(--borde-sutil); border-radius: var(--radio-chico); padding: 12px; }
+  .capa-2 { background: var(--superficie); border-radius: var(--radio-chico); padding: 12px; margin-top: 8px; box-shadow: var(--sombra); }
+  .capa-3 { background: var(--superficie-alta); border-radius: var(--radio-chico); padding: 12px; margin-top: 8px; }
+  .capa-4 { background: var(--elemento-encima); border-radius: var(--radio-chico); padding: 10px 12px; margin-top: 8px; }
+  .borde-caja { height: 34px; flex: 1; border-radius: var(--radio-chico); background: var(--superficie-alta); }
+  .estado { display: flex; gap: 10px; align-items: center; padding: 9px 12px; font-size: 13.5px; font-weight: 700; border-left: 4px solid; border-radius: var(--radio-chico); }
+  .estado + .estado { margin-top: 8px; }
+  .pastilla { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 12px; font-weight: 800; background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); }
+  [data-fase="carrera"] .pastilla { border-radius: 0; clip-path: var(--recorte-etiqueta); padding-right: 16px; }
+
+  .mapa { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 0 24px; }
+  .mapa-fila { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--borde-sutil); font: 12px ui-monospace, monospace; min-width: 0; }
+  .mapa-fila i { width: 18px; height: 18px; border-radius: 4px; box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--texto) 12%, transparent); }
+  .mapa-fila span { overflow-wrap: anywhere; }
+  .mapa-fila span:last-child { color: var(--texto-apagado); }
+
+  /* Caballos */
+  .caballos { display: grid; grid-template-columns: 250px 1fr; gap: 28px; align-items: start; }
+  [data-fase="fuera"] .caballos { grid-template-columns: 1fr; }
+  .rueda { width: 100%; height: auto; }
+  .lista-caballos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .caballo {
+    background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); clip-path: var(--recorte);
+    padding: 12px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center;
+    cursor: pointer; font: inherit; color: inherit; text-align: left; box-shadow: var(--sombra);
+  }
+  .chip { grid-row: span 2; width: 34px; height: 34px; border-radius: 50%; }
+  [data-fase="carrera"] .chip { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); }
+  .caballo b { font: 700 14px var(--fuente-titulo); }
+  .caballo small { color: var(--texto-apagado); font: 11px ui-monospace, monospace; }
+
+  /* Neón */
+  .principios { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .principios div { border-left: 2px solid var(--acento); padding: 2px 0 2px 12px; }
+  .principios b { display: block; font-family: var(--fuente-titulo); }
+  .principios span { color: var(--texto-suave); font-size: 13.5px; }
+  .intensidades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .muestra-neon { background: var(--fondo); border: 1px solid var(--borde-sutil); padding: 26px 16px 18px; text-align: center; color: var(--caballo-fuego); clip-path: var(--recorte); }
+  .muestra-neon .palabra { font: 700 26px/1 var(--fuente-titulo); letter-spacing: .18em; text-transform: uppercase; }
+  .muestra-neon .tubo { height: 3px; width: 70%; margin: 18px auto 14px; background: currentColor; }
+  .superficies-neon { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--borde-sutil); }
+  .sup { padding: 18px 16px; display: grid; gap: 10px; color: var(--caballo-hielo); }
+  .sup .palabra { font: 700 20px/1 var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; text-shadow: var(--halo-medio); }
+  .sup .tubo { height: 2px; background: currentColor; box-shadow: var(--halo-medio); }
+  .sup small { color: var(--texto-suave); font: 11px ui-monospace, monospace; }
+  .neones { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; }
+  .neon-tile {
+    color: var(--n); background: var(--fondo); border: 1px solid currentColor; border-left-width: var(--borde-marcado);
+    clip-path: var(--recorte); padding: 14px 22px 14px 14px; display: grid; gap: 10px;
+    box-shadow: inset 0 0 14px color-mix(in oklch, currentColor 16%, transparent);
+  }
+  .neon-tile b { font: 700 15px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; text-shadow: var(--halo-medio); }
+  .neon-tile .fila-neon { display: flex; align-items: center; gap: 8px; }
+  .neon-tile .solido { background: var(--n); color: var(--noche-1); font: 700 12px var(--fuente-titulo); padding: 1px 12px 1px 6px; clip-path: var(--recorte-etiqueta); }
+  .neon-tile small { color: var(--texto-apagado); font: 11px ui-monospace, monospace; }
+  .matriz-envoltura { overflow-x: auto; }
+  .matriz { border-collapse: collapse; width: 100%; min-width: 640px; font: 12px ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .matriz th { text-align: left; font: 700 11px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; color: var(--texto-suave); padding: 8px 10px; border-bottom: 1px solid var(--borde); }
+  .matriz td { padding: 7px 10px; border-bottom: 1px solid var(--borde-sutil); }
+  .matriz td:first-child { font: 700 13px var(--fuente-titulo); }
+  .matriz .ok { color: var(--exito-texto); } .matriz .ui { color: var(--aviso-texto); } .matriz .mal { color: var(--peligro-texto); }
+
+  /* Previsualización */
+  .pista { width: 100%; display: block; background: var(--fondo); border: 1px solid var(--borde-sutil); border-left: var(--borde-marcado) solid var(--acento); }
+
+  /* En uso */
+  .uso { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+  .fila-caballo { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--elemento); font-size: 14px; font-weight: 700; border-radius: var(--radio-chico); }
+  .fila-caballo + .fila-caballo { margin-top: 6px; }
+  .fila-caballo i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .fila-caballo em { margin-left: auto; font-style: normal; color: var(--texto-apagado); font-size: 12.5px; }
+  .fila-caballo.tuyo { background: var(--acento-fondo); outline: var(--borde-ancho) solid var(--acento-borde); }
+  [data-fase="carrera"] .fila-caballo { border-left: var(--borde-marcado) solid var(--c); clip-path: var(--recorte); padding-right: 22px; background: color-mix(in oklch, var(--c) 7%, var(--superficie)); }
+  [data-fase="carrera"] .fila-caballo i { border-radius: 0; }
+  .panel { color: var(--caballo-hielo); background: linear-gradient(180deg, var(--fondo), var(--superficie)); border: 1px solid currentColor; border-left-width: var(--borde-marcado); clip-path: var(--recorte); padding: 18px 28px 18px 20px; }
+  .panel .encabezado { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+  .panel h4 { margin: 0; font: 700 17px var(--fuente-titulo); letter-spacing: .2em; text-transform: uppercase; text-shadow: var(--halo-medio); }
+  .panel .vivo { color: var(--caballo-sombra); border: 1px solid currentColor; box-shadow: var(--halo-suave); padding: 1px 14px 1px 8px; font: 700 11px var(--fuente-titulo); letter-spacing: .1em; text-transform: uppercase; clip-path: var(--recorte-etiqueta); }
+  .panel .linea { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid color-mix(in oklch, currentColor 30%, transparent); color: var(--texto); }
+  .panel .linea i { width: 9px; height: 9px; flex: none; }
+  .panel .linea b { margin-left: auto; color: var(--caballo-hielo); text-shadow: var(--halo-suave); font-variant-numeric: tabular-nums; }
+
+  .luces { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .luz-linea { height: 2px; background: var(--acento); box-shadow: var(--linea-de-luz); margin: 22px 0; }
+  .campo { width: 100%; padding: 10px 12px; border: 1px solid var(--borde-fuerte); background: var(--fondo); color: var(--texto); font: 14px var(--fuente-texto); box-shadow: var(--brillo-foco); }
+
+  .metodo { margin-top: 56px; color: var(--texto-apagado); font-size: 13px; }
+  .metodo a { color: var(--acento-texto); }
+  .copiado { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--superficie-alta); border: 1px solid var(--borde); padding: 8px 14px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; border-radius: var(--radio-chico); }
+  .copiado.ver { opacity: 1; }
+
+  /* ── Textura y desorden ─────────────────────────────────────────────────────────────
+     Grano y rayas encima de todo (de identidad.css). Las piezas, torcidas un poco (--giro): de día como pegadas a mano,
+     de noche como si la carrera estuviera ardiendo. */
+  body::before, body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  body::before { background-image: var(--textura); opacity: var(--textura-opacidad); mix-blend-mode: var(--textura-mezcla); }
+  body::after { background: var(--rayas); }
+
+  .page { position: relative; z-index: 1; }
+  .tarjeta, .caballo, .muestra-neon, .neon-tile, .panel { position: relative; }
+  .semanticos > :nth-child(3n + 1), .formas > :nth-child(2), .uso > :nth-child(1), .capas > :nth-child(1), .lista-caballos > :nth-child(4n + 2), .neones > :nth-child(3n) { transform: rotate(calc(var(--giro) * -1)); }
+  .semanticos > :nth-child(3n + 2), .formas > :nth-child(3), .uso > :nth-child(2), .capas > :nth-child(5), .lista-caballos > :nth-child(5n), .neones > :nth-child(4n + 1) { transform: rotate(var(--giro)) translateY(4px); }
+  .semanticos > :nth-child(3n) { transform: rotate(calc(var(--giro) * 0.5)) translateX(-6px); }
+
+  /* De noche: tinta, no luz. Como Persona o Devil May Cry: contraste plano, sombras duras desplazadas, bordes de tinta,
+     trama de puntos de cómic y bandas rojas y negras de fondo. Nada se mueve de fondo: todo queda fluido. */
+  [data-fase="carrera"] body { background-image:
+    linear-gradient(118deg, transparent 0 63%, var(--carmesi) 63% 66.5%, transparent 66.5% 100%),
+    linear-gradient(118deg, transparent 0 69%, rgb(255 255 255 / 0.05) 69% 84%, transparent 84% 100%),
+    linear-gradient(118deg, transparent 0 8%, rgb(0 0 0 / 0.45) 8% 24%, transparent 24% 100%);
+    background-attachment: fixed; }
+  [data-fase="carrera"] .tarjeta, [data-fase="carrera"] .caballo, [data-fase="carrera"] .panel {
+    background-image: linear-gradient(color-mix(in oklch, var(--superficie) 90%, transparent), color-mix(in oklch, var(--superficie) 90%, transparent)), var(--textura);
+    box-shadow: none; border-color: transparent;
+  }
+  /* Borde de tinta: blanco fino, con el lado marcado en carmesí. Quieto. */
+  [data-fase="carrera"] .tarjeta::after, [data-fase="carrera"] .caballo::after, [data-fase="carrera"] .panel::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    border: 2px solid var(--noche-12); border-left: calc(var(--borde-marcado) * 2) solid var(--carmesi);
+  }
+  [data-fase="carrera"] .tarjeta { border-left-color: transparent; }
+  [data-fase="carrera"] h2, [data-fase="carrera"] h3 {
+    transform: skewX(-12deg) translateX(var(--corrido, 0px)); transform-origin: left; text-shadow: var(--ecos);
+  }
+  [data-fase="carrera"] h3:nth-of-type(odd) { --corrido: 18px; }
+  [data-fase="carrera"] h3:nth-of-type(3n) { --corrido: -8px; }
+  /* La marca, como los títulos de Persona: texto blanco con sombras duras sobre un bloque negro inclinado con canto carmesí. */
+  [data-fase="carrera"] .marca {
+    position: relative; isolation: isolate; display: inline-block; padding: 8px 34px 12px 18px;
+    font-size: 66px; letter-spacing: .02em; color: var(--noche-12); text-shadow: var(--ecos);
+    transform: rotate(-4deg) skewX(-12deg); transform-origin: left bottom;
+  }
+  [data-fase="carrera"] .marca::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(var(--noche-1), var(--noche-1)) 0 0 / calc(100% - 12px) calc(100% - 9px) no-repeat, var(--carmesi);
+    clip-path: polygon(0 12%, 100% 0, 96% 100%, 3% 90%);
+  }
+  [data-fase="carrera"] .marca::after { content: none; }
+  [data-fase="carrera"] .pestana[aria-current="page"] { background: var(--carmesi); color: var(--noche-12); text-shadow: 2px 2px 0 var(--noche-1); border-color: transparent; box-shadow: none; }
+  [data-fase="carrera"] .bajada { transform: rotate(-0.6deg); }
+  [data-fase="carrera"] .neon-tile { box-shadow: none; }
+  /* Al entrar a la carrera: un bloque carmesí cruza en diagonal y deja un flash blanco seco. Solo transform y opacidad. */
+  .corte { position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden; }
+  .corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 60%; background: var(--carmesi); transform: skewX(-18deg) translateX(0); }
+  .corte::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; }
+  .corte.ya::before { animation: cruce .38s cubic-bezier(.7, 0, .3, 1) both; }
+  .corte.ya::after { animation: flash .38s steps(1) both; }
+  @keyframes cruce { to { transform: skewX(-18deg) translateX(330%); } }
+  @keyframes flash { 0%, 35% { opacity: 0; } 36% { opacity: .9; } 46%, 100% { opacity: 0; } }
+
+  /* De día: papel gastado, piezas pegadas a mano, la marca como sello. */
+  /* De día, kawaii al máximo, como una novela visual: la marca rosa con contorno blanco, corazón y brillito que laten,
+     títulos de tarjeta como la etiqueta de nombre de un diálogo, lunares y corazones que suben.
+     Y cada tanto algo raro asoma: un susto de un instante, como en Doki Doki. */
+  [data-fase="fuera"] .marca {
+    position: relative; display: inline-block; font-size: 60px; letter-spacing: .02em; color: var(--acento);
+    transform: rotate(-3deg); transform-origin: left bottom;
+    text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 6px 7px 0 var(--rosa-dia-7);
+    animation: susto 11s steps(1) infinite;
+  }
+  [data-fase="fuera"] .marca::before, [data-fase="fuera"] .marca::after { position: absolute; font-size: .42em; color: var(--acento); animation: latido 1.6s ease-in-out infinite; }
+  [data-fase="fuera"] .marca::before { content: "♥"; right: -.55em; top: -.25em; }
+  [data-fase="fuera"] .marca::after { content: "✦"; left: -.6em; bottom: .1em; color: var(--ambar-dia-9); animation-delay: .8s; height: auto; margin: 0; background: none; display: block; }
+  [data-fase="fuera"] .tarjeta { margin-top: 18px; background-image: linear-gradient(color-mix(in oklch, var(--superficie) 70%, transparent), color-mix(in oklch, var(--superficie) 70%, transparent)), var(--textura); border-color: var(--rosa-dia-6); }
+  [data-fase="fuera"] .tarjeta > b {
+    display: inline-block; margin: -32px 0 12px -8px; padding: 5px 16px;
+    background: var(--acento); color: #fff; border-radius: 14px 14px 14px 4px; box-shadow: 0 3px 0 var(--rosa-dia-7);
+    font: 400 13px var(--fuente-titulo); letter-spacing: .02em; text-transform: none;
+  }
+  [data-fase="fuera"] h2 { color: var(--acento); text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 4px 0 var(--rosa-dia-6); }
+  [data-fase="fuera"] h3::before { content: "♥ "; color: var(--acento); }
+  [data-fase="fuera"] .boton:hover { transform: translateY(-2px) rotate(-1.5deg); }
+  [data-fase="fuera"] .pestana[aria-current="page"] { color: #fff; }
+  .corazones { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .corazones i { position: absolute; bottom: -40px; font-style: normal; color: var(--rosa-dia-8); opacity: .5; animation: subir linear infinite; }
+  @keyframes subir { from { transform: translateY(0) rotate(-12deg); } to { transform: translateY(-115vh) rotate(18deg); } }
+
+  @media (max-width: 760px) {
+    [data-fase="carrera"] .marca { font-size: 42px; }
+    .capas { grid-template-columns: 1fr; } .flecha { transform: rotate(90deg); justify-self: center; }
+    .escalas { grid-template-columns: 64px repeat(12, 1fr); gap: 2px; } .paso { height: 40px; font-size: 9px; padding: 3px; }
+    .grupo { font-size: 9px; } .leyenda { display: none; } .caballos { grid-template-columns: 1fr; }
+    .intensidades, .superficies-neon { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="corte" id="corte" aria-hidden="true"></div>
+<div class="corazones" data-solo="fuera" aria-hidden="true"><i style="left:6%; font-size:22px; animation-duration:9s; animation-delay:-0.0s">♥</i><i style="left:14%; font-size:16px; animation-duration:14s; animation-delay:-1.7s">♥</i><i style="left:23%; font-size:26px; animation-duration:11s; animation-delay:-3.4s">♥</i><i style="left:31%; font-size:14px; animation-duration:17s; animation-delay:-5.1s">♥</i><i style="left:42%; font-size:20px; animation-duration:8s; animation-delay:-6.8s">♥</i><i style="left:51%; font-size:30px; animation-duration:13s; animation-delay:-8.5s">♥</i><i style="left:60%; font-size:18px; animation-duration:16s; animation-delay:-10.2s">♥</i><i style="left:68%; font-size:24px; animation-duration:10s; animation-delay:-11.9s">♥</i><i style="left:77%; font-size:15px; animation-duration:19s; animation-delay:-13.6s">♥</i><i style="left:85%; font-size:28px; animation-duration:12s; animation-delay:-15.3s">♥</i><i style="left:93%; font-size:19px; animation-duration:15s; animation-delay:-17.0s">♥</i><i style="left:47%; font-size:12px; animation-duration:21s; animation-delay:-18.7s">♥</i></div>
+<div class="page">
+  <header class="cabecera">
+    <div>
+      <div class="marca" data-texto="Club Race">Club Race</div>
+      <p class="regla">La primera regla del Club Race es: no se habla del Club Race.</p>
+    </div>
+  </header>
+
+  <nav class="pestanas" aria-label="Fase del juego">
+    <a class="pestana" href="#fuera" data-tab="fuera">Fuera de la carrera</a>
+    <a class="pestana" href="#carrera" data-tab="carrera">Durante la carrera</a>
+  </nav>
+  <p class="bajada" data-solo="fuera">Lobby, apuestas y resultados. De día y kawaii, como una novela visual: rosa, redondeada, con lunares y corazones. Y cada tanto algo raro asoma.</p>
+  <p class="bajada" data-solo="carrera">La carrera. De noche: LSD con filo, como Devil May Cry o Persona. Rojo y negro, tinta y no luz: sombras duras, trama de cómic, recortes fuertes y nada circular.</p>
+
+  <section id="colores">
+    <h2>Colores</h2>
+
+    <div class="capas">
+      <div class="tarjeta"><b>Primitivas</b>
+        <p>Los colores crudos, sin significado. Escalas de 12 pasos que van del fondo al texto, compartidas por las dos fases: <span data-solo="fuera">arena y las de día</span><span data-solo="carrera">noche y las de noche</span>. Ninguna pantalla las usa directo.</p>
+        <div class="cadena" data-solo="fuera"><i style="background: var(--arena-12)"></i>--arena-12</div>
+        <div class="cadena" data-solo="carrera"><i style="background: var(--noche-12)"></i>--noche-12</div>
+      </div>
+      <div class="flecha">→</div>
+      <div class="tarjeta"><b>Semánticos</b>
+        <p>Le dan un uso a un paso, y cada fase tiene los suyos. Si el texto cambia de color, se cambia acá una vez y no en cada pantalla.</p>
+        <div class="cadena" data-solo="fuera"><i style="background: var(--texto)"></i>--texto = var(--arena-12)</div>
+        <div class="cadena" data-solo="carrera"><i style="background: var(--texto)"></i>--texto = var(--noche-12)</div>
+      </div>
+      <div class="flecha">→</div>
+      <div class="tarjeta"><b>Pantallas</b>
+        <p>Solo usan semánticos y declaran su fase. El lobby es <code>fuera</code>, la carrera es <code>carrera</code>: el mismo componente cambia solo.</p>
+        <div class="cadena"><span style="color: var(--texto)">color: var(--texto)</span></div>
+      </div>
+    </div>
+
+    <h3>Escalas</h3>
+    <p class="nota">Clic en un paso copia su variable.</p>
+    <div class="escalas" id="escalas"></div>
+
+    <h3>Forma</h3>
+    <div class="formas">
+      <div class="tarjeta"><b>Tarjeta</b>
+        <div class="medidas" id="medidas"></div>
+      </div>
+      <div class="tarjeta"><b>Botones</b>
+        <div class="botones"><button class="boton principal">Apostar</button><button class="boton secundario">Ver carrera</button></div>
+      </div>
+      <div class="tarjeta"><b>Etiquetas</b>
+        <div class="botones" id="etiquetas-forma"></div>
+      </div>
+    </div>
+
+    <h3>Semánticos</h3>
+    <div class="semanticos">
+      <div class="tarjeta"><b>Superficies</b>
+        <div class="capa-1"><code>--fondo</code>
+          <div class="capa-2"><code>--superficie</code>
+            <div class="capa-3"><code>--superficie-alta</code>
+              <div class="capa-4"><code>--elemento-encima</code></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tarjeta" id="textos"><b>Texto</b>
+        <div class="token" data-fg="--texto"><span style="color: var(--texto)">Texto principal</span></div>
+        <div class="token" data-fg="--texto-suave"><span style="color: var(--texto-suave)">Texto suave</span></div>
+        <div class="token" data-fg="--texto-apagado"><span style="color: var(--texto-apagado)">Texto apagado</span></div>
+        <div class="token" data-fg="--acento-texto"><span style="color: var(--acento-texto)">Texto de acento</span></div>
+      </div>
+      <div class="tarjeta"><b>Bordes</b>
+        <div class="token"><div class="borde-caja" style="border: var(--borde-ancho) solid var(--borde-sutil)"></div><code>--borde-sutil</code></div>
+        <div class="token"><div class="borde-caja" style="border: var(--borde-ancho) solid var(--borde)"></div><code>--borde</code></div>
+        <div class="token"><div class="borde-caja" style="border: var(--borde-ancho) solid var(--borde-fuerte)"></div><code>--borde-fuerte</code></div>
+      </div>
+      <div class="tarjeta"><b>Acento</b>
+        <div class="token"><button class="boton principal">Largar</button><code>--acento</code></div>
+        <div class="token"><span class="pastilla">Tu caballo</span><code>--acento-fondo</code></div>
+      </div>
+      <div class="tarjeta" id="estados"><b>Estados</b>
+        <div class="estado" data-estado="exito">Apuesta confirmada</div>
+        <div class="estado" data-estado="peligro">Saldo insuficiente</div>
+        <div class="estado" data-estado="aviso">La carrera arranca en 10 s</div>
+        <div class="estado" data-estado="info">Hay 3 salas abiertas</div>
+      </div>
+    </div>
+
+    <h3>De qué paso sale cada semántico</h3>
+    <p class="nota">Leído del CSS de esta fase: si se cambia una asignación, esta lista cambia sola.</p>
+    <div class="mapa" id="mapa"></div>
+
+    <h3>Caballos</h3>
+    <p class="nota" data-solo="fuera">De día los neones no se leen sobre crema: cada caballo usa su tinta, el mismo tono más oscuro.</p>
+    <p class="nota" data-solo="carrera">Once tonos a la misma distancia en el círculo cromático, más el blanco. Cada uno cerca de su croma máximo.</p>
+    <div class="caballos">
+      <svg class="rueda" id="rueda" viewBox="-130 -130 260 260" data-solo="carrera" role="img" aria-label="Los doce colores de caballo en el círculo cromático"></svg>
+      <div class="lista-caballos" id="caballos"></div>
+    </div>
+
+    <div data-solo="carrera">
+      <h3>Previsualización</h3>
+      <p class="nota">Los 12 corriendo, con su número encima: así se distinguen juntos y en movimiento.</p>
+      <canvas class="pista" id="pista" height="430" aria-label="Doce caballos de neón corriendo hacia la meta"></canvas>
+
+      <h3>Tinta</h3>
+      <div class="principios">
+        <div><b>Contraste plano</b><span>Color lleno sobre negro, sin brillo. La fuerza sale del contraste y del corte, no de la luz.</span></div>
+        <div><b>Sombra dura, no halo</b><span>Copias corridas en negro y carmesí, sin desenfoque. Bordes gruesos de tinta.</span></div>
+        <div><b>El color marca, no se lee</b><span>Títulos, números clave y fichas. El texto corrido va en blanco.</span></div>
+      </div>
+      <p class="nota" style="margin-top: 28px">Intensidad: el mismo color con cada sombra (de noche, los halos son tinta).</p>
+      <div class="intensidades" id="intensidades"></div>
+      <p class="nota" style="margin-top: 28px">Sobre cada superficie: cuanto más clara, menos contraste.</p>
+      <div class="superficies-neon" id="superficies-neon"></div>
+      <p class="nota" style="margin-top: 28px">Los 12, como se usan: borde de color, nombre con sombra dura y número sólido con texto oscuro.</p>
+      <div class="neones" id="neones"></div>
+      <p class="nota" style="margin-top: 28px">Contraste (WCAG 2): <span style="color: var(--exito-texto)">4,5:1 o más sirve para texto</span>, <span style="color: var(--aviso-texto)">3:1 solo para bordes e íconos</span>, <span style="color: var(--peligro-texto)">menos de 3:1 no sirve</span>.</p>
+      <div class="matriz-envoltura"><table class="matriz" id="matriz"></table></div>
+    </div>
+
+    <h3>En uso</h3>
+    <div class="uso">
+      <div class="tarjeta"><b>Sala · 2000 m</b>
+        <div id="filas"></div>
+        <div class="botones" style="margin-top: 16px"><button class="boton principal">Apostar</button><button class="boton secundario">Ver carrera</button></div>
+      </div>
+      <div class="panel" data-solo="carrera">
+        <div class="encabezado"><h4>Sala 7 · 2000 m</h4><span class="vivo">En vivo</span></div>
+        <div id="panel-filas"></div>
+      </div>
+      <div class="tarjeta" data-solo="fuera"><b>Resultado</b>
+        <div class="estado" data-estado="exito">Ganó Fuego · cobrás 3,4 veces tu apuesta</div>
+        <div class="estado" data-estado="info">Tu próxima carrera arranca en 2 minutos</div>
+      </div>
+    </div>
+
+    <div data-solo="carrera">
+      <h3>Luz en la interfaz</h3>
+      <div class="luces">
+        <div class="tarjeta"><b>Línea de luz</b><div class="luz-linea"></div><code>--linea-de-luz</code></div>
+        <div class="tarjeta"><b>Brillo de acento</b><button class="boton principal" style="background: var(--acento-encima); box-shadow: var(--brillo-acento)">Apostar</button><p><code>--brillo-acento</code></p></div>
+        <div class="tarjeta"><b>Foco</b><input class="campo" id="campo-foco" value="Monto de la apuesta" aria-label="Monto de la apuesta"><p><code>--brillo-foco</code></p></div>
+      </div>
+    </div>
+
+    <p class="metodo">Método:
+      escalas con un uso por paso (<a href="https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale">Radix</a>),
+      capas de tokens (<a href="https://www.figma.com/resource-library/design-token-architecture/">Figma</a>),
+      tema oscuro con elevación por superficies (<a href="https://uxcel.com/blog/mastering-elevation-for-dark-ui-a-comprehensive-guide-342">Uxcel</a>),
+      colores categóricos por distancia en OKLab (<a href="https://pypi.org/project/okpalette/0.2.0/">okpalette</a>).
+      Se genera con <code>script/colores.mjs</code>.</p>
+  </section>
+</div>
+<div class="copiado" id="copiado" role="status"></div>
+
+<script>
+// Todo sale de las variables del CSS: cambiar /css/identidad.css (o su generador) cambia esta página y el juego.
+const root = document.documentElement
+const SCALES = { fuera: ["arena", "rosa-dia", "fuego-dia", "rojo-dia", "verde-dia", "ambar-dia", "cian-dia"], carrera: ["noche", "fuego", "rojo", "verde", "ambar", "cian"] }
+const GROUPS = [["Fondos", 2], ["Elementos", 3], ["Bordes", 3], ["Sólidos", 2], ["Texto", 2]]
+const USES = ["Fondo de la app", "Fondo sutil", "Elemento", "Elemento encima", "Presionado", "Borde sutil", "Borde", "Borde fuerte y foco", "Sólido", "Sólido encima", "Texto suave", "Texto"]
+const HORSES = ["fuego", "roca", "veneno", "naturaleza", "viento", "hielo", "agua", "metal", "electricidad", "cosmos", "sombra", "luz"]
+const NAMES = { fuego: "Fuego", roca: "Roca", veneno: "Veneno", naturaleza: "Naturaleza", viento: "Viento", hielo: "Hielo", agua: "Agua", metal: "Metal", electricidad: "Electricidad", cosmos: "Cosmos", sombra: "Sombra", luz: "Luz" }
+const $ = id => document.getElementById(id)
+
+// Colores: cualquier formato a RGB (vía canvas), contraste WCAG 2 y tono OKLCH.
+const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true })
+function rgbOf(value) {
+  probe.clearRect(0, 0, 1, 1)
+  probe.fillStyle = "#000"
+  probe.fillStyle = value
+  probe.fillRect(0, 0, 1, 1)
+  return [...probe.getImageData(0, 0, 1, 1).data.slice(0, 3)]
+}
+function resolve(name) {
+  const el = document.createElement("i")
+  el.style.color = `var(${name})`
+  document.body.append(el)
+  const value = getComputedStyle(el).color
+  el.remove()
+  return value
+}
+const raw = name => getComputedStyle(root).getPropertyValue(name).trim()
+const linear = rgb => rgb.map(v => v / 255).map(c => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+const lum = rgb => linear(rgb).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0)
+const ratio = (a, b) => { const [x, y] = [lum(rgbOf(a)), lum(rgbOf(b))].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+function hueOf(rgb) {
+  const [r, g, b] = linear(rgb)
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+  return Math.hypot(A, B) < 0.02 ? null : (Math.atan2(B, A) * 180 / Math.PI + 360) % 360
+}
+
+const copied = $("copiado")
+function copy(text) {
+  try { navigator.clipboard?.writeText(text).catch(() => {}) } catch {}
+  copied.textContent = `Copiado: ${text}`
+  copied.classList.add("ver")
+  clearTimeout(copy.t)
+  copy.t = setTimeout(() => copied.classList.remove("ver"), 1200)
+}
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e }
+
+// ── Cada fase se arma de nuevo al cambiar de pestaña ──────────────────────────────────
+function render(phase) {
+  root.dataset.fase = phase
+  document.querySelectorAll(".pestana").forEach(t => t.setAttribute("aria-current", t.dataset.tab === phase ? "page" : "false"))
+  const night = phase === "carrera"
+
+  // Escalas de la fase, con el uso de cada paso debajo.
+  const grid = $("escalas")
+  grid.replaceChildren(el("div"))
+  GROUPS.forEach(([label, span]) => { const g = el("div", "grupo", label); g.style.gridColumn = `span ${span}`; grid.append(g) })
+  SCALES[phase].forEach(scale => {
+    grid.append(el("div", "fila", scale.replace("-dia", "")))
+    for (let step = 1; step <= 12; step++) {
+      const name = `--${scale}-${step}`
+      const b = el("button", "paso", step)
+      b.style.background = `var(${name})`
+      b.style.color = (night ? step >= 9 : step <= 8) ? `var(--${night ? "noche-1" : "arena-12"})` : `var(--${night ? "noche-12" : "arena-1"})`
+      b.title = `${name}: ${raw(name)}`
+      b.onclick = () => copy(`var(${name})`)
+      grid.append(b)
+    }
+  })
+  grid.append(el("div"))
+  USES.forEach(use => grid.append(el("div", "leyenda", use)))
+
+  // Forma: lo que mide la fase.
+  $("medidas").innerHTML = ["--radio", "--radio-chico", "--corte", "--borde-ancho", "--borde-marcado"]
+    .map(t => `<span>${t}</span><span>${raw(t)}</span>`).join("")
+  $("etiquetas-forma").replaceChildren(...["fuego", "hielo", "electricidad"].map((h, i) => {
+    const tag = el("span", "etiqueta", i + 1)
+    tag.style.background = `var(--caballo-${h}${night ? "" : "-tinta"})`
+    tag.style.color = night ? "var(--noche-1)" : "var(--arena-1)"
+    return tag
+  }))
+
+  // Texto: contraste sobre la superficie.
+  const surface = resolve("--superficie")
+  document.querySelectorAll("#textos .token").forEach(row => {
+    row.querySelector(".ratio")?.remove()
+    row.append(el("span", "ratio", `${row.dataset.fg} · ${ratio(resolve(row.dataset.fg), surface).toFixed(1)}:1`))
+  })
+  document.querySelectorAll("#estados .estado, .uso .estado").forEach(row => {
+    const s = row.dataset.estado
+    row.style.background = `var(--${s}-fondo)`
+    row.style.color = `var(--${s}-texto)`
+    row.style.borderColor = `var(--${s})`
+  })
+
+  // Mapa: las asignaciones tal como están escritas en el bloque de esta fase.
+  const map = $("mapa")
+  map.replaceChildren()
+  for (const sheet of document.styleSheets) {
+    let rules = []
+    try { rules = [...sheet.cssRules] } catch { continue }
+    rules.filter(r => r.selectorText && r.selectorText.includes(`"${phase}"`)).forEach(rule => {
+      for (const name of rule.style) {
+        const m = rule.style.getPropertyValue(name).trim().match(/^var\((--[a-z-]+-\d+)\)$/)
+        if (m) map.append(el("div", "mapa-fila", `<i style="background: var(${name})"></i><span>${name}</span><span>${m[1]}</span>`))
+      }
+    })
+  }
+
+  // Caballos.
+  const background = resolve("--fondo")
+  const list = $("caballos")
+  list.replaceChildren()
+  const wheel = $("rueda")
+  wheel.replaceChildren()
+  if (night) {
+    const NS = "http://www.w3.org/2000/svg"
+    // Nada circular: el anillo es un polígono de 11 lados y cada caballo, un rombo.
+    const ring = document.createElementNS(NS, "polygon")
+    const corners = Array.from({ length: 11 }, (_, k) => { const t = (k / 11) * Math.PI * 2 - Math.PI / 2; return `${(Math.cos(t) * 100).toFixed(1)},${(Math.sin(t) * 100).toFixed(1)}` }).join(" ")
+    Object.entries({ points: corners, fill: "none", stroke: resolve("--borde"), "stroke-width": 1 }).forEach(([k, v]) => ring.setAttribute(k, v))
+    wheel.append(ring)
+    HORSES.forEach(horse => {
+      const value = raw(`--caballo-${horse}`)
+      const hue = hueOf(rgbOf(value))
+      const angle = ((hue ?? 0) - 90) * Math.PI / 180, radius = hue === null ? 0 : 100
+      const dot = document.createElementNS(NS, "rect")
+      const s = hue === null ? 22 : 18, cx = Math.cos(angle) * radius, cy = Math.sin(angle) * radius
+      Object.entries({ x: cx - s / 2, y: cy - s / 2, width: s, height: s, fill: value, transform: `rotate(45 ${cx} ${cy})` }).forEach(([k, v]) => dot.setAttribute(k, v))
+      wheel.append(dot)
+    })
+  }
+  HORSES.forEach(horse => {
+    const token = `--caballo-${horse}${night ? "" : "-tinta"}`
+    const value = raw(token)
+    const card = el("button", "caballo", `<span class="chip" style="background:${value};${night ? " box-shadow: 3px 3px 0 var(--noche-1)" : ""}"></span><b style="${night ? "" : `color:${value}`}">${NAMES[horse]}</b><small>${value} · ${ratio(value, background).toFixed(1)}:1</small>`)
+    card.onclick = () => copy(`var(${token})`)
+    list.append(card)
+  })
+
+  // Neón (solo de noche).
+  if (night) {
+    $("intensidades").replaceChildren(...[["Sin halo", "none"], ["Suave", "var(--halo-suave)"], ["Medio", "var(--halo-medio)"], ["Fuerte", "var(--halo-fuerte)"]].map(([label, halo], i) =>
+      el("div", "muestra-neon", `<div class="palabra" style="text-shadow: ${halo}">Fuego</div><div class="tubo" style="box-shadow: ${halo}"></div><code>${i ? `--halo-${label.toLowerCase()}` : "sin halo"}</code>`)))
+    const SURFACES = [["--fondo", "Fondo"], ["--superficie", "Superficie"], ["--superficie-alta", "Superficie alta"], ["--elemento-encima", "Elemento encima"]]
+    $("superficies-neon").replaceChildren(...SURFACES.map(([token, label]) => {
+      const cell = el("div", "sup", `<div class="palabra">Hielo</div><div class="tubo"></div><small>${label} · ${ratio(raw("--caballo-hielo"), resolve(token)).toFixed(1)}:1</small>`)
+      cell.style.background = `var(${token})`
+      return cell
+    }))
+    const white = resolve("--texto")
+    const grade = r => (r >= 4.5 ? "ok" : r >= 3 ? "ui" : "mal")
+    $("neones").replaceChildren()
+    $("matriz").innerHTML = `<tr><th>Caballo</th>${SURFACES.map(([, label]) => `<th>Sobre ${label.toLowerCase()}</th>`).join("")}<th>Texto blanco sobre él</th></tr>`
+    HORSES.forEach((horse, i) => {
+      const value = raw(`--caballo-${horse}`)
+      const onBg = ratio(value, background), whiteOn = ratio(white, value)
+      const tile = el("div", "neon-tile", `<b>${NAMES[horse]}</b><div class="fila-neon"><span class="solido">${i + 1}</span><small>${value}</small></div><small>sobre negro ${onBg.toFixed(1)}:1 · blanco encima ${whiteOn.toFixed(1)}:1</small>`)
+      tile.style.setProperty("--n", value)
+      $("neones").append(tile)
+      const cells = SURFACES.map(([token]) => ratio(value, resolve(token)))
+      $("matriz").insertAdjacentHTML("beforeend", `<tr><td style="color:${value}">${NAMES[horse]}</td>${cells.map(r => `<td class="${grade(r)}">${r.toFixed(1)}:1</td>`).join("")}<td class="${grade(whiteOn)}">${whiteOn.toFixed(1)}:1</td></tr>`)
+    })
+    $("panel-filas").innerHTML = [["fuego", "+0 m"], ["hielo", "+3 m"], ["electricidad", "+7 m"], ["roca", "+12 m"]].map(([horse, gap], i) =>
+      `<div class="linea"><span>${i + 1}</span><i style="background: var(--caballo-${horse})"></i>${NAMES[horse]}<b>${gap}</b></div>`).join("")
+  }
+
+  // En uso: la sala.
+  $("filas").innerHTML = ["fuego", "hielo", "electricidad", "roca", "agua"].map((horse, i) => {
+    const c = `var(--caballo-${horse}${night ? "" : "-tinta"})`
+    return `<div class="fila-caballo${i === 0 ? " tuyo" : ""}" style="--c: ${c}"><b>${i + 1}</b><i style="background: ${c}"></i>${NAMES[horse]}<em>${i ? `+${i * 4} m` : "Tu caballo"}</em></div>`
+  }).join("")
+
+  race.reset(night)
+  // Al entrar a la carrera, el corte: un bloque carmesí cruza y deja un flash seco.
+  if (night && render.last === "fuera") { const cut = $("corte"); cut.classList.remove("ya"); void cut.offsetWidth; cut.classList.add("ya") }
+  render.last = phase
+}
+
+// ── Previsualización: 12 caballos de neón en una pista ─────────────────────────────────
+const race = (() => {
+  const canvas = $("pista")
+  const ctx = canvas.getContext("2d")
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches
+  let colors = [], speeds = [], running = false, start = 0, frame = 0, ink = "#000", lane = "#333", finish = "#fff", trail = [], lastT = 0
+  const RACE = 6.5, PAUSE = 1.6
+
+  function size() {
+    const dpr = Math.min(2, devicePixelRatio || 1)
+    const width = canvas.clientWidth
+    canvas.width = width * dpr
+    canvas.height = 430 * dpr
+    canvas.style.height = "430px"
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+
+  // Silueta de perfil mirando a la derecha: cuerpo, cuello, cabeza, cola y cuatro patas que galopan.
+  function horse(x, y, s, phase, color) {
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.strokeStyle = color
+    ctx.lineCap = "round"
+    ctx.lineWidth = 1.8
+    const legs = [[0.55, 0], [0.42, Math.PI * 0.35], [-0.55, Math.PI], [-0.68, Math.PI * 1.35]]
+    legs.forEach(([lx, off]) => {
+      const a = Math.sin(phase + off) * 0.7, b = Math.max(0, Math.sin(phase + off + 1.2)) * 1.1
+      const kx = lx * s + Math.sin(a) * 0.45 * s, ky = 0.2 * s + Math.cos(a) * 0.45 * s
+      ctx.beginPath()
+      ctx.moveTo(lx * s, 0.2 * s)
+      ctx.lineTo(kx, ky)
+      ctx.lineTo(kx + Math.sin(a - b) * 0.45 * s, ky + Math.cos(a - b) * 0.45 * s)
+      ctx.stroke()
+    })
+    ctx.beginPath()
+    ctx.moveTo(-0.78 * s, -0.12 * s)
+    ctx.quadraticCurveTo(-1.3 * s, -0.4 * s, -1.4 * s, (0.12 + 0.08 * Math.sin(phase * 2)) * s)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.ellipse(0, 0, 0.85 * s, 0.32 * s, 0, 0, Math.PI * 2)
+    ctx.moveTo(0.45 * s, -0.22 * s)
+    ctx.lineTo(0.95 * s, -0.78 * s)
+    ctx.lineTo(1.18 * s, -0.66 * s)
+    ctx.lineTo(0.8 * s, 0.02 * s)
+    ctx.closePath()
+    ctx.ellipse(1.22 * s, -0.62 * s, 0.34 * s, 0.13 * s, 0.5, 0, Math.PI * 2)
+    ctx.fillStyle = ink
+    ctx.fill()
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  function tag(x, y, n, color) {
+    const w = n > 9 ? 26 : 20, h = 15
+    ctx.save()
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + w, y)
+    ctx.lineTo(x + w - 5, y + h)
+    ctx.lineTo(x, y + h)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = ink
+    ctx.font = `700 11px ${getComputedStyle(root).getPropertyValue("--fuente-titulo")}`
+    ctx.fillText(n, x + 4, y + 11.5)
+    ctx.restore()
+  }
+
+  function draw(t) {
+    const width = canvas.clientWidth, top = 26, step = 32, startX = 40, goal = width - 70
+    ctx.clearRect(0, 0, width, 430)
+    ctx.strokeStyle = lane
+    ctx.lineWidth = 1
+    for (let i = 0; i <= 12; i++) { ctx.beginPath(); ctx.moveTo(0, top + i * step + 4); ctx.lineTo(width, top + i * step + 4); ctx.stroke() }
+    ctx.save()
+    ctx.strokeStyle = finish
+    ctx.lineWidth = 3
+    ctx.beginPath(); ctx.moveTo(goal, top - 6); ctx.lineTo(goal, top + 12 * step + 4); ctx.stroke()
+    ctx.restore()
+    const p = Math.min(1, t / RACE)
+    const dt = Math.max(0, Math.min(0.05, t - lastT))
+    lastT = t
+    // Chispas que deja cada caballo al correr: se van para atrás y se apagan.
+    ctx.save()
+    ctx.globalCompositeOperation = "lighter"
+    trail = trail.filter(s => (s.life += dt) < s.span)
+    trail.forEach(s => {
+      s.x += s.vx * dt
+      s.y += s.vy * dt
+      ctx.globalAlpha = 1 - s.life / s.span
+      ctx.fillStyle = s.color
+      ctx.fillRect(s.x, s.y, s.size, s.size)
+    })
+    ctx.restore()
+    colors.forEach((color, i) => {
+      const progress = Math.min(1.04, p * speeds[i] + 0.012 * Math.sin(t * 1.7 + i * 2.1))
+      const x = startX + progress * (goal - startX)
+      const y = top + i * step + step / 2 - 2
+      if (dt > 0 && p < 1) for (let k = 0; k < 2; k++) {
+        trail.push({ x: x - 14 - Math.random() * 6, y: y - 6 + Math.random() * 10, vx: -30 - Math.random() * 60, vy: -6 - Math.random() * 14, life: 0, span: 0.35 + Math.random() * 0.4, size: 1 + Math.random() * 1.6, color })
+      }
+      horse(x, y, 11, t * 13 + i, color)
+      tag(x - 4, y - 25, i + 1, color)
+    })
+  }
+
+  function loop(now) {
+    if (!running) return
+    const t = (now - start) / 1000
+    if (t > RACE + PAUSE) { newRace(); start = now }
+    draw(Math.min(t, RACE))
+    frame = requestAnimationFrame(loop)
+  }
+  function newRace() { speeds = colors.map(() => 0.9 + Math.random() * 0.16); trail = []; lastT = 0 }
+
+  return {
+    reset(night) {
+      cancelAnimationFrame(frame)
+      running = false
+      if (!night) return
+      size()
+      colors = HORSES.map(h => raw(`--caballo-${h}`))
+      ink = resolve("--fondo")
+      lane = resolve("--borde-sutil")
+      finish = resolve("--texto")
+      newRace()
+      if (still) { draw(RACE * 0.7); return }
+      running = true
+      start = performance.now()
+      frame = requestAnimationFrame(loop)
+    },
+    resize() { if (running || still) { size(); if (still) draw(RACE * 0.7) } }
+  }
+})()
+
+// Pestañas por el hash (#fuera, #carrera); sin hash, fuera.
+const phaseFromHash = () => (location.hash === "#carrera" ? "carrera" : "fuera")
+addEventListener("hashchange", () => render(phaseFromHash()))
+addEventListener("resize", () => race.resize())
+document.fonts?.ready.then(() => render(phaseFromHash()))
+render(phaseFromHash())
+</script>
+</body>
+</html>

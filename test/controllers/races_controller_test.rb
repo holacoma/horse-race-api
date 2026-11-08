@@ -30,7 +30,7 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
   test "GET /races/new offers the slot machine with the chosen room name" do
     get new_race_path
 
-    reels = css_select("form.pixel-form .slot-reel")
+    reels = css_select("form.formulario .slot-reel")
     assert_equal Race::ROOM_NAME_REELS, reels.map { |reel| JSON.parse(reel["data-words"]) }
     assert_select "input[type=text][name='race[slug]']", 0
 

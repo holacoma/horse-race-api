@@ -1,85 +1,21 @@
-.new-race-wrap { max-width: 480px; }
-
-.new-race-wrap h1 { margin-bottom: 0.25rem; }
-.new-race-wrap .subtitle { margin-bottom: 2rem; }
-
-.pixel-form {
-  background: var(--color-surface);
-  border: 3px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-primary);
-  padding: 1.75rem;
-  display: flex; flex-direction: column; gap: 1.25rem;
+/* Crear sala (y el formulario del prototipo 3D): una tarjeta con los campos en columna. */
+.new-race-wrap { max-width: 560px; }
+.formulario {
+  display: grid; gap: 18px; padding: 24px;
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil);
+  border-radius: var(--radio); box-shadow: var(--sombra); clip-path: var(--recorte);
+  transform: rotate(calc(var(--giro) * -.6));
 }
-
-.field { display: flex; flex-direction: column; gap: 0.5rem; }
-
-.field label,
-.field-label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-
-.field input[type="text"],
-.field input[type="number"],
-.field select {
-  padding: 0.6rem 0.85rem;
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
-  color: var(--color-text); font-family: var(--font-pixel); font-size: 9px;
-  width: 100%;
-}
-.field input[type="text"]:focus,
-.field input[type="number"]:focus,
-.field select:focus { outline: none; border-color: var(--color-primary); }
-.field select option { background: var(--color-bg); }
-
-.toggle-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--color-border);
-}
-.toggle-label { font-size: 9px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-
-.toggle { position: relative; display: inline-block; width: 44px; height: 22px; }
-.toggle input { display: none; }
-.toggle-slider {
-  position: absolute; inset: 0;
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
-  cursor: pointer; transition: background 0.1s;
-}
-.toggle input:checked + .toggle-slider { background: var(--color-green); border-color: var(--color-green); }
-.toggle-slider::after {
-  content: ""; position: absolute;
-  top: 2px; left: 2px; width: 14px; height: 14px;
-  background: var(--color-muted); transition: left 0.1s;
-}
-.toggle input:checked + .toggle-slider::after {
-  left: 22px; background: var(--color-bg);
-}
-
-.error-list {
-  list-style: none;
-  background: #fde8e8;
-  border: 2px solid #c0392b;
-  padding: 0.6rem 0.85rem; font-size: 9px; color: #7a1010;
-  display: flex; flex-direction: column; gap: 0.25rem;
-}
-
-.btn-submit {
-  padding: 0.75rem 1.5rem;
-  background: var(--color-primary); color: var(--color-bg);
-  border: 3px solid var(--color-text);
-  box-shadow: 4px 4px 0 var(--color-border);
-  font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
-  align-self: flex-start; transition: box-shadow 0.08s;
-}
-.btn-submit:hover { box-shadow: 2px 2px 0 var(--color-border); }
-.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* En teléfono el formulario deja carretes angostos: que entre la palabra más larga. */
-@media (max-width: 480px) {
-  .pixel-form { padding: 1rem; }
-  .pixel-form .slot-cabinet { padding: 0.4rem; }
-  .pixel-form .slot-cell { font-size: 8px; }
-}
-@media (max-width: 360px) {
-  .pixel-form .slot-cell { font-size: 7px; }
-}
+.field { display: grid; gap: 8px; }
+.field-label, .field label { font: 700 14px var(--fuente-titulo); color: var(--texto-suave); }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.toggle-label { font: 700 14px var(--fuente-titulo); color: var(--texto-suave); }
+.toggle { position: relative; width: 54px; height: 30px; flex: none; }
+.toggle input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.toggle-slider { position: absolute; inset: 0; background: var(--elemento-presionado); border: var(--borde-ancho) solid var(--borde); border-radius: 99px; transition: background .15s; }
+.toggle-slider::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--superficie); box-shadow: var(--sombra); transition: transform .15s; }
+.toggle input:checked + .toggle-slider { background: var(--exito); border-color: var(--exito); }
+.toggle input:checked + .toggle-slider::after { transform: translateX(24px); }
+.toggle input:focus-visible + .toggle-slider { outline: 2px solid var(--foco); outline-offset: 2px; }
+.btn-submit { width: 100%; font-size: 16px; padding: 13px 20px; }
+.formulario .back-link { margin-top: 0; text-align: center; }

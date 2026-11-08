@@ -1,5 +1,6 @@
 <% content_for :title, "#{@race.slug} — En carrera" %>
-<% content_for :page_title, @race.slug.upcase %>
+<% content_for :page_title, @race.slug %>
+<% content_for :fase, "carrera" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/race-live.css?v=2">
 <% end %>

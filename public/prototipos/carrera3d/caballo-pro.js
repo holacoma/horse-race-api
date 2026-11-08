@@ -5,21 +5,17 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { buildFire } from "./fuego.js"
 import { outline } from "./caballo.js"
 
-// Cada caballo es un elemento, con un color adentro y otro afuera. Al largar, todos arden con el color de afuera.
+// Cada caballo es un elemento y arde en su color. Los colores son de la identidad visual (/css/identidad.css,
+// --caballo-<elemento>): el mismo en la escena, la lista, el mapa y las etiquetas. Sin ese CSS, cae al de respaldo.
+const identity = name => {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(`--caballo-${name.toLowerCase()}`).trim()
+  return /^#[0-9a-f]{6}$/i.test(value) ? parseInt(value.slice(1), 16) : null
+}
 export const ELEMENTS = [
-  { name: "Fuego", inner: 0x3a0800, outer: 0xff7a14 },
-  { name: "Hielo", inner: 0x0a2c5c, outer: 0x86ecff },
-  { name: "Electricidad", inner: 0x170838, outer: 0xb78cff },
-  { name: "Agua", inner: 0x00284a, outer: 0x2fa0ff },
-  { name: "Viento", inner: 0x0a3026, outer: 0x6dffbe },
-  { name: "Roca", inner: 0x221712, outer: 0xe0aa62 },
-  { name: "Sombra", inner: 0x0c0614, outer: 0xff2d6f },
-  { name: "Luz", inner: 0x4a3606, outer: 0xfff0a6 },
-  { name: "Veneno", inner: 0x102e06, outer: 0xb0ff1c },
-  { name: "Metal", inner: 0x1c2230, outer: 0xdbe7f5 },
-  { name: "Naturaleza", inner: 0x113012, outer: 0x58dc40 },
-  { name: "Cosmos", inner: 0x180c36, outer: 0xff6ae6 }
-]
+  ["Fuego", 0xfe6a00], ["Hielo", 0x00e5fe], ["Electricidad", 0xb96ff7], ["Agua", 0x00abff],
+  ["Viento", 0x00f3cd], ["Roca", 0xfeb200], ["Sombra", 0xfa5576], ["Luz", 0xffffff],
+  ["Veneno", 0xd9db00], ["Metal", 0x7a8cff], ["Naturaleza", 0x76f173], ["Cosmos", 0xe45cbf]
+].map(([name, fallback]) => ({ name, outer: identity(name) ?? fallback }))
 
 const HEIGHT = 2.5 // metros, de los cascos a las orejas
 const LEVELS = 2
@@ -73,6 +69,29 @@ const REST_GLSL = `
     return p;
   }
 `
+
+// El mismo reposo en JS, para los puntos de la crin y la cola de donde salen las llamas (sin la mano que patea).
+const turn = (p, a, b, pa, pb, angle) => {
+  const c = Math.cos(angle), s = Math.sin(angle), u = p[a] - pa, v = p[b] - pb
+  p[a] = pa + c * u - s * v
+  p[b] = pb + s * u + c * v
+}
+function restPoint(p, headWeight, tailWeight, rest, t) {
+  const head = rest * headWeight
+  if (head > 0) {
+    const down = 0.1 + 0.07 * Math.sin(t * 1.1) + 0.38 * smoothstep(0.3, 1, Math.sin(t * 0.19 + 2))
+    const shake = 0.16 * Math.pow(Math.max(0, Math.sin(t * 0.57 + 1)), 40) * Math.sin(t * 17)
+    const look = 0.32 * Math.sin(t * 0.31) + 0.06 * Math.sin(t * 1.7)
+    turn(p, 1, 2, REST.neck.pivotY, REST.neck.pivotZ, (down + shake) * head)
+    turn(p, 0, 2, 0, REST.neck.pivotZ, look * head)
+  }
+  const tail = rest * tailWeight
+  if (tail > 0) {
+    const swish = 0.55 * Math.sin(t * 2.3 + 1.5 * Math.sin(t * 0.7)) * (0.5 + 0.5 * Math.sin(t * 0.37))
+    turn(p, 1, 2, REST.tail.pivotY, REST.tail.pivotZ, -1.05 * tail)
+    turn(p, 0, 2, 0, REST.tail.pivotZ, swish * tail)
+  }
+}
 
 // Se suma a lo que ya hace el material (fuego, contorno), después de aplicar el galope.
 function withRest(material, uniforms) {
@@ -341,7 +360,6 @@ function standingPose(poses, index) {
 
 export function buildProHorse(model, index) {
   const element = ELEMENTS[index % ELEMENTS.length]
-  const outer = new THREE.Color(element.outer)
   const root = new THREE.Group()
   const holder = new THREE.Group()
   holder.rotation.y = HEADING
@@ -349,13 +367,15 @@ export function buildProHorse(model, index) {
   holder.position.x = -model.centerZ * model.scale
   root.add(holder)
 
-  const fire = buildFire(model, element, outer)
+  const fire = buildFire(model, element)
   // Cada caballo descansa a su ritmo: el reloj arranca corrido.
   const rest = { uRest: { value: 1 }, uRestT: { value: index * 7.3 }, ...model.joints }
+  const weights = model.geometry.attributes.aRest.array
+  const bend = (vertex, p) => restPoint(p, weights[vertex * 3], weights[vertex * 3 + 1], rest.uRest.value, rest.uRestT.value)
   const mesh = new THREE.Mesh(model.geometry, withRest(fire.material, rest))
   holder.add(mesh)
   root.add(fire.flames)
-  const hull = new THREE.Mesh(model.geometry, withRest(outline({ width: 0.02 / model.scale, color: outer.clone().multiplyScalar(1.8), grow: true }), rest))
+  const hull = new THREE.Mesh(model.geometry, withRest(outline({ width: 0.02 / model.scale, color: fire.edge.clone().multiplyScalar(0.9), grow: true }), rest))
   hull.morphTargetInfluences = mesh.morphTargetInfluences
   hull.morphTargetDictionary = mesh.morphTargetDictionary
   mesh.add(hull)
@@ -385,7 +405,7 @@ export function buildProHorse(model, index) {
       mixer.update(dt)
       rest.uRest.value = 1 - moving
       rest.uRestT.value += dt
-      fire.update(dt, action.time / model.clip.duration, metersPerSecond, mesh.morphTargetInfluences)
+      fire.update(dt, action.time / model.clip.duration, metersPerSecond, mesh.morphTargetInfluences, bend)
     },
     setFire: fire.set
   }

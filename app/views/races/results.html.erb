@@ -1,5 +1,5 @@
 <% content_for :title, "#{@race.slug} — Resultados" %>
-<% content_for :page_title, @race.slug.upcase %>
+<% content_for :page_title, @race.slug %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/race-results.css">
 <% end %>
@@ -33,7 +33,7 @@
   <%# Arriba de la lista: con 12 jugadores, abajo quedarían fuera de la pantalla. %>
   <div class="results-actions">
     <%= link_to "← Volver a salas", races_path, class: "results-back", data: { fx: "back" } %>
-    <%= link_to "＋ Nueva sala", new_race_path, class: "results-new", data: { fx: "create" } %>
+    <%= link_to "Nueva sala", new_race_path, class: "results-new", data: { fx: "create" } %>
   </div>
 
   <ol class="results-list">

@@ -1,5 +1,5 @@
 <% content_for :title, "Prototipo 3D" %>
-<% content_for :page_title, "PROTOTIPO 3D" %>
+<% content_for :page_title, "Prototipo 3D" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/races-new.css?v=2">
 <% end %>
@@ -8,7 +8,7 @@
   <h1>Carrera 3D</h1>
   <p class="subtitle">Crea una carrera real en una sala privada y la muestra en 3D: las posiciones llegan del servidor.</p>
 
-  <%= form_with url: prototipo3d_path, method: :post, class: "pixel-form" do |f| %>
+  <%= form_with url: prototipo3d_path, method: :post, class: "formulario" do |f| %>
     <div class="field">
       <%= f.label :caballos, "Caballos" %>
       <%= f.select :caballos, (2..12).map { |n| [ n, n ] }, { selected: 8 } %>

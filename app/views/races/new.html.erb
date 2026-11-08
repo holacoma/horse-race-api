@@ -1,15 +1,15 @@
-<% content_for :title, "Horse Race — Nueva sala" %>
-<% content_for :page_title, "NUEVA SALA" %>
+<% content_for :title, "Club Race — Nueva sala" %>
+<% content_for :page_title, "Nueva sala" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/races-new.css?v=2">
   <link rel="stylesheet" href="/css/slot-machine.css">
 <% end %>
 
 <div class="new-race-wrap">
-<h1>＋ Nueva sala</h1>
+<h1>Nueva sala</h1>
 <p class="subtitle">Configurá tu carrera multijugador</p>
 
-<%= form_with model: @race, url: races_path, method: :post, class: "pixel-form",
+<%= form_with model: @race, url: races_path, method: :post, class: "formulario",
               data: { controller: "slot-machine",
                       action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
 

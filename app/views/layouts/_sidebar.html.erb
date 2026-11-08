@@ -1,7 +1,7 @@
-<aside class="pixel-sidebar">
-  <div class="sidebar-logo">🏇 PIXEL RACE</div>
-  <%= link_to "🏠 HOME",   root_path,                           class: "nav-item", data: { fx: "nav" } %>
-  <%= link_to "🏟 SALAS",  races_path,                          class: "nav-item", data: { fx: "nav" } %>
-  <%= link_to "👤 PERFIL", profile_path(current_user.username), class: "nav-item", data: { fx: "profile" } %>
-  <%= link_to "＋ CREAR",  new_race_path,                       class: "nav-item", data: { fx: "create" } %>
-</aside>
+<nav class="app-nav" aria-label="Menú">
+  <%= link_to "Club Race", root_path, class: "marca", data: { fx: "nav" } %>
+  <%= link_to "Salas", races_path, class: "nav-item", data: { fx: "nav" }, aria: { current: (current_page?(races_path) || current_page?(root_path)) ? "page" : nil } %>
+  <%= link_to "Crear sala", new_race_path, class: "nav-item", data: { fx: "create" }, aria: { current: current_page?(new_race_path) ? "page" : nil } %>
+  <%= link_to "Perfil", profile_path(current_user.username), class: "nav-item", data: { fx: "profile" }, aria: { current: current_page?(profile_path(current_user.username)) ? "page" : nil } %>
+  <p class="nav-pie">La primera regla del Club Race es: no se habla del Club Race.</p>
+</nav>

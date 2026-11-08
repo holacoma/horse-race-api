@@ -1,110 +1,110 @@
-html, body { margin: 0; height: 100%; background: #0d0614; overflow: hidden; font-family: system-ui, sans-serif; }
+/* HUD de la carrera 3D, fase carrera (identidad.css): de noche, psicodélica, recta y desbalanceada.
+   Las posiciones y medidas son las de siempre; los colores, la forma y la tipografía salen de los tokens. */
+html, body { margin: 0; height: 100%; background: var(--fondo); overflow: hidden; font-family: var(--fuente-texto); }
 canvas { display: block; position: fixed; inset: 0; }
 
-.hud { position: fixed; color: #fff; pointer-events: none; font-weight: 800; }
+.hud { position: fixed; color: var(--texto); pointer-events: none; font-weight: 700; }
+.panel-hud { background: color-mix(in oklch, var(--fondo) 72%, transparent); }
 
 .hud-rank {
-  left: 14px; top: 14px; width: 210px;
+  left: 14px; top: 14px; width: 220px;
   display: flex; flex-direction: column; gap: 3px;
-  font-size: 12px;
+  font: 600 12px var(--fuente-titulo);
 }
 .hud-rank div {
   display: flex; align-items: center; gap: 7px;
-  padding: 3px 8px; border-radius: 7px;
-  background: rgba(16, 8, 28, .68);
-  overflow: hidden; white-space: nowrap;
+  padding: 3px 14px 3px 8px; overflow: hidden; white-space: nowrap;
+  background: color-mix(in oklch, var(--fondo) 72%, transparent);
+  border-left: var(--borde-marcado) solid color-mix(in oklch, var(--texto) 25%, transparent);
+  clip-path: var(--recorte-etiqueta);
 }
 .hud-rank b { width: 14px; text-align: right; font-size: 11px; opacity: .75; }
-.hud-rank i { width: 10px; height: 10px; border-radius: 50%; flex: none; border: 1px solid #fff; }
+.hud-rank i { width: 10px; height: 10px; flex: none; clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%); }
 .hud-rank span { overflow: hidden; text-overflow: ellipsis; }
-.hud-rank .mine { background: #ffc61a; color: #1a1020; }
-.hud-rank em { margin-left: auto; padding-left: 6px; flex: none; font-style: normal; font-size: 11px; opacity: .8; }
+/* Tu fila: carmesí, con texto blanco. */
+.hud-rank .mine { background: var(--carmesi); color: var(--noche-12); border-left-color: var(--noche-12); }
+.hud-rank em { margin-left: auto; padding-left: 6px; flex: none; font-style: normal; font-size: 11px; opacity: .85; }
 
 /* Mapa de la carrera: un carril por caballo, de la salida a la meta. */
 .hud-map {
   left: 50%; bottom: 16px; transform: translateX(-50%);
-  width: min(56vw, 880px); padding: 7px 14px 7px 10px; box-sizing: border-box;
+  width: min(56vw, 880px); padding: 7px 16px 7px 10px; box-sizing: border-box;
   display: flex; flex-direction: column; gap: 1px;
-  background: rgba(16, 8, 28, .72); border-radius: 9px;
+  background: color-mix(in oklch, var(--fondo) 75%, transparent);
+  border-left: var(--borde-marcado) solid var(--acento); clip-path: var(--recorte);
   opacity: 0; transition: opacity .25s;
 }
-.map-lane { position: relative; height: 7px; border-bottom: 1px solid rgba(255, 255, 255, .13); }
+.map-lane { position: relative; height: 7px; border-bottom: 1px solid color-mix(in oklch, var(--texto) 13%, transparent); }
 .map-slide { position: absolute; inset: 0; will-change: transform; }
-.map-pin {
-  position: absolute; left: -6px; top: 0; width: 12px; height: 7px;
-  border-radius: 4px; box-shadow: 0 0 5px currentColor;
-}
-.map-pin.mine { outline: 1px solid #fff; }
-.map-pin.lead { top: -1px; height: 9px; width: 16px; left: -8px; box-shadow: 0 0 9px #fff; }
-.map-goal {
-  position: absolute; right: 12px; top: 5px; bottom: 5px; width: 5px;
-  background: repeating-conic-gradient(#fff 0 25%, #14081c 0 50%) 0 0 / 5px 5px;
-}
+.map-pin { position: absolute; left: -6px; top: 0; width: 12px; height: 7px; clip-path: var(--recorte-etiqueta); }
+.map-pin.mine { outline: 1px solid var(--texto); }
+.map-pin.lead { top: -1px; height: 9px; width: 16px; left: -8px; outline: 2px solid var(--texto); }
+.map-goal { position: absolute; right: 12px; top: 5px; bottom: 5px; width: 6px; background: var(--franjas); }
 
 /* Quién va primero, en grande, en la recta final. */
 .hud-lead {
   left: 50%; top: 14px; transform: translateX(-50%);
   display: grid; grid-template-columns: auto auto; column-gap: 12px; align-items: center;
-  padding: 9px 20px; border-radius: 10px; white-space: nowrap;
-  background: rgba(16, 8, 28, .82); border: 3px solid var(--c, #fff);
-  box-shadow: 0 0 22px var(--c, #fff);
+  padding: 9px 30px 9px 18px; white-space: nowrap;
+  background: color-mix(in oklch, var(--fondo) 85%, transparent);
+  border: 2px solid var(--c, var(--texto)); border-left-width: 6px; clip-path: var(--recorte);
   opacity: 0; transition: opacity .15s;
 }
-.hud-lead i { grid-row: span 2; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; }
-.hud-lead b { font: 900 clamp(20px, 2.5vw, 36px) system-ui, sans-serif; line-height: 1.05; }
-.hud-lead small { font: 700 clamp(12px, 1vw, 15px) system-ui, sans-serif; opacity: .9; }
+.hud-lead i { grid-row: span 2; width: 20px; height: 20px; border: 2px solid var(--texto); clip-path: polygon(0 0, 100% 0, 100% 65%, 65% 100%, 0 100%); }
+.hud-lead b { font: 700 clamp(20px, 2.5vw, 36px) var(--fuente-titulo); line-height: 1.05; text-transform: uppercase; letter-spacing: .06em; text-shadow: var(--ecos); }
+.hud-lead small { font: 600 clamp(12px, 1vw, 15px) var(--fuente-texto); opacity: .9; }
 
 /* Puesto sobre cada caballo en las tomas generales y en la llegada. */
 .hud-tag {
   left: 0; top: 0; opacity: 0; will-change: transform;
-  padding: 1px 7px; border-radius: 6px; white-space: nowrap;
-  background: rgba(16, 8, 28, .86); border: 2px solid var(--c, #fff);
-  font: 800 13px system-ui, sans-serif;
+  padding: 1px 14px 1px 6px; white-space: nowrap;
+  background: color-mix(in oklch, var(--fondo) 86%, transparent);
+  border: 2px solid var(--c, var(--texto)); border-left-width: 4px; clip-path: var(--recorte-etiqueta);
+  font: 700 13px var(--fuente-titulo);
 }
 .hud-tag.first {
-  padding: 3px 11px; background: var(--c, #fff); color: #14081c;
-  border-color: #fff; font: 900 18px system-ui, sans-serif;
-  box-shadow: 0 0 14px var(--c, #fff);
+  padding: 3px 20px 3px 10px; background: var(--c, var(--texto)); color: var(--noche-1);
+  border-color: var(--texto); font: 700 18px var(--fuente-titulo); text-transform: uppercase; letter-spacing: .04em;
   margin-top: -26px; /* más arriba que los demás, con su palito: el número de al lado nunca le queda encima */
+  clip-path: none;
 }
-.hud-tag.first::after {
-  content: ""; position: absolute; left: 50%; top: 100%;
-  width: 2px; height: 26px; margin-left: -1px; background: #fff;
-}
+.hud-tag.first::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 26px; margin-left: -1px; background: var(--texto); }
 
 .hud-meter {
-  right: 16px; top: 14px; padding: 8px 14px; border-radius: 10px;
-  background: rgba(16, 8, 28, .68);
-  font: 900 20px system-ui, sans-serif;
+  right: 16px; top: 14px; padding: 8px 24px 8px 12px;
+  background: color-mix(in oklch, var(--fondo) 72%, transparent);
+  border-left: var(--borde-marcado) solid var(--acento); clip-path: var(--recorte);
+  font: 700 20px var(--fuente-titulo); letter-spacing: .04em; font-variant-numeric: tabular-nums;
 }
 
 .hud-count {
   inset: 0; display: grid; place-items: center;
-  font: 900 clamp(90px, 22vw, 240px) system-ui, sans-serif;
-  color: #ffc61a; -webkit-text-stroke: 6px #1a1020; paint-order: stroke fill;
-  text-shadow: 0 10px 0 #1a1020;
+  font: 700 clamp(90px, 22vw, 240px) var(--fuente-titulo);
+  color: var(--noche-12); transform: skewX(-10deg);
+  text-shadow: 8px 8px 0 var(--noche-1), 16px 12px 0 var(--carmesi), -4px 0 0 color-mix(in oklch, var(--caballo-hielo) 50%, transparent);
 }
 
 .hud-win {
   left: 50%; top: 9%; transform: translateX(-50%) rotate(-3deg) scale(.5);
-  padding: 12px 34px; opacity: 0;
-  background: #ffc61a; color: #1a1020; border: 5px solid #1a1020; border-radius: 6px;
-  box-shadow: 9px 9px 0 #ff2d6f;
-  font: 900 clamp(22px, 4.6vw, 54px) system-ui, sans-serif; text-align: center; white-space: nowrap;
+  padding: 14px 44px 14px 30px; opacity: 0; text-align: center; white-space: nowrap;
+  background: color-mix(in oklch, var(--fondo) 88%, transparent); color: var(--texto);
+  border: 3px solid transparent; border-image: var(--franjas) 1; border-left-width: 8px;
+  font: 700 clamp(22px, 4.6vw, 54px) var(--fuente-titulo); text-transform: uppercase; letter-spacing: .04em; text-shadow: var(--ecos);
   transition: opacity .15s, transform .35s cubic-bezier(.2, 1.9, .4, 1);
 }
-.hud-win small { display: block; font-size: .42em; font-weight: 800; }
+.hud-win small { display: block; font: 600 .42em var(--fuente-texto); text-transform: none; letter-spacing: 0; text-shadow: none; color: var(--texto-suave); }
 .hud-win.show { opacity: 1; transform: translateX(-50%) rotate(-3deg) scale(1); }
 
-.hud-fps { right: 16px; bottom: 14px; font: 700 12px monospace; opacity: .7; }
+.hud-fps { right: 16px; bottom: 14px; font: 700 12px ui-monospace, monospace; opacity: .7; }
 
 .controls { position: fixed; left: 14px; bottom: 14px; display: flex; gap: 8px; }
 .controls button, .controls a {
-  padding: 9px 14px; border: 3px solid #1a1020; border-radius: 10px;
-  background: #ffc61a; color: #1a1020; font: 800 14px system-ui, sans-serif; cursor: pointer;
-  box-shadow: 0 4px 0 #1a1020; text-decoration: none;
+  padding: 9px 26px 9px 14px; border: none; border-left: var(--borde-marcado) solid var(--noche-1);
+  background: var(--acento); color: var(--sobre-acento); clip-path: var(--recorte);
+  font: 700 14px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; text-decoration: none;
 }
-.controls button:active, .controls a:active { transform: translateY(3px); box-shadow: 0 1px 0 #1a1020; }
+.controls button:hover, .controls a:hover { background: var(--acento-encima); }
+.controls button:active, .controls a:active { transform: translateY(2px); }
 
 @media (max-width: 600px) {
   .hud-rank { width: 150px; font-size: 10px; }

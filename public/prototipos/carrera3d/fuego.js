@@ -1,44 +1,42 @@
-// Caballo de fuego: una línea de luz lo recorre del hocico a la cola y lo deja hecho brasa, con grietas que laten
-// con el tranco, ojos encendidos y llamas en la crin y la cola. El modelo no trae ojos ni crin separados:
-// todo se ubica por zona sobre la malla, en unidades del modelo y sobre la pose base, para que se pegue al cuerpo.
+// Caballos de fuego, a lo Tron: cuerpo casi negro con líneas de luz finas y saturadas que laten con el tranco,
+// borde nítido, ojos encendidos y llamas en la crin y la cola. Arden desde el principio; al largar, la llama se aviva.
+// El modelo no trae ojos ni crin separados: todo se ubica por zona sobre la pose original (aRef), en unidades del modelo.
 import * as THREE from "three"
 import { shared, toon } from "./caballo.js"
 
 const EYES = [new THREE.Vector3(11.2, 156, 111), new THREE.Vector3(-12.6, 156, 111)]
 const EYE_RADIUS = 3.3
 const MANE = { fromZ: 26, toZ: 104, midline: 4.5 }
-// En la pose base una pata trasera va estirada más atrás que la cola, pero mucho más abajo.
+// En la pose original una pata trasera va estirada más atrás que la cola, pero mucho más abajo.
 const TAIL = { behindZ: -146, aboveY: 105, midline: 9 }
-const PARTICLES = 340
+const PARTICLES = 1100
 const EMIT_PER_SECOND = 720
+const FLARE_GAIN = 3 // en la llamarada salen hasta cuatro veces más partículas
 
-// El frente de la línea se pasa un poco de los extremos para cubrir todo el cuerpo.
-const frontOf = burn => burn * 1.3 - 0.15
-
-// Los colores del caballo de fuego, en espacio lineal. Los demás elementos arden con su propio color.
-const FIRE = {
-  deep: [1.0, 0.12, 0.006], core: [1.0, 0.6, 0.12], ember: [0.075, 0.009, 0.003], glow: [1.0, 0.22, 0.02],
-  eye: [1.0, 0.72, 0.24], line: [1.0, 0.84, 0.5], spark: [1.0, 0.72, 0.3], flame: [1.0, 0.28, 0.03], smoke: [0.55, 0.04, 0.006]
+// Cada parte del fuego en el tono del elemento, con luminancia fija: sin compensar, los azules y violetas se verían
+// apagados al lado del naranja. Saturado siempre: el contraste sale del color puro sobre negro, no del blanco.
+const ROLES = {
+  line: { l: 0.5, lum: 0.3 }, core: { l: 0.6, lum: 0.42 }, rim: { l: 0.52, lum: 0.3 }, eye: { l: 0.72, lum: 0.6 },
+  body: { l: 0.5, lum: 0.004 }, spark: { l: 0.6, lum: 0.4 }, flame: { l: 0.5, lum: 0.24 }, smoke: { l: 0.4, lum: 0.05 }
 }
-
-// Mismo tono que el color del elemento, con el brillo de cada parte del fuego original: los azules y violetas
-// tienen poca luminancia y sin compensar se verían apagados al lado del naranja.
 function paletteOf(element) {
-  if (element.name === "Fuego") return Object.fromEntries(Object.entries(FIRE).map(([k, v]) => [k, new THREE.Color(...v)]))
   const hsl = new THREE.Color(element.outer).getHSL({}, THREE.SRGBColorSpace)
-  const saturation = Math.max(0.55, hsl.s)
-  const lightness = { deep: 0.5, core: 0.74, ember: 0.42, glow: 0.56, eye: 0.82, line: 0.9, spark: 0.8, flame: 0.56, smoke: 0.36 }
   const luminance = c => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
-  return Object.fromEntries(Object.entries(FIRE).map(([k, v]) => {
-    const c = new THREE.Color().setHSL(hsl.h, saturation, lightness[k], THREE.SRGBColorSpace)
-    return [k, c.multiplyScalar(Math.min(2.5, luminance(new THREE.Color(...v)) / Math.max(1e-4, luminance(c))))]
+  // Primero se aclara el tono (el azul puro, multiplicado, es una mancha con el bloom) y recién después se escala.
+  return Object.fromEntries(Object.entries(ROLES).map(([role, { l, lum }]) => {
+    const c = new THREE.Color()
+    for (let light = l; light <= 0.8; light += 0.02) {
+      c.setHSL(hsl.h, hsl.s, light, THREE.SRGBColorSpace)
+      if (luminance(c) * 1.4 >= lum) break
+    }
+    return [role, c.multiplyScalar(Math.min(1.4, lum / Math.max(1e-4, luminance(c))))]
   }))
 }
 
 const FIRE_GLSL = `
-  uniform float uBurn, uFade, uPulse, uFireT, uUnit, uHead, uTail;
+  uniform float uPulse, uFireT, uUnit;
   uniform vec3 uEyes[2];
-  uniform vec3 uDeep, uCore, uEmber, uGlow, uEye, uLine;
+  uniform vec3 uLine, uCore, uRim, uEye, uBody;
   varying vec3 vBase;
   vec3 h33(vec3 p) {
     p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
@@ -51,7 +49,7 @@ const FIRE_GLSL = `
       mix(mix(h33(i + vec3(0, 0, 1)).x, h33(i + vec3(1, 0, 1)).x, f.x), mix(h33(i + vec3(0, 1, 1)).x, h33(i + vec3(1, 1, 1)).x, f.x), f.y),
       f.z);
   }
-  // Distancia al borde entre dos placas: cero justo sobre la grieta.
+  // Distancia al borde entre dos placas: cero justo sobre la línea.
   float plates(vec3 p) {
     vec3 i = floor(p), f = fract(p);
     float a = 8.0, b = 8.0;
@@ -66,38 +64,27 @@ const FIRE_GLSL = `
 `
 
 const FIRE_APPLY = `
-  float span = (uHead - vBase.z) / (uHead - uTail); // 0 en el hocico, 1 en la cola
-  float front = uBurn * 1.3 - 0.15;
-  float lit = smoothstep(0.0, 0.03, front - span) * step(0.001, uBurn);
   vec3 m = vBase * uUnit; // metros
   vec3 warp = vec3(vn(m * 6.0), vn(m * 6.0 + 7.3), vn(m * 6.0 + 13.1)) - 0.5;
-  // Placas chicas y muy deformadas, con grietas finas que se cortan: si son parejas parece el pelaje de una jirafa.
+  // Líneas finas de ancho parejo y borde nítido, cortadas por tramos: circuitos, no manchas.
   float edge = plates((m + warp * 0.2) * 6.4);
-  float width = 0.05 + 0.1 * vn(m * 3.1 + uFireT * 0.25);
-  float open = smoothstep(0.3, 0.62, vn(m * 3.7 + 11.0));
-  float crack = (1.0 - smoothstep(0.0, width, edge)) * open;
-  float core = (1.0 - smoothstep(0.0, width * 0.34, edge)) * open;
-  float beat = 0.5 + 1.15 * uPulse;
-  float flow = 0.62 + 0.38 * sin(m.z * 8.0 + uFireT * 8.0 + vn(m * 3.0) * 6.0);
-  vec3 hot = mix(uDeep * 2.7, uCore * 7.5, core) * crack * beat * flow;
-  vec3 ember = uEmber * (0.2 + 1.5 * vn(m * 13.0)) * (0.45 + 0.7 * uPulse);
-  float fresnel = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 2.4);
-  vec3 burned = ember + hot + uGlow * fresnel * (1.1 + 1.4 * uPulse);
-  outgoingLight = mix(outgoingLight, burned, lit * uFade);
-  // La línea de luz que transforma, casi blanca y con mucho brillo.
-  float line = exp(-pow((span - front) / 0.032, 2.0)) * step(0.001, uBurn) * (1.0 - step(0.999, uBurn));
-  outgoingLight += uLine * line * 16.0 * uFade;
-  // Ojos: se encienden cuando pasa la línea.
+  float open = smoothstep(0.32, 0.5, vn(m * 3.7 + 11.0));
+  float line = (1.0 - smoothstep(0.028, 0.042, edge)) * open;
+  float core = (1.0 - smoothstep(0.0, 0.016, edge)) * open;
+  float beat = 0.55 + 1.0 * uPulse;
+  float flow = 0.6 + 0.4 * sin(m.z * 8.0 + uFireT * 8.0 + vn(m * 3.0) * 6.0);
+  vec3 lit = mix(uLine * 3.4 * line, uCore * 5.0, core) * beat * flow;
+  // Borde fino: solo donde la superficie ya casi no mira a la cámara.
+  float rim = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 5.0);
+  vec3 burned = uBody * (0.5 + vn(m * 13.0)) + lit + uRim * rim * (1.5 + 1.1 * uPulse);
   float eye = 1.0 - smoothstep(${(EYE_RADIUS * 0.42).toFixed(2)}, ${EYE_RADIUS.toFixed(2)}, min(distance(vBase, uEyes[0]), distance(vBase, uEyes[1])));
-  outgoingLight = mix(outgoingLight, uEye * 11.0, eye * lit * uFade);
+  outgoingLight = mix(burned, uEye * 11.0, eye);
 `
 
 // Los puntos de la malla que arden: la cresta del cuello por tramos y la cola entera.
-function findAnchors(position, head, tail) {
+function findAnchors(position) {
   const p = position.array
   const anchors = []
-  const add = i => anchors.push({ i, span: (head - p[i * 3 + 2]) / (head - tail) })
-
   const bins = new Map()
   for (let i = 0; i < position.count; i++) {
     const x = p[i * 3], y = p[i * 3 + 1], z = p[i * 3 + 2]
@@ -105,7 +92,7 @@ function findAnchors(position, head, tail) {
     const bin = Math.floor(z / 4)
     if (!bins.has(bin) || y > p[bins.get(bin) * 3 + 1]) bins.set(bin, i)
   }
-  bins.forEach(add)
+  bins.forEach(i => anchors.push(i))
   const manes = anchors.length
 
   const behind = []
@@ -113,11 +100,11 @@ function findAnchors(position, head, tail) {
     if (p[i * 3 + 2] < TAIL.behindZ && p[i * 3 + 1] > TAIL.aboveY && Math.abs(p[i * 3]) < TAIL.midline) behind.push(i)
   }
   const step = Math.max(1, Math.floor(behind.length / Math.max(manes, 20)))
-  for (let k = 0; k < behind.length; k += step) add(behind[k])
+  for (let k = 0; k < behind.length; k += step) anchors.push(behind[k])
   return anchors
 }
 
-function buildFlames(model, head, tail, palette) {
+function buildFlames(model, palette) {
   const geometry = new THREE.BufferGeometry()
   const positions = new Float32Array(PARTICLES * 3)
   const lifes = new Float32Array(PARTICLES).fill(1)
@@ -156,59 +143,53 @@ function buildFlames(model, head, tail, palette) {
   }))
   points.frustumCulled = false
 
-  // Las zonas se eligen sobre la pose original; dónde están ahora sale de la pose de pie más el galope.
-  const anchors = findAnchors(model.geometry.attributes.aRef, head, tail)
+  // Las zonas se eligen sobre la pose original; dónde están ahora sale de la pose de pie más el galope y el reposo.
+  const anchors = findAnchors(model.geometry.attributes.aRef)
   const base = model.geometry.attributes.position.array
   const deltas = model.geometry.morphAttributes.position.map(attribute => attribute.array)
   const velocity = new Float32Array(PARTICLES * 3)
   const ages = new Float32Array(PARTICLES)
   const durations = new Float32Array(PARTICLES).fill(1)
+  const point = [0, 0, 0]
   let cursor = 0
   let due = 0
 
   // Dónde está ese punto ahora, con la animación aplicada, medido desde el centro del caballo.
-  const place = (vertex, slot, influences) => {
-    let x = base[vertex * 3], y = base[vertex * 3 + 1], z = base[vertex * 3 + 2]
+  const place = (vertex, slot, influences, bend) => {
+    point[0] = base[vertex * 3]; point[1] = base[vertex * 3 + 1]; point[2] = base[vertex * 3 + 2]
     for (let j = 0; j < influences.length; j++) {
       const w = influences[j]
       if (w < 0.001) continue
-      x += w * deltas[j][vertex * 3]
-      y += w * deltas[j][vertex * 3 + 1]
-      z += w * deltas[j][vertex * 3 + 2]
+      for (let axis = 0; axis < 3; axis++) point[axis] += w * deltas[j][vertex * 3 + axis]
     }
+    bend(vertex, point)
     const s = model.scale, jitter = () => (Math.random() - 0.5) * 0.09
-    positions[slot * 3] = (z - model.centerZ) * s + jitter()
-    positions[slot * 3 + 1] = y * s + jitter()
-    positions[slot * 3 + 2] = -x * s + jitter()
+    positions[slot * 3] = (point[2] - model.centerZ) * s + jitter()
+    positions[slot * 3 + 1] = point[1] * s + jitter()
+    positions[slot * 3 + 2] = -point[0] * s + jitter()
   }
 
-  const spawn = (front, metersPerSecond, influences) => {
-    let anchor = null
-    for (let tries = 0; tries < 6 && !anchor; tries++) {
-      const pick = anchors[Math.floor(Math.random() * anchors.length)]
-      if (pick.span < front) anchor = pick
-    }
-    if (!anchor) return
+  const spawn = (flare, metersPerSecond, influences, bend) => {
     const slot = cursor++ % PARTICLES
-    place(anchor.i, slot, influences)
+    place(anchors[Math.floor(Math.random() * anchors.length)], slot, influences, bend)
     const spark = Math.random() < 0.14
     const drag = 0.7 + metersPerSecond * (spark ? 0.15 : 0.1)
+    const lift = 1 + 0.9 * flare
     velocity[slot * 3] = -drag * (0.65 + Math.random() * 0.7)
-    velocity[slot * 3 + 1] = spark ? 1.6 + Math.random() * 3.2 : 0.9 + Math.random() * 1.5
-    velocity[slot * 3 + 2] = (Math.random() - 0.5) * (spark ? 2.2 : 0.7)
+    velocity[slot * 3 + 1] = (spark ? 1.6 + Math.random() * 3.2 : 0.9 + Math.random() * 1.5) * lift
+    velocity[slot * 3 + 2] = (Math.random() - 0.5) * (spark ? 2.2 : 0.7) * lift
     ages[slot] = 0
-    durations[slot] = spark ? 0.55 + Math.random() * 0.45 : 0.22 + Math.random() * 0.22
-    sizes[slot] = spark ? 0.035 + Math.random() * 0.03 : 0.16 + Math.random() * 0.2
+    durations[slot] = (spark ? 0.55 + Math.random() * 0.45 : 0.22 + Math.random() * 0.22) * (1 + 0.5 * flare)
+    sizes[slot] = (spark ? 0.035 + Math.random() * 0.03 : 0.16 + Math.random() * 0.2) * (1 + 0.3 * flare)
     lifes[slot] = 0
   }
 
   return {
     points,
-    update(dt, burn, fade, metersPerSecond, influences) {
-      if (burn > 0 && fade > 0.02 && dt > 0) {
-        due += EMIT_PER_SECOND * fade * dt
-        const front = frontOf(burn)
-        while (due >= 1) { due -= 1; spawn(front, metersPerSecond, influences) }
+    update(dt, flare, metersPerSecond, influences, bend) {
+      if (dt > 0) {
+        due += EMIT_PER_SECOND * (1 + FLARE_GAIN * flare) * dt
+        while (due >= 1) { due -= 1; spawn(flare, metersPerSecond, influences, bend) }
       }
       for (let i = 0; i < PARTICLES; i++) {
         if (lifes[i] >= 1) continue
@@ -225,18 +206,15 @@ function buildFlames(model, head, tail, palette) {
   }
 }
 
-export function buildFire(model, element, rim) {
-  const box = new THREE.Box3().setFromBufferAttribute(model.geometry.attributes.aRef)
-  const head = box.max.z, tail = box.min.z
+export function buildFire(model, element) {
   const palette = paletteOf(element)
   const uniforms = {
-    uBurn: { value: 0 }, uFade: { value: 1 }, uPulse: { value: 0 }, uFireT: shared.uTime,
-    uUnit: { value: model.scale }, uHead: { value: head }, uTail: { value: tail }, uEyes: { value: EYES },
-    uDeep: { value: palette.deep }, uCore: { value: palette.core }, uEmber: { value: palette.ember },
-    uGlow: { value: palette.glow }, uEye: { value: palette.eye }, uLine: { value: palette.line }
+    uPulse: { value: 0 }, uFireT: shared.uTime, uUnit: { value: model.scale }, uEyes: { value: EYES },
+    uLine: { value: palette.line }, uCore: { value: palette.core }, uRim: { value: palette.rim },
+    uEye: { value: palette.eye }, uBody: { value: palette.body }
   }
 
-  const material = toon(element.inner, { rim })
+  const material = toon(0x000000)
   const patchToon = material.onBeforeCompile
   material.onBeforeCompile = shader => {
     patchToon(shader)
@@ -250,22 +228,18 @@ export function buildFire(model, element, rim) {
   }
   material.customProgramCacheKey = () => "toon-fuego"
 
-  const flames = buildFlames(model, head, tail, palette)
-  let burn = 0, fade = 1
+  const flames = buildFlames(model, palette)
+  let flare = 0
 
   return {
     material,
     flames: flames.points,
-    // burn: 0 sin empezar, 1 transformación completa. fade: 1 encendido, 0 apagado.
-    set(nextBurn, nextFade) {
-      burn = nextBurn
-      fade = nextFade
-      uniforms.uBurn.value = burn
-      uniforms.uFade.value = fade
-    },
-    update(dt, phase, metersPerSecond, influences) {
+    edge: palette.line, // color del contorno
+    // flare: 0 llama normal, 1 llamarada (al largar).
+    set(next) { flare = next },
+    update(dt, phase, metersPerSecond, influences, bend) {
       uniforms.uPulse.value = Math.pow(0.5 + 0.5 * Math.sin(phase * Math.PI * 2), 2)
-      flames.update(dt, burn, fade, metersPerSecond, influences)
+      flames.update(dt, flare, metersPerSecond, influences, bend)
     }
   }
 }

@@ -1,12 +1,12 @@
-<% content_for :title, "Horse Race — Salas" %>
-<% content_for :page_title, "SALAS" %>
+<% content_for :title, "Club Race — Salas" %>
+<% content_for :page_title, "Salas" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/css/races-list.css">
 <% end %>
 
 <div class="header-row">
   <h2>Salas abiertas</h2>
-  <%= link_to "＋ CREAR", new_race_path, class: "btn-primary", data: { fx: "create" } %>
+  <%= link_to "Crear sala", new_race_path, class: "btn-primary", data: { fx: "create" } %>
 </div>
 
 <div class="rooms-grid">
@@ -22,7 +22,7 @@
         </div>
         <div class="room-right">
           <div class="room-players"><%= race.participants.size %>/<%= race.capacity %></div>
-          <%= link_to "UNIRSE", race_path(race), class: "btn-join", data: { fx: "join" } %>
+          <%= link_to "Unirse", race_path(race), class: "btn-join", data: { fx: "join" } %>
         </div>
       </div>
     <% end %>

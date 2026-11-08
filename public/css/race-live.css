@@ -1,103 +1,36 @@
-/* La pista siempre entra en la ventana: el alto de cada carril sale de la cantidad de caballos
-   (--lanes) y del espacio que deja el resto de la página (--page-chrome). Los dos los pone
-   race_live_controller, que mide el espacio real. */
+/* Carrera en vivo (2D), fase carrera: de noche y psicodélica.
+   La pista siempre entra en la ventana: el alto de cada carril sale de la cantidad de caballos (--lanes) y del
+   espacio que deja el resto de la página (--page-chrome). Los dos los pone race_live_controller. */
 #track {
   --lanes: 1;
   --lane-gap: 4px;
   --page-chrome: 112px;
-  --lane-h: clamp(
-    24px,
-    calc((100dvh - var(--page-chrome) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes)),
-    88px
-  );
-  --horse-w: calc(var(--lane-h) * 82 / 66); /* proporción del sprite */
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--lane-gap);
+  --lane-h: clamp(24px, calc((100dvh - var(--page-chrome) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes)), 88px);
+  --horse-w: calc(var(--lane-h) * 82 / 66); /* proporción del dibujo */
+  width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: var(--lane-gap);
 }
-
 /* Flotan sobre la pista para no empujarla fuera de la pantalla. */
-#countdown,
-#winner-banner {
-  position: fixed;
-  left: 200px; /* ancho de la barra lateral */
-  right: 0;
-  top: 35%;
-  z-index: 10;
-  width: fit-content;
-  max-width: 90%;
-  margin: 0 auto;
-  background: var(--color-surface);
-  border: 3px solid var(--color-primary);
-  box-shadow: 6px 6px 0 var(--color-primary);
-  color: var(--color-primary);
-  text-align: center;
+#countdown, #winner-banner {
+  position: fixed; left: 236px; right: 0; top: 35%; z-index: 10;
+  width: fit-content; max-width: 90%; margin: 0 auto; text-align: center;
 }
-
-#countdown {
-  min-height: 0;
-  padding: 1rem 2rem;
-  font-size: clamp(32px, 8vw, 72px);
-  white-space: nowrap;
-}
-
-#winner-banner {
-  padding: 1.5rem 2.5rem;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
+#countdown { min-height: 0; padding: 12px 28px; font-size: clamp(48px, 10vw, 96px); white-space: nowrap; }
+#winner-banner { padding: 22px 40px; font-size: 22px; line-height: 1.5; transform: rotate(-1.5deg); }
 .lane-row { align-items: center; }
-
-.lane-label {
-  width: 112px;
-  padding-bottom: 0;
-  line-height: 1.5;
-}
-.lane-label b,
-.lane-label small {
-  display: block;
-  font-weight: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.lane-label b { color: var(--color-text); }
-.lane-label small { font-size: 7px; }
-.lane-label.my-horse b {
-  color: var(--color-primary);
-  font-weight: bold;
-}
-
+.lane-label { width: 120px; padding-bottom: 0; line-height: 1.35; }
+.lane-label b, .lane-label small { display: block; overflow: hidden; text-overflow: ellipsis; }
+.lane-label b { color: var(--texto); }
+.lane-label small { font: 500 11px var(--fuente-texto); color: var(--texto-apagado); text-transform: none; }
+.lane-label.my-horse b { color: var(--noche-12); text-shadow: 2px 2px 0 var(--carmesi); }
 .track-wrap { height: var(--lane-h); }
-
 .track-bg { height: 40%; }
 .track-bg::before { right: 15%; }
-
-.horse-unit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: var(--horse-w);
-  transition: left 0.28s linear;
-  z-index: 1;
-}
-
-.horse-unit .horse-sprite {
-  position: relative;
-  display: block;
-  width: var(--horse-w);
-  height: var(--lane-h);
-  transition: none;
-  z-index: auto;
-}
-
-@media (max-width: 768px) {
-  /* En teléfono la pantalla es de los caballos: la barra lateral ocuparía un tercio. */
-  .pixel-sidebar { display: none; }
-  .pixel-main { padding: 0.75rem; }
-  #countdown,
-  #winner-banner { left: 0; }
-  .lane-label { width: 72px; }
+.horse-unit { position: absolute; bottom: 0; left: 0; width: var(--horse-w); transition: left .28s linear; z-index: 1; }
+.horse-unit .horse-sprite { position: relative; display: block; width: var(--horse-w); height: var(--lane-h); transition: none; z-index: auto; }
+@media (max-width: 760px) {
+  /* En teléfono la pantalla es de los caballos: el menú ocuparía demasiado. */
+  [data-fase="carrera"] .app-nav, [data-fase="carrera"] .app-top { display: none; }
+  .app-main { padding: 12px; }
+  #countdown, #winner-banner { left: 0; }
+  .lane-label { width: 76px; }
 }

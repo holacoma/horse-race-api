@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-fase="carrera">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= @race.slug %> — Carrera 3D</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/css/identidad.css">
   <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css">
   <script type="importmap">
     { "imports": {
@@ -25,7 +26,6 @@
 
   <div class="controls">
     <%= link_to "Ver resultados", results_race_path(@race), id: "results", hidden: true %>
-    <button id="fx">Efectos: sí</button>
   </div>
 
   <script type="module">
@@ -33,7 +33,6 @@
     import { loadHorseModel } from "/prototipos/carrera3d/caballo-pro.js"
 
     const data = JSON.parse(document.getElementById("race-data").textContent)
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
     const resultsLink = document.getElementById("results")
 
     const horseModel = new URLSearchParams(location.search).get("caballo") === "codigo"
@@ -45,7 +44,6 @@
       horseModel,
       distance: data.distance,
       myId: data.myHorseId,
-      effects: !reducedMotion,
       onCelebrate: () => { resultsLink.hidden = false },
       onDone: () => window.location.assign(data.resultsUrl)
     })
@@ -69,13 +67,6 @@
         race.finish(message.winner)
       }
     }
-
-    const fx = document.getElementById("fx")
-    fx.textContent = `Efectos: ${race.effects ? "sí" : "no"}`
-    fx.addEventListener("click", () => {
-      race.setEffects(!race.effects)
-      fx.textContent = `Efectos: ${race.effects ? "sí" : "no"}`
-    })
 
     race.run()
   </script>
