@@ -157,8 +157,8 @@ canvas { display: block; position: fixed; inset: 0; }
 .final-acciones button:hover, .final-acciones a:hover { filter: brightness(1.15); }
 .final-ganador {
   position: relative; display: flex; align-items: flex-end; justify-content: flex-start; padding: 0 0 6vh 6vw;
-  /* Las portadas llevan el caballo a la derecha: se recorta desde ese lado para que quede entero, y la ficha va abajo a la izquierda. */
-  background: var(--portada-anim, none) right center / cover no-repeat, var(--noche-1) var(--portada) right center / cover no-repeat;
+  /* Ilustración cuadrada con el caballo centrado; la ficha va abajo a la izquierda. */
+  background: var(--portada-anim, none) center 30% / cover no-repeat, var(--noche-1) var(--portada) center 30% / cover no-repeat;
   clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); filter: drop-shadow(-8px 0 0 var(--c));
   animation: final-portada .5s cubic-bezier(.2, 1.2, .4, 1) both;
 }

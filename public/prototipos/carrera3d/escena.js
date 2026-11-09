@@ -1685,8 +1685,9 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         finEl.style.setProperty("--c", hex(h.silk))
         const lado = document.createElement("div")
         lado.className = "final-ganador"
-        lado.style.setProperty("--portada", `url("/images/retratos/victoria-${h.element}.webp")`)
-        lado.style.setProperty("--portada-anim", `url("/images/retratos/victoria-${h.element}-anim.webp")`)
+        // Ilustración propia de la pantalla final: cuadrada, con el caballo centrado (la de victoria es apaisada).
+        lado.style.setProperty("--portada", `url("/images/retratos/final-${h.element}.webp")`)
+        lado.style.setProperty("--portada-anim", `url("/images/retratos/final-${h.element}-anim.webp")`)
         const ficha = document.createElement("div")
         ficha.className = "final-ficha"
         const rotulo = document.createElement("small")

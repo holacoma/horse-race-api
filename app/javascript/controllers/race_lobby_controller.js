@@ -45,7 +45,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=14"),
+      import("/prototipos/carrera3d/escena.js?v=15"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -73,7 +73,7 @@ export default class extends Controller {
     this.race.run()
     // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
     await Promise.all([
-      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=2`, `/images/retratos/${e}.webp`, `/images/retratos/victoria-${e}.webp`])),
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=2`, `/images/retratos/${e}.webp`, `/images/retratos/final-${e}.webp`])),
       document.fonts.ready
     ])
     this.cargandoTarget.hidden = true
@@ -127,8 +127,9 @@ export default class extends Controller {
       } else if (data.type === "progress") {
         this.whenReady(() => this.race.tick(data.participants))
       } else if (data.type === "finished") {
-        // La portada animada del ganador se baja ya, para el festejo.
-        precargar([`/images/retratos/victoria-${ELEMENTOS[(Number(data.winner?.id) - 1) % ELEMENTOS.length]}-anim.webp`])
+        // La ilustración animada de la pantalla final (la de tu caballo, o la del ganador si solo mirás) se baja ya.
+        const suyo = this.data3d.myHorseId ?? data.winner?.id
+        precargar([`/images/retratos/final-${ELEMENTOS[(Number(suyo) - 1) % ELEMENTOS.length]}-anim.webp`])
         this.whenReady(() => this.race.finish(data.winner))
       }
     }
