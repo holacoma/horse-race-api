@@ -176,6 +176,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   // teñida de su color, y encima entra la tarjeta. Al terminar, la escena sigue.
   const FAVORITOS = { desde: 2.2, cada: 2.6, dura: 2.3, congela: 0.4 }
   function presentarFavoritos() {
+    if (state.celebrating) return // la tarjeta del ganador la maneja actualizarFinal
     const t = state.clock - state.preludeStart
     state.favorito = null
     state.congelado = false
@@ -189,8 +190,31 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     state.favorito = h || null
     // Mientras el caballo no esté en su primer plano no se congela (el corte tiene que verse antes).
     state.congelado = !!h && enTarjeta >= FAVORITOS.congela
-    hud.favorito(state.congelado ? h : null, i + 1)
+    hud.favorito(state.congelado ? h : null, `Favorito n.º ${i + 1}`)
     renderer.domElement.classList.toggle("congelado", state.congelado)
+  }
+
+  // Final (acordado en el lienzo «Final de carrera»): al cruzar, el corte con ¡GANÓ!; en las repeticiones, la franja
+  // de quién ganó; en el festejo, su tarjeta (escena congelada, como la de los favoritos); y al final la pantalla
+  // partida, sin cambiar de página: a la izquierda el 3D con el ganador centrado y los resultados encima, a la
+  // derecha su portada con el nombre.
+  const TARJETA_GANADOR = { congela: 0.35, dura: 2.8 }
+  function actualizarFinal(crossedFor) {
+    if (!state.celebrating || state.finalMostrado) return
+    const t = crossedFor - CELEBRATE_AFTER
+    if (t < TARJETA_GANADOR.dura) {
+      state.congelado = t >= TARJETA_GANADOR.congela
+      hud.favorito(state.congelado ? state.winner : null, `Ganador · 1.º de ${horses.length}`)
+      renderer.domElement.classList.toggle("congelado", state.congelado)
+      return
+    }
+    state.finalMostrado = true
+    state.congelado = false
+    hud.favorito(null)
+    renderer.domElement.classList.remove("congelado")
+    hud.final(state.winner, [...horses].sort((a, b) => b.x - a.x))
+    resize()
+    onDone?.()
   }
 
   function actualizarExplosiones() {
@@ -409,7 +433,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
     if (state.winner && racing && state.winner.x >= FINISH - 0.4) {
       state.crossedAt = state.clock
-      if (!state.crossFired) { state.crossFired = true; onCross?.(state.winner) }
+      if (!state.crossFired) { state.crossFired = true; state.pedirCorte = true; onCross?.(state.winner) }
       state.crossRt = state.rt
       state.impact = 1
     }
@@ -424,12 +448,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     if (crossedFor > CELEBRATE_AFTER && !state.celebrating) {
       state.celebrating = true
       confetti.start(state.winner)
-      hud.showWin(state.winner)
       onCelebrate?.(state.winner)
-    }
-    if (crossedFor > CELEBRATE_AFTER + 6 && !state.doneFired) {
-      state.doneFired = true
-      onDone?.()
     }
 
     // En la sala, sin largada a la vista, el preludio no empezó: un número finito (con -Infinity el piso da NaN y se ve negro).
@@ -445,12 +464,15 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     confetti.update(realDt)
     actualizarExplosiones()
     presentarFavoritos()
+    actualizarFinal(crossedFor)
     cajones.abrir(state.countdownEnd === null ? 0 : smooth(state.countdownEnd - 0.05, state.countdownEnd + 0.3, state.clock))
     placeCamera(realDt)
     updateLighting()
     hud.update()
     // Congelado: no se dibuja, así queda en pantalla el último cuadro.
     if (!state.congelado) render(realDt)
+    // El corte de la meta copia el cuadro recién dibujado (en la misma tarea, antes de que el navegador lo borre).
+    if (state.pedirCorte && !state.congelado) { state.pedirCorte = false; hud.corte(state.winner) }
   }
 
   function animateHorses(realDt, dt) {
@@ -1475,9 +1497,11 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     }
     const rank = make("hud hud-rank")
     const count = make("hud hud-count")
-    const win = make("hud hud-win")
-    // Tarjeta de presentación de un favorito, a pantalla completa, durante el preludio.
+    // Tarjeta de presentación de un favorito, a pantalla completa, durante el preludio (y la del ganador en el festejo).
     const fav = make("hud hud-favorito")
+    const corteEl = make("hud hud-corte")
+    const finEl = make("hud hud-final")
+    const elementoDe = h => h.element ? h.element[0].toUpperCase() + h.element.slice(1) : ""
     let favActual = null
     const reco = make("hud hud-reco")
     reco.textContent = "Reconectando…"
@@ -1574,7 +1598,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         }
         const left = state.countdownEnd === null ? Infinity : state.countdownEnd - state.clock
         // Durante el preludio la pantalla es del hipódromo: sin lista ni números hasta el 3, 2, 1.
-        rank.style.opacity = state.started || left <= 3 ? 1 : 0
+        // Desde el cruce, el lugar es de la franja del ganador, su tarjeta y los resultados.
+        rank.style.opacity = state.crossedAt === null && (state.started || left <= 3) ? 1 : 0
         if (state.countdownEnd !== null && state.clock < state.countdownEnd + 0.5 && !state.started) {
           const text = left > 3 ? "" : left > 0 ? String(Math.ceil(left)) : "¡YA!"
           if (text !== count.textContent) { count.textContent = text; if (text === "¡YA!") ya(); else if (text) onCount?.(text) }
@@ -1594,16 +1619,18 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const fighting = !crossed && (state.shot === "recta" || state.shot === "llegada")
         const announced = crossed && !state.celebrating && state.winner
         lead.style.opacity = fighting || announced ? 1 : 0
+        // Ya cruzó: la franja de quién ganó, arriba a la izquierda, sin tapar al caballo ni al público.
+        lead.classList.toggle("ganador", !!announced)
         if (fighting || announced) {
           const h = announced ? state.winner : sorted[0]
           leadDot.style.background = hex(h.silk)
           lead.style.setProperty("--c", hex(h.silk))
-          leadName.textContent = announced ? `¡Gana ${h.name}!` : h.name
-          leadInfo.textContent = announced ? `apuesta de ${h.username}` : (sorted[1] ? `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m` : `a ${remaining} m`)
+          leadName.textContent = h.name
+          leadInfo.textContent = announced ? `${elementoDe(h)} · apuesta de ${h.username}` : (sorted[1] ? `a ${remaining} m · 2.º ${sorted[1].name} a ${Math.round(sorted[0].x - sorted[1].x)} m` : `a ${remaining} m`)
         }
       },
       reconectando(si) { reco.classList.toggle("show", si) },
-      favorito(h, puesto) {
+      favorito(h, rotulo) {
         if (h === favActual) return
         favActual = h
         if (!h) { fav.classList.remove("show"); return }
@@ -1615,7 +1642,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const texto = document.createElement("div")
         texto.className = "favorito-texto"
         const etiqueta = document.createElement("small")
-        etiqueta.textContent = `Favorito n.º ${puesto}`
+        etiqueta.textContent = rotulo
         const nombre = document.createElement("b")
         nombre.textContent = h.name
         const de = document.createElement("span")
@@ -1624,22 +1651,83 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         fav.append(img, texto)
         fav.classList.remove("show"); void fav.offsetWidth; fav.classList.add("show")
       },
-      showWin(h) {
-        // La misma portada de victoria que en resultados: la del elemento del ganador, con el texto encima.
-        win.textContent = ""
-        if (h.element) {
-          win.classList.add("con-portada")
-          win.style.setProperty("--portada", `url("/images/retratos/victoria-${h.element}.webp")`)
-          win.style.setProperty("--portada-anim", `url("/images/retratos/victoria-${h.element}-anim.webp")`)
+      // Al cruzar: el cuadro se congela partido en dos por un tajo diagonal y en el tajo, ¡GANÓ!
+      corte(h) {
+        const fuente = renderer.domElement
+        corteEl.textContent = ""
+        corteEl.style.setProperty("--c", hex(h.silk))
+        for (const parte of ["arriba", "abajo"]) {
+          const copia = document.createElement("canvas")
+          copia.width = fuente.width; copia.height = fuente.height
+          copia.getContext("2d").drawImage(fuente, 0, 0)
+          copia.className = `corte-${parte}`
+          corteEl.append(copia)
         }
-        const texto = document.createElement("div")
-        texto.className = "hud-win-texto"
-        texto.append(h === mine ? "¡Ganaste!" : `¡Ganó ${h.name}!`)
-        const small = document.createElement("small")
-        small.textContent = h === mine ? `con ${h.name}` : `apuesta de ${h.username}`
-        texto.append(small)
-        win.append(texto)
-        win.classList.add("show")
+        const banda = document.createElement("div")
+        banda.className = "corte-banda"
+        const grito = document.createElement("b")
+        grito.textContent = h === mine ? "¡GANASTE!" : "¡GANÓ!"
+        const quien = document.createElement("small")
+        quien.textContent = `${h.name} · ${elementoDe(h)}`
+        corteEl.append(banda, grito, quien)
+        corteEl.classList.remove("show"); void corteEl.offsetWidth; corteEl.classList.add("show")
+        clearTimeout(corteEl.timer)
+        corteEl.timer = setTimeout(() => corteEl.classList.remove("show"), 1500)
+      },
+      // La pantalla final: resultados encima del 3D a la izquierda; a la derecha, la portada del ganador.
+      final(h, orden) {
+        finEl.textContent = ""
+        finEl.style.setProperty("--c", hex(h.silk))
+        const lado = document.createElement("div")
+        lado.className = "final-ganador"
+        lado.style.setProperty("--portada", `url("/images/retratos/victoria-${h.element}.webp")`)
+        lado.style.setProperty("--portada-anim", `url("/images/retratos/victoria-${h.element}-anim.webp")`)
+        const ficha = document.createElement("div")
+        ficha.className = "final-ficha"
+        const rotulo = document.createElement("small")
+        rotulo.textContent = h === mine ? "¡Ganaste!" : "Ganador"
+        const nombre = document.createElement("b")
+        nombre.textContent = h.name
+        const de = document.createElement("span")
+        de.textContent = `${elementoDe(h)} · apuesta de ${h.username}`
+        ficha.append(rotulo, nombre, de)
+        lado.append(ficha)
+
+        const panel = document.createElement("div")
+        panel.className = "final-resultados"
+        const titulo = document.createElement("h2")
+        titulo.textContent = "Resultados"
+        const lista = document.createElement("ol")
+        orden.forEach((x, i) => {
+          const fila = document.createElement("li")
+          fila.style.setProperty("--c", hex(x.silk))
+          if (x === mine) fila.classList.add("tu")
+          const puesto = document.createElement("b")
+          puesto.textContent = `${i + 1}.º`
+          const caballo = document.createElement("span")
+          caballo.className = "final-caballo"
+          caballo.textContent = x.name
+          const dueno = document.createElement("small")
+          dueno.textContent = `de ${x.username}`
+          fila.append(puesto, caballo, dueno)
+          if (x === mine) { const tu = document.createElement("em"); tu.textContent = "Tú"; fila.append(tu) }
+          lista.append(fila)
+        })
+        const acciones = document.createElement("div")
+        acciones.className = "final-acciones"
+        const otra = document.createElement("form")
+        otra.method = "post"; otra.action = "/jugar"
+        const token = document.querySelector('meta[name="csrf-token"]')?.content
+        if (token) { const campo = document.createElement("input"); campo.type = "hidden"; campo.name = "authenticity_token"; campo.value = token; otra.append(campo) }
+        const boton = document.createElement("button")
+        boton.type = "submit"; boton.textContent = "Jugar otra"
+        otra.append(boton)
+        const volver = document.createElement("a")
+        volver.href = "/"; volver.textContent = "Volver a salas"
+        acciones.append(otra, volver)
+        panel.append(titulo, lista, acciones)
+        finEl.append(panel, lado)
+        finEl.classList.add("show")
       }
     }
   }
@@ -1651,6 +1739,10 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     shared.uViewHeight.value = Math.floor(h * pr)
     post.resize(Math.floor(w * pr), Math.floor(h * pr))
     camera.aspect = w / h
+    // Pantalla final, en horizontal: el 3D se corre a la mitad izquierda (y un poco arriba) para que el ganador quede
+    // centrado ahí, con los resultados encima; la derecha es su portada.
+    if (state.finalMostrado && w > 700) camera.setViewOffset(w, h, w * 0.25, h * 0.14, w, h)
+    else camera.clearViewOffset()
   }
   addEventListener("resize", resize)
   resize()
