@@ -10,6 +10,9 @@ class User < ApplicationRecord
 
   validates :username, presence: true
 
+  # Leaderboard: los que más dinero tienen. Solo cuentas de Google: cada visita de invitado es una cuenta nueva.
+  scope :ranking, -> { where.not(provider: nil).order(balance: :desc, created_at: :asc) }
+
   def self.from_omniauth(auth)
     find_or_create_by(provider: auth.provider, uid: auth.uid) do |u|
       u.username   = auth.info.name

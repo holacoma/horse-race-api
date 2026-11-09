@@ -205,3 +205,9 @@ body:has(.pradera) .app-main, body:has(.pradera) .app-solo { padding-bottom: min
 
 /* Dentro de botones (tarjetas para elegir) el botón no le pisa el color. */
 button .nombre-caballo { color: var(--noche-12) !important; }
+
+/* Saldo en la barra de arriba: lleva al ranking. */
+.app-user .saldo { padding: 3px 12px; border: var(--borde-ancho) solid var(--borde-sutil); border-radius: 99px; background: var(--superficie); font: 700 14px var(--fuente-titulo); white-space: nowrap; }
+[data-fase="carrera"] .app-user .saldo { border-radius: 0; background: var(--noche-1); color: var(--noche-12); }
+/* Avisos que vienen de una redirección (por ejemplo, sin fondos para jugar). */
+.aviso-flash { margin: 0 0 18px; padding: 10px 14px; border-left: 4px solid var(--peligro); background: var(--peligro-fondo); color: var(--peligro-texto); font-weight: 700; border-radius: var(--radio-chico); }

@@ -1,4 +1,7 @@
 module RacesHelper
+  # Dinero del juego, en USD con punto de miles: "1.240 USD".
+  def usd(monto) = "#{number_with_delimiter(monto.to_i, delimiter: '.')} USD"
+
   # Todo sale del elemento del caballo (Horse#elemento): color, chibi, retrato y portada.
   def elemento_de(horse_id) = Horse.elemento_de(horse_id)
 

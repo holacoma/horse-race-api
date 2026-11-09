@@ -38,6 +38,11 @@
   </div>
 
   <div class="field">
+    <%= f.label :bet, "Apuesta base en USD (cada uno paga esto al entrar; el ganador se lleva el pozo)" %>
+    <%= f.number_field :bet, min: Race::BET_RANGE.min, max: Race::BET_RANGE.max, step: 1 %>
+  </div>
+
+  <div class="field">
     <%= f.label :animal_type, "Tipo de animal" %>
     <%= f.select :animal_type, [["🐴 Caballos", "horse"], ["🐹 Cobayas", "guinea_pig"]] %>
   </div>

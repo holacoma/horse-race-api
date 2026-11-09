@@ -69,7 +69,7 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true, resultadosUrl = null }) {
+export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true, resultadosUrl = null, apuesta = null }) {
   const FINISH = distance
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
@@ -1691,7 +1691,12 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const ficha = document.createElement("div")
         ficha.className = "final-ficha"
         const rotulo = document.createElement("small")
-        rotulo.textContent = h !== mine ? "Ganador" : h === ganador ? "¡Ganaste!" : `Tu caballo · ${puesto}.º de ${orden.length}`
+        // Con dinero: el pozo es la apuesta de cada uno; el ganador se lo lleva entero.
+        const pozo = apuesta ? apuesta * orden.length : 0
+        const plata = n => `${n.toLocaleString("es")} USD`
+        rotulo.textContent = h !== mine ? "Ganador"
+          : h === ganador ? (pozo ? `¡Ganaste ${plata(pozo)}!` : "¡Ganaste!")
+          : `Tu caballo · ${puesto}.º de ${orden.length}${apuesta ? ` · −${plata(apuesta)}` : ""}`
         const nombre = document.createElement("b")
         nombre.textContent = h.name
         const de = document.createElement("span")
@@ -1703,6 +1708,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         panel.className = "final-resultados"
         const titulo = document.createElement("h2")
         titulo.textContent = "Resultados"
+        if (pozo) { const enJuego = document.createElement("small"); enJuego.textContent = `Pozo ${plata(pozo)}`; titulo.append(" ", enJuego) }
         const lista = document.createElement("ol")
         orden.forEach((x, i) => {
           const fila = document.createElement("li")

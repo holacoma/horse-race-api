@@ -1,6 +1,6 @@
 <% content_for :title, "Club Race" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-list.css?v=10">
+  <link rel="stylesheet" href="/css/races-list.css?v=12">
 <% end %>
 
 <%# Dos cosas para hacer, nada más: jugar ya, o elegir una sala de las abiertas (o armar una para tus amigos). %>
@@ -11,6 +11,25 @@
     <p class="inicio-regla">La primera regla del Club Race es: no se habla del Club Race.</p>
     <%= button_to "Jugar ya", jugar_path, class: "btn-jugar brilla", form_class: "inicio-jugar", data: { fx: "start" } %>
     <%= link_to "Armar una sala para tus amigos", new_race_path, class: "inicio-crear", data: { fx: "create" } %>
+    <%# Leaderboard: los que más plata tienen. %>
+    <div class="inicio-ranking">
+      <h2>Los más ricos</h2>
+      <% if @ranking.empty? %>
+        <p class="empty-state">Todavía nadie entró con Google. El ranking es para cuentas de Google: los invitados juegan, pero no figuran.</p>
+      <% else %>
+        <ol class="ranking-lista">
+          <% @ranking.each.with_index(1) do |user, puesto| %>
+            <li class="<%= 'tu' if user == current_user %>">
+              <b><%= puesto %>.º</b>
+              <%= link_to user.username, profile_path(user.username), class: "ranking-nombre" %>
+              <span class="ranking-saldo"><%= usd(user.balance) %></span>
+            </li>
+          <% end %>
+        </ol>
+      <% end %>
+      <%= link_to "Ver el ranking completo", ranking_path, class: "ranking-mas", data: { fx: "nav" } %>
+      <% if current_user.guest? %><p class="ranking-nota">Entrá con Google para aparecer en el ranking.</p><% end %>
+    </div>
   </div>
 
   <div class="inicio-salas">
@@ -21,19 +40,21 @@
       <div class="rooms-grid">
         <% @races.each do |race| %>
           <% participants = race.participants.sort_by(&:created_at) %>
-          <%= link_to race_path(race), class: "room-card", data: { fx: "join" } do %>
+          <% alcanza = race.bet <= @saldo %>
+          <%= link_to race_path(race), class: ["room-card", ("sin-saldo" unless alcanza)], data: { fx: "join" } do %>
             <span class="room-slug"><%= race.slug %></span>
-            <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.distance %> m</span>
+            <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.distance %> m · apuesta <%= usd(race.bet) %></span>
             <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
               <% race.capacity.times do |i| %>
                 <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
               <% end %>
             </span>
-            <span class="room-unirse">Unirse</span>
+            <span class="room-unirse"><%= alcanza ? "Unirse" : "No te alcanza" %></span>
           <% end %>
         <% end %>
       </div>
     <% end %>
   </div>
+
 </section>
 

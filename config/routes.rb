@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "races#index"
   post "/jugar", to: "races#jugar", as: :jugar
+  get  "/ranking", to: "races#ranking", as: :ranking
 
   get    "/login",                   to: "sessions#new",           as: :login
   get    "/auth/:provider/callback", to: "sessions#oauth_callback"

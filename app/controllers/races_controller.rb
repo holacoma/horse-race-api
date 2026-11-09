@@ -6,6 +6,13 @@ class RacesController < WebController
     @races = Race.where(is_public: true, status: :pending)
                  .includes(:participants, :creator)
                  .order(created_at: :desc)
+    @ranking = User.ranking.limit(5)
+    @saldo   = current_user.reload.balance
+  end
+
+  # El ranking completo: los que más plata tienen (solo cuentas de Google; los invitados son de una visita).
+  def ranking
+    @ranking = User.ranking.limit(50)
   end
 
   def new
@@ -76,9 +83,13 @@ class RacesController < WebController
     race = Race.where(status: %i[pending running]).joins(:participants).where(participants: { user_id: current_user.id })
                .order(created_at: :desc).first
     unless race
-      race = Race.where(is_public: true, status: :pending).order(created_at: :desc).includes(:participants)
+      saldo = current_user.reload.balance
+      return redirect_to(root_path, alert: "Te quedaste sin fondos: no podés apostar.") if saldo < Race::BET_RANGE.min
+      # Solo salas cuya apuesta te alcance; si no hay, abre una con la apuesta base (o lo que te quede).
+      race = Race.where(is_public: true, status: :pending).where("bet <= ?", saldo).order(created_at: :desc).includes(:participants)
                  .detect { |r| r.participants.size < r.capacity }
-      race ||= Race.create!(capacity: 6, distance: 2000, is_public: true, creator: current_user, slug: Race.pick_room_name[:slug])
+      race ||= Race.create!(capacity: 6, distance: 2000, bet: [ Race.new.bet, saldo ].min, is_public: true,
+                            creator: current_user, slug: Race.pick_room_name[:slug])
       favorites = current_user.favorite_horse_ids
       horse = race.available_horses.find { |h| favorites.include?(h.id) } || race.available_horses.sample
       race.participants.create!(user: current_user, horse_id: horse.id, horse_name: horse.name).announce_joined
@@ -111,6 +122,6 @@ class RacesController < WebController
   end
 
   def race_params
-    params.require(:race).permit(:slug, :capacity, :distance, :animal_type, :is_public)
+    params.require(:race).permit(:slug, :capacity, :distance, :bet, :animal_type, :is_public)
   end
 end

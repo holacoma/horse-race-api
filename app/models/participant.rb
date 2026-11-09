@@ -7,6 +7,18 @@ class Participant < ApplicationRecord
   validates :horse_id, uniqueness: { scope: :race_id, message: "ese caballo ya fue tomado" }
   validates :name, presence: true, unless: -> { user_id.present? }
   validate :elemento_libre, on: :create
+  # Entrar cuesta la apuesta base de la sala. A un jugador se le descuenta de su saldo (si no le alcanza, no entra);
+  # los apostadores de relleno también ponen la suya, así el pozo vale la pena aunque juegues con bots.
+  before_create :pagar_apuesta
+
+  def pagar_apuesta
+    self.stake = race.bet
+    return unless user_id
+    cobrado = User.where(id: user_id).where("balance >= ?", stake).update_all([ "balance = balance - ?", stake ])
+    return if cobrado == 1
+    errors.add(:base, "No te alcanza: la apuesta de esta sala es #{stake} USD y tenés #{user.reload.balance} USD")
+    throw :abort
+  end
 
   # En una sala no se repiten elementos: cada caballo se distingue por su color.
   def elemento_libre

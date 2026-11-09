@@ -44,14 +44,17 @@ class RaceSimulationJob < ApplicationJob
       winner = first_to_arrive(entries, distance)
 
       if winner
+        pozo = 0
         Race.transaction do
           save_final_ranks(entries, winner)
           race.update!(status: :finished, winner_name: winner[:horse].name, finished_at: Time.current)
+          pozo = race.pagar_al_ganador!(winner[:participant])
         end
 
         ActionCable.server.broadcast("race_#{race_id}", {
           type: "finished",
-          winner: { id: winner[:horse].id, name: winner[:horse].name, username: winner[:username] }
+          winner: { id: winner[:horse].id, name: winner[:horse].name, username: winner[:username] },
+          pozo: pozo
         })
 
         break

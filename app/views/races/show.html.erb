@@ -2,7 +2,7 @@
 <% content_for :pantalla_completa, true %>
 <% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=13">
+  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=14">
   <link rel="stylesheet" href="/css/race-lobby.css?v=9">
 <% end %>
 
@@ -11,6 +11,7 @@
   raceId: @race.id,
   capacity: @race.capacity,
   distance: @race.distance,
+  bet: @race.bet,
   running: @race.running?,
   secondsToStart: @seconds_to_start,
   participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, element: elemento_de(p.horse_id) } },

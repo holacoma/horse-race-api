@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_230000) do
     t.bigint "race_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.integer "stake", default: 0, null: false
+    t.integer "payout", default: 0, null: false
     t.index ["race_id", "horse_id"], name: "index_participants_on_race_id_and_horse_id", unique: true
     t.index ["race_id", "user_id"], name: "index_participants_on_race_id_and_user_id", unique: true
     t.index ["race_id"], name: "index_participants_on_race_id"
@@ -51,6 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_230000) do
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.string "winner_name"
+    t.integer "bet", default: 40, null: false
     t.index ["slug"], name: "index_races_on_slug", unique: true
   end
 
@@ -204,6 +207,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_230000) do
     t.string "uid"
     t.datetime "updated_at", null: false
     t.string "username", null: false
+    t.integer "balance", default: 1000, null: false
+    t.index ["balance"], name: "index_users_on_balance"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end
 

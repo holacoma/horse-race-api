@@ -26,6 +26,39 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".room-lugares i.ocupado[style*='--caballo-fuego-tinta']"
   end
 
+  test "el inicio muestra tu saldo, la apuesta de cada sala y el leaderboard" do
+    User.find_by(username: "TestRider").update!(balance: 1500)
+    Race.create!(is_public: true, status: :pending, bet: 1000)
+    User.find_by(username: "TestRider").update!(balance: 500)
+    User.create!(username: "Magnate", provider: "google_oauth2", uid: "m", balance: 5000)
+    get root_path
+    assert_select ".app-user .saldo", /500 USD/
+    assert_select ".room-card.sin-saldo .room-unirse", "No te alcanza"
+    assert_select ".inicio-ranking .ranking-lista li", /Magnate/
+  end
+
+  test "GET /ranking lista a los más ricos" do
+    User.create!(username: "Magnate", provider: "google_oauth2", uid: "m", balance: 5000)
+    get ranking_path
+    assert_response :ok
+    assert_select ".ranking-completo li", /Magnate.*5\.000 USD/m
+  end
+
+  test "Jugar ya sin fondos no te mete en ninguna sala" do
+    User.find_by(username: "TestRider").update!(balance: 0)
+    assert_no_difference "Participant.count" do
+      post jugar_path
+    end
+    assert_redirected_to root_path
+    follow_redirect!
+    assert_select ".aviso-flash", /sin fondos/
+  end
+
+  test "POST /races guarda la apuesta base elegida" do
+    post races_path, params: { race: { slug: "con-apuesta", capacity: 4, bet: 100 } }
+    assert_equal 100, Race.find_by(slug: "con-apuesta").bet
+  end
+
   test "GET /races/new renders the create form" do
     get new_race_path
     assert_response :ok

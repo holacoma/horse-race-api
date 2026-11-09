@@ -222,3 +222,4 @@ canvas.congelado { filter: grayscale(1) contrast(1.7) brightness(.62); }
    queda el final. */
 body:has(.hud-lead.ganador) .hud-rank { opacity: 0; }
 body:has(.hud-final.show) :is(.hud-rank, .hud-map, .hud-lead, .hud-tag) { display: none; }
+.final-resultados h2 small { margin-left: 10px; padding: 2px 10px; background: var(--carmesi); color: #fff; font: 800 14px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; text-shadow: none; vertical-align: middle; }

@@ -59,3 +59,28 @@
 .btn-jugar { animation: rebote 23s ease-in-out 9s infinite; }
 @keyframes brillo-esporadico { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 1%, 8% { opacity: .85; } 9%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0; } }
 @keyframes rebote { 0%, 93%, 100% { translate: 0 0; rotate: 0deg; } 95% { translate: 0 -7px; rotate: -2deg; } 97% { translate: 0 1px; rotate: 1deg; } }
+
+/* Sala con apuesta mayor a tu saldo: se ve apagada y avisa. */
+.room-card.sin-saldo { opacity: .55; }
+.room-card.sin-saldo .room-unirse { background: var(--superficie); color: var(--texto-suave); }
+
+/* Leaderboard: los que más plata tienen. Tu fila va en negro, con letra gótica (lo tuyo, del lado oscuro). */
+.inicio-ranking { justify-self: stretch; display: grid; gap: 12px; margin-top: 28px; }
+.inicio-ranking h2 { font-size: 24px; margin: 0; }
+.ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ranking-lista li {
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 8px 16px;
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra);
+}
+.ranking-lista li:first-child { border-color: var(--acento-borde); transform: rotate(calc(var(--giro) * -.5)); }
+.ranking-lista li b { font: 700 18px var(--fuente-titulo); text-align: center; }
+.ranking-nombre { font-weight: 800; text-decoration: none; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-saldo { font: 700 16px var(--fuente-titulo); white-space: nowrap; }
+.ranking-saldo::before { content: "🪙 "; }
+.ranking-lista li.tu { background: var(--noche-1); border-color: var(--noche-1); color: var(--noche-12); box-shadow: 5px 5px 0 var(--carmesi); }
+.ranking-lista li.tu .ranking-nombre { color: var(--noche-12); font: 400 18px var(--fuente-gotica); }
+.ranking-mas { justify-self: start; font-weight: 800; font-size: 15px; text-decoration: none; }
+.ranking-nota { margin: 0; color: var(--texto-suave); font-size: 14px; }
+.ranking-pagina { max-width: 640px; display: grid; gap: 16px; }
+.ranking-pagina h1 { margin: 0; }
+
