@@ -32,14 +32,14 @@ class DineroTest < ActiveSupport::TestCase
     assert_equal 30, @user.reload.balance
   end
 
-  test "el ganador se lleva el pozo entero" do
+  test "el ganador cobra el doble de todo lo apostado" do
     ganador = @race.participants.create!(user: @user, horse_id: 1, horse_name: "Uno")
     @race.participants.create!(user: @otra, horse_id: 2, horse_name: "Dos")
     @race.participants.create!(name: "Don Fiado", horse_id: 3, horse_name: "Tres")
-    assert_equal 120, @race.pagar_al_ganador!(ganador)
-    assert_equal 960 + 120, @user.reload.balance
+    assert_equal 240, @race.pagar_al_ganador!(ganador)
+    assert_equal 960 + 240, @user.reload.balance
     assert_equal 960, @otra.reload.balance
-    assert_equal 120, ganador.reload.payout
+    assert_equal 240, ganador.reload.payout
   end
 
   test "la carrera simulada le paga al ganador al terminar" do
@@ -50,8 +50,8 @@ class DineroTest < ActiveSupport::TestCase
     job.define_singleton_method(:sleep) { |*| }
     job.perform(@race.id)
     ganador = @race.reload.results.first
-    assert_equal 80, ganador.payout
-    assert_equal 1040, ganador.user.reload.balance
+    assert_equal 160, ganador.payout
+    assert_equal 1120, ganador.user.reload.balance
   end
 
   test "el ranking es solo de cuentas de Google, de más a menos dinero" do

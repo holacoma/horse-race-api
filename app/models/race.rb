@@ -3,6 +3,7 @@ class Race < ApplicationRecord
   SLUG_ANIMALS    = %w[fox wolf hawk eagle tiger bear].freeze
   DISTANCE_RANGE  = (100..20_000)
   BET_RANGE       = (1..1000) # USD por caballo; 40 por defecto
+  PREMIO_MULTIPLICADOR = 2    # el ganador cobra el doble del pozo
   # Más nombres que la capacidad máxima de una sala (12), para que nunca se agoten.
   BETTOR_NAMES = [
     "Don Corazonada", "Doña Suerte", "Tío Quiniela", "Juan Sin Suerte", "Capitán Deuda",
@@ -45,9 +46,12 @@ class Race < ApplicationRecord
   # Lo apostado por todos los que entraron.
   def pozo = participants.sum(:stake)
 
-  # El ganador se lleva el pozo entero. Si ganó un apostador de relleno, el pozo se queda en la casa.
+  # El ganador cobra el doble de todo lo apostado: así el juego genera dinero. Si ganó un apostador de relleno,
+  # no cobra nadie.
+  def premio = pozo * PREMIO_MULTIPLICADOR
+
   def pagar_al_ganador!(ganador)
-    monto = pozo
+    monto = premio
     ganador.update!(payout: monto)
     User.where(id: ganador.user_id).update_all([ "balance = balance + ?", monto ]) if ganador.user_id
     monto

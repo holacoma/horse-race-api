@@ -38,7 +38,7 @@
   </div>
 
   <div class="field">
-    <%= f.label :bet, "Apuesta base en USD (cada uno paga esto al entrar; el ganador se lleva el pozo)" %>
+    <%= f.label :bet, "Apuesta base en USD (cada uno paga esto al entrar; el ganador cobra el doble de todo lo apostado)" %>
     <%= f.number_field :bet, min: Race::BET_RANGE.min, max: Race::BET_RANGE.max, step: 1 %>
   </div>
 

@@ -1691,8 +1691,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const ficha = document.createElement("div")
         ficha.className = "final-ficha"
         const rotulo = document.createElement("small")
-        // Con dinero: el pozo es la apuesta de cada uno; el ganador se lo lleva entero.
-        const pozo = apuesta ? apuesta * orden.length : 0
+        // Con dinero: el pozo es la apuesta de cada uno; el ganador cobra el doble del pozo.
+        const pozo = apuesta ? apuesta * orden.length * 2 : 0 // el premio
         const plata = n => `${n.toLocaleString("es")} USD`
         rotulo.textContent = h !== mine ? "Ganador"
           : h === ganador ? (pozo ? `¡Ganaste ${plata(pozo)}!` : "¡Ganaste!")
@@ -1708,7 +1708,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         panel.className = "final-resultados"
         const titulo = document.createElement("h2")
         titulo.textContent = "Resultados"
-        if (pozo) { const enJuego = document.createElement("small"); enJuego.textContent = `Pozo ${plata(pozo)}`; titulo.append(" ", enJuego) }
+        if (pozo) { const enJuego = document.createElement("small"); enJuego.textContent = `Premio ${plata(pozo)}`; titulo.append(" ", enJuego) }
         const lista = document.createElement("ol")
         orden.forEach((x, i) => {
           const fila = document.createElement("li")

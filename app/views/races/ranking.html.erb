@@ -6,7 +6,7 @@
 <%# El ranking completo: los que más plata tienen. Solo cuentas de Google. %>
 <section class="ranking-pagina">
   <h1>Los más ricos</h1>
-  <p class="subtitle">Todos empiezan con <%= usd(User.new.balance) %>. Cada carrera cuesta la apuesta de la sala y el ganador se lleva el pozo.</p>
+  <p class="subtitle">Todos empiezan con <%= usd(User.new.balance) %>. Cada carrera cuesta la apuesta de la sala y el ganador cobra el doble de todo lo apostado.</p>
   <% if @ranking.empty? %>
     <p class="empty-state">Todavía nadie entró con Google.</p>
   <% else %>
