@@ -45,7 +45,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=15"),
+      import("/prototipos/carrera3d/escena.js?v=16"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -61,7 +61,8 @@ export default class extends Controller {
       onCross: () => sonar("meta"),
       onCelebrate: () => sonar("ganador"),
       // Los resultados quedan en la misma pantalla, sobre la escena: ya no se cambia de página ni se reconecta.
-      onDone: () => { this.yendoAResultados = true; this.socket?.close() }
+      onDone: () => { this.yendoAResultados = true; this.socket?.close() },
+      resultadosUrl: data.resultsUrl
     })
     window.__sala = { race: this.race }
     // Lo que llegó mientras cargaba la escena.

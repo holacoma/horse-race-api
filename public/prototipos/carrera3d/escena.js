@@ -69,7 +69,7 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true }) {
+export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true, resultadosUrl = null }) {
   const FINISH = distance
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
@@ -1730,7 +1730,9 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         otra.append(boton)
         const volver = document.createElement("a")
         volver.href = "/"; volver.textContent = "Volver a salas"
-        acciones.append(otra, volver)
+        acciones.append(otra)
+        if (resultadosUrl) { const ver = document.createElement("a"); ver.href = resultadosUrl; ver.textContent = "Ver resultados"; acciones.append(ver) }
+        acciones.append(volver)
         panel.append(titulo, lista, acciones)
         finEl.append(panel, lado)
         finEl.classList.add("show")
