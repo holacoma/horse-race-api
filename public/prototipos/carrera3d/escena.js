@@ -573,14 +573,16 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     let roll = 0
     const stage = finishStage(crossedFor)
     if (stage === "festejo") {
-      const w = state.winner
-      // Bajo y por delante del ganador: los demás vienen de atrás y no cruzan la cámara.
-      const a = 1.1 - (crossedFor - CELEBRATE_AFTER) * 0.06
+      // Por delante y un poco en alto, siempre dentro de la pista (lejos de las barandas). En el festejo, el ganador;
+      // en la pantalla final, tu caballo, que es el que te representa (si solo mirás, el ganador).
+      const w = state.finalMostrado ? mine || state.winner : state.winner
+      const a = Math.max(0.55, 1.3 - (crossedFor - CELEBRATE_AFTER) * 0.03)
       shot = "festejo"
-      pos = [w.x + Math.sin(a) * 9, 1, w.z + Math.cos(a) * 9]
-      look = [w.x + 0.4, 3, w.z] // el caballo queda abajo del cuadro: el cartel del ganador va arriba
-      fov = 36
-      roll = -0.05
+      const borde = WIDTH / 2 - 1.3
+      pos = [w.x + Math.sin(a) * 8, 2.8, clamp(w.z + Math.cos(a) * 8, -borde, borde)]
+      look = [w.x + 0.3, 1.6, w.z]
+      fov = 40
+      roll = -0.04
     } else if (stage === "paneo") {
       // Paneo total: la cámara barre media vuelta alrededor de la meta mientras pasa todo el grupo.
       // Arranca mirando al ganador, para que lo primero que se vea después de cruzar sea él.

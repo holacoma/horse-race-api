@@ -156,8 +156,9 @@ canvas { display: block; position: fixed; inset: 0; }
 .final-acciones button { background: var(--carmesi); }
 .final-acciones button:hover, .final-acciones a:hover { filter: brightness(1.15); }
 .final-ganador {
-  position: relative; display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 4vw 6vh 0;
-  background: var(--portada-anim, none) center / cover no-repeat, var(--noche-1) var(--portada) center / cover no-repeat;
+  position: relative; display: flex; align-items: flex-end; justify-content: flex-start; padding: 0 0 6vh 6vw;
+  /* Las portadas llevan el caballo a la derecha: se recorta desde ese lado para que quede entero, y la ficha va abajo a la izquierda. */
+  background: var(--portada-anim, none) right center / cover no-repeat, var(--noche-1) var(--portada) right center / cover no-repeat;
   clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); filter: drop-shadow(-8px 0 0 var(--c));
   animation: final-portada .5s cubic-bezier(.2, 1.2, .4, 1) both;
 }
@@ -170,7 +171,7 @@ canvas { display: block; position: fixed; inset: 0; }
 /* Teléfono, en vertical: arriba la portada, abajo los resultados sobre el 3D. */
 @media (max-width: 700px) {
   .hud-final { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
-  .final-ganador { grid-row: 1; clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%); padding: 0 4vw 5vh 0; }
+  .final-ganador { grid-row: 1; clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%); padding: 0 0 5vh 4vw; }
   .final-resultados { grid-row: 2; width: auto; margin: 0 4vw 3vh; }
   .final-resultados li { padding: 4px 10px; }
   .final-caballo { font-size: 15px; }
