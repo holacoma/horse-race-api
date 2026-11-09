@@ -18,6 +18,14 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".room-card"
   end
 
+  test "GET / pinta los lugares ocupados de una sala abierta con el color de cada caballo" do
+    race = Race.create!(is_public: true, status: :pending)
+    race.participants.create!(name: "Apostador", horse_id: 1, horse_name: "Uno")
+    get root_path
+    assert_response :ok
+    assert_select ".room-lugares i.ocupado[style*='--caballo-fuego-tinta']"
+  end
+
   test "GET /races/new renders the create form" do
     get new_race_path
     assert_response :ok
