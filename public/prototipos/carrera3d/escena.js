@@ -1675,7 +1675,10 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         corteEl.timer = setTimeout(() => corteEl.classList.remove("show"), 1500)
       },
       // La pantalla final: resultados encima del 3D a la izquierda; a la derecha, la portada del ganador.
-      final(h, orden) {
+      final(ganador, orden) {
+        // A la derecha va tu caballo, ganes o no: es el que te representa. Sin caballo propio (mirando), el ganador.
+        const h = mine || ganador
+        const puesto = orden.indexOf(h) + 1
         finEl.textContent = ""
         finEl.style.setProperty("--c", hex(h.silk))
         const lado = document.createElement("div")
@@ -1685,7 +1688,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const ficha = document.createElement("div")
         ficha.className = "final-ficha"
         const rotulo = document.createElement("small")
-        rotulo.textContent = h === mine ? "¡Ganaste!" : "Ganador"
+        rotulo.textContent = h !== mine ? "Ganador" : h === ganador ? "¡Ganaste!" : `Tu caballo · ${puesto}.º de ${orden.length}`
         const nombre = document.createElement("b")
         nombre.textContent = h.name
         const de = document.createElement("span")
