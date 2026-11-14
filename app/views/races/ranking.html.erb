@@ -21,5 +21,6 @@
     </ol>
   <% end %>
   <% if current_user.guest? %><p class="ranking-nota">Juegas como invitado: tienes <%= usd(current_user.balance) %>, pero solo las cuentas de Google figuran en el ranking.</p><% end %>
+  <%= link_to "Los bots del club →", bots_path, class: "back-link" %>
   <%= link_to "← Volver a salas", root_path, class: "back-link" %>
 </section>

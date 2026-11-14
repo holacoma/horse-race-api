@@ -1,0 +1,500 @@
+- nombre: "Tía Quiniela"
+  personaje: "Apuesta por corazonadas y nunca se arrepiente."
+  despierta: 6
+  duerme: 22
+  estilo: normal
+- nombre: "Don Corazonada"
+  personaje: "Siempre apuesta al caballo de menor número."
+  despierta: 17
+  duerme: 9
+  estilo: normal
+- nombre: "Capitán Galope"
+  personaje: "Cree en los números de la lotería para elegir."
+  despierta: 4
+  duerme: 20
+  estilo: prudente
+- nombre: "Lady Propina"
+  personaje: "Nunca falla en una carrera de 4 caballos."
+  despierta: 23
+  duerme: 15
+  estilo: normal
+- nombre: "Barón del Empate"
+  personaje: "Elige siempre al caballo más lento."
+  despierta: 18
+  duerme: 10
+  estilo: normal
+- nombre: "Rey Fiado"
+  personaje: "Solo apuesta cuando hay mucha plata en juego."
+  despierta: 18
+  duerme: 10
+  estilo: normal
+- nombre: "Pastor de los Sueños"
+  personaje: "Cree que su mascota le da suerte."
+  despierta: 15
+  duerme: 7
+  estilo: prudente
+- nombre: "Ranero de las Lomas"
+  personaje: "Apuesta más de lo que puede perder."
+  despierta: 7
+  duerme: 23
+  estilo: arriesgado
+- nombre: "Estanciero del Oeste"
+  personaje: "Nunca ve una carrera completa antes de apostar."
+  despierta: 15
+  duerme: 7
+  estilo: arriesgado
+- nombre: "Lanero del Norte"
+  personaje: "Elige al caballo con mejor color de montera."
+  despierta: 13
+  duerme: 5
+  estilo: prudente
+- nombre: "Tropero de la Frontera"
+  personaje: "Cree que el sorteo de la lotería predice carreras."
+  despierta: 6
+  duerme: 22
+  estilo: normal
+- nombre: "Vaquerizo del Valle"
+  personaje: "Siempre apuesta al caballo de su nombre favorito."
+  despierta: 3
+  duerme: 19
+  estilo: prudente
+- nombre: "Bovino de la Pampa"
+  personaje: "Nunca pierde una apuesta pequeña."
+  despierta: 3
+  duerme: 19
+  estilo: prudente
+- nombre: "Ganadero de las Costas"
+  personaje: "Le encanta ver carreras aunque no entienda."
+  despierta: 21
+  duerme: 13
+  estilo: arriesgado
+- nombre: "Arriero del Tránsito"
+  personaje: "Cree que los caballos entienden cuando le habla."
+  despierta: 13
+  duerme: 5
+  estilo: arriesgado
+- nombre: "Caballerizo de la Suerte"
+  personaje: "Apuesta solo los días que llueve."
+  despierta: 11
+  duerme: 3
+  estilo: prudente
+- nombre: "Atalaya del Cerro"
+  personaje: "Cree que el jockey es suerte pura."
+  despierta: 13
+  duerme: 5
+  estilo: arriesgado
+- nombre: "Vado del Monte"
+  personaje: "Siempre apuesta al caballo que mira primero."
+  despierta: 13
+  duerme: 5
+  estilo: prudente
+- nombre: "Rincón de los Corrales"
+  personaje: "Le da igual ganar o perder, le gusta la adrenalina."
+  despierta: 14
+  duerme: 6
+  estilo: prudente
+- nombre: "Molino de las Piedras"
+  personaje: "Cree que tiene don de predicción."
+  despierta: 23
+  duerme: 15
+  estilo: normal
+- nombre: "Cerro de Sal"
+  personaje: "Nunca apuesta más de lo que sobra en el bolsillo."
+  despierta: 1
+  duerme: 17
+  estilo: normal
+- nombre: "Mirador de los Vientos"
+  personaje: "Elige caballos por el número, no por el rendimiento."
+  despierta: 21
+  duerme: 13
+  estilo: prudente
+- nombre: "Cruz de los Linderos"
+  personaje: "Cree que la racha le acompaña siempre."
+  despierta: 20
+  duerme: 12
+  estilo: normal
+- nombre: "Puesto de Hierro"
+  personaje: "Apostó una vez y ganó, sigue apostando igual."
+  despierta: 20
+  duerme: 12
+  estilo: arriesgado
+- nombre: "Cueva de la Quebrada"
+  personaje: "No entiende las reglas, pero le pone plata."
+  despierta: 3
+  duerme: 19
+  estilo: arriesgado
+- nombre: "Aldea del Río"
+  personaje: "Elige al caballo que le cae mejor."
+  despierta: 1
+  duerme: 17
+  estilo: normal
+- nombre: "Campo al Plato el Flaco"
+  personaje: "Cree que su intuición es infalible."
+  despierta: 12
+  duerme: 4
+  estilo: arriesgado
+- nombre: "Al Trote Lento el Cura"
+  personaje: "Siempre apuesta al último de la lista."
+  despierta: 23
+  duerme: 15
+  estilo: arriesgado
+- nombre: "Poca Rumía el Viejo"
+  personaje: "Le gusta apostar en grupo, nunca solo."
+  despierta: 10
+  duerme: 2
+  estilo: prudente
+- nombre: "Aunque Pese el Gallo"
+  personaje: "Cree que el destino elige por él."
+  despierta: 3
+  duerme: 19
+  estilo: normal
+- nombre: "Tanto Tira el Zorro"
+  personaje: "Solo apuesta carreras con buenos premios."
+  despierta: 7
+  duerme: 23
+  estilo: prudente
+- nombre: "Mucho Trote el Roto"
+  personaje: "Nunca sigue la misma estrategia dos veces."
+  despierta: 6
+  duerme: 22
+  estilo: arriesgado
+- nombre: "Siembra el Guacho"
+  personaje: "Elige caballos cerrando los ojos."
+  despierta: 6
+  duerme: 22
+  estilo: arriesgado
+- nombre: "Yapa Arriba la Viuda"
+  personaje: "Cree que los animales saben más que los humanos."
+  despierta: 17
+  duerme: 9
+  estilo: prudente
+- nombre: "Palo que Nace el Tuerto"
+  personaje: "Apuesta con emoción, nunca con cabeza."
+  despierta: 14
+  duerme: 6
+  estilo: arriesgado
+- nombre: "Adelantado del Río"
+  personaje: "Se cree experto tras ganar una vez."
+  despierta: 4
+  duerme: 20
+  estilo: prudente
+- nombre: "Alcaide de la Pampa"
+  personaje: "Nunca se pierde una carrera, aunque no apueste."
+  despierta: 13
+  duerme: 5
+  estilo: arriesgado
+- nombre: "Titular del Llano"
+  personaje: "Cree que la suerte se hace con constancia."
+  despierta: 5
+  duerme: 21
+  estilo: prudente
+- nombre: "Burgomaestre del Sur"
+  personaje: "Elige siempre al caballo con menos favoritos."
+  despierta: 8
+  duerme: 0
+  estilo: prudente
+- nombre: "Merino del Trueno"
+  personaje: "Le gusta arriesgar todo en una sola carrera."
+  despierta: 14
+  duerme: 6
+  estilo: normal
+- nombre: "Alférez de las Pampas"
+  personaje: "Nunca pierde el entusiasmo, aunque pierda plata."
+  despierta: 7
+  duerme: 23
+  estilo: normal
+- nombre: "Condesa del Cordero"
+  personaje: "Apuesta como si fuera un deporte."
+  despierta: 2
+  duerme: 18
+  estilo: normal
+- nombre: "Duque de las Sombras"
+  personaje: "Cree que su signo del zodiaco influye."
+  despierta: 14
+  duerme: 6
+  estilo: arriesgado
+- nombre: "Corregidor de la Sierra"
+  personaje: "Elige caballos que empiecen con la misma letra."
+  despierta: 17
+  duerme: 9
+  estilo: arriesgado
+- nombre: "Señor de los Relámpagos"
+  personaje: "Apostó en pareja y triplicó su plata."
+  despierta: 3
+  duerme: 19
+  estilo: prudente
+- nombre: "Marqués del Abrojal"
+  personaje: "No entiende las reglas, pero le encanta."
+  despierta: 1
+  duerme: 17
+  estilo: normal
+- nombre: "Doncella de la Luna"
+  personaje: "Cree que los caballos eligen al ganador solos."
+  despierta: 20
+  duerme: 12
+  estilo: normal
+- nombre: "Maestro del Corralón"
+  personaje: "Siempre tiene un ritual antes de apostar."
+  despierta: 17
+  duerme: 9
+  estilo: arriesgado
+- nombre: "Donatario de la Estrella"
+  personaje: "Le gusta más mirar que apostar de verdad."
+  despierta: 0
+  duerme: 16
+  estilo: prudente
+- nombre: "Cantón del Empalme"
+  personaje: "Cree que la experiencia lo dice todo."
+  despierta: 2
+  duerme: 18
+  estilo: normal
+- nombre: "Albardón del Río"
+  personaje: "Elige al caballo más joven de la carrera."
+  despierta: 7
+  duerme: 23
+  estilo: normal
+- nombre: "Rellano de la Sierra"
+  personaje: "Apuesta fuerte cuando siente que es su día."
+  despierta: 5
+  duerme: 21
+  estilo: prudente
+- nombre: "Casco de Cristal"
+  personaje: "Cree que cada carrera tiene una trampa."
+  despierta: 13
+  duerme: 5
+  estilo: prudente
+- nombre: "Rienda Suelta"
+  personaje: "Nunca se arriesga con todo lo que tiene."
+  despierta: 15
+  duerme: 7
+  estilo: normal
+- nombre: "Jillo de las Piedras"
+  personaje: "Elige caballos por su historia personal."
+  despierta: 15
+  duerme: 7
+  estilo: normal
+- nombre: "Relincho de Medianoche"
+  personaje: "Cree que el azar tiene su propia lógica."
+  despierta: 6
+  duerme: 22
+  estilo: normal
+- nombre: "Bocado de Plata"
+  personaje: "Le apasiona más la emoción que el dinero."
+  despierta: 12
+  duerme: 4
+  estilo: normal
+- nombre: "Bastrón el Grande"
+  personaje: "Cree que hay caballos con suerte propia."
+  despierta: 1
+  duerme: 17
+  estilo: prudente
+- nombre: "Estribo Roto"
+  personaje: "Nunca apuesta sin antes orinar sobre un gallo."
+  despierta: 5
+  duerme: 21
+  estilo: prudente
+- nombre: "Percance el Loco"
+  personaje: "Siempre apuesta al caballo de su barrio."
+  despierta: 12
+  duerme: 4
+  estilo: arriesgado
+- nombre: "Sartenilla del Patio"
+  personaje: "Cree que el número 7 es sagrado."
+  despierta: 0
+  duerme: 16
+  estilo: normal
+- nombre: "Muserola de Cobre"
+  personaje: "Elige siempre al caballo que no gana nunca."
+  despierta: 12
+  duerme: 4
+  estilo: arriesgado
+- nombre: "Rastrilla del Monte"
+  personaje: "Apostó en sueños y ganó al despertar."
+  despierta: 8
+  duerme: 0
+  estilo: normal
+- nombre: "Tambor de Bronce"
+  personaje: "Le gusta gritarle al caballo mientras corre."
+  despierta: 14
+  duerme: 6
+  estilo: arriesgado
+- nombre: "Manta de Oveja"
+  personaje: "Cree que la lluvia trae buena suerte."
+  despierta: 9
+  duerme: 1
+  estilo: arriesgado
+- nombre: "Zapata de Hierro"
+  personaje: "Nunca sigue consejos de nadie."
+  despierta: 13
+  duerme: 5
+  estilo: normal
+- nombre: "Arena Fina"
+  personaje: "Cree que la combinación de colores importa."
+  despierta: 22
+  duerme: 14
+  estilo: prudente
+- nombre: "Aurora del Sur"
+  personaje: "Elige caballos según cómo lo mire el sol."
+  despierta: 23
+  duerme: 15
+  estilo: prudente
+- nombre: "Cometa de Fuego"
+  personaje: "Apostó en vacaciones y no parar de ahí."
+  despierta: 17
+  duerme: 9
+  estilo: arriesgado
+- nombre: "Pardillo el Tuerto"
+  personaje: "Cree que los caballos tienen aura."
+  despierta: 21
+  duerme: 13
+  estilo: normal
+- nombre: "Cata de Fuego"
+  personaje: "Siempre apuesta en orden inverso al favorito."
+  despierta: 22
+  duerme: 14
+  estilo: prudente
+- nombre: "Pulsar de Oro"
+  personaje: "Nunca pierde si no mira la carrera."
+  despierta: 15
+  duerme: 7
+  estilo: arriesgado
+- nombre: "Nebulosa del Sur"
+  personaje: "Cree que la tierra del caballo importa."
+  despierta: 6
+  duerme: 21
+  estilo: prudente
+- nombre: "Zumo de Fuego"
+  personaje: "Elige al caballo que ronca más fuerte."
+  despierta: 6
+  duerme: 22
+  estilo: normal
+- nombre: "Suela de Hierro"
+  personaje: "Le gusta apostar y luego culpar al clima."
+  despierta: 18
+  duerme: 8
+  estilo: normal
+- nombre: "Cráter de Hierro"
+  personaje: "Cree que un fantasma le indica la apuesta."
+  despierta: 1
+  duerme: 19
+  estilo: prudente
+- nombre: "Quilla de Sal"
+  personaje: "Nunca se equivoca, dicen sus amigos."
+  despierta: 1
+  duerme: 17
+  estilo: normal
+- nombre: "Supernova de Sal"
+  personaje: "Elige caballos por el sabor de su comida."
+  despierta: 18
+  duerme: 8
+  estilo: arriesgado
+- nombre: "Sombra de Fuego"
+  personaje: "Cree que cada caballo tiene un espíritu guía."
+  despierta: 16
+  duerme: 9
+  estilo: normal
+- nombre: "Tormenta de Oso"
+  personaje: "Apostó una vez, ganó mucho, se retiró."
+  despierta: 5
+  duerme: 23
+  estilo: normal
+- nombre: "Gravitón el Roto"
+  personaje: "Vuelve siempre a apostar, nunca se cansa."
+  despierta: 16
+  duerme: 6
+  estilo: arriesgado
+- nombre: "Bruma de Noche"
+  personaje: "Cree que el público elige al ganador."
+  despierta: 5
+  duerme: 19
+  estilo: normal
+- nombre: "Tornado de Hierro"
+  personaje: "Elige caballos que su nombre sea corto."
+  despierta: 19
+  duerme: 9
+  estilo: arriesgado
+- nombre: "Tronco de Sal"
+  personaje: "Siempre apuesta lo que le sobra del almuerzo."
+  despierta: 21
+  duerme: 11
+  estilo: normal
+- nombre: "Jabalí de Noche"
+  personaje: "Cree que la carrera se decide en el primer metro."
+  despierta: 12
+  duerme: 3
+  estilo: normal
+- nombre: "Yunque de Sal"
+  personaje: "Nunca apostó en carrera corta, le dan pena."
+  despierta: 18
+  duerme: 8
+  estilo: prudente
+- nombre: "Lagarto de Oro"
+  personaje: "Cree que el aire cambia antes de una victoria."
+  despierta: 18
+  duerme: 9
+  estilo: prudente
+- nombre: "Lluvia de Fuego"
+  personaje: "Apuesta por corazonadas y nunca se arrepiente."
+  despierta: 1
+  duerme: 19
+  estilo: arriesgado
+- nombre: "Ñandú Veloz"
+  personaje: "Siempre apuesta al caballo de menor número."
+  despierta: 2
+  duerme: 20
+  estilo: normal
+- nombre: "Agua Fuerte"
+  personaje: "Cree en los números de la lotería para elegir."
+  despierta: 21
+  duerme: 14
+  estilo: normal
+- nombre: "Pico de Hierro"
+  personaje: "Nunca falla en una carrera de 4 caballos."
+  despierta: 18
+  duerme: 12
+  estilo: normal
+- nombre: "Murciélago de Sal"
+  personaje: "Elige siempre al caballo más lento."
+  despierta: 10
+  duerme: 4
+  estilo: arriesgado
+- nombre: "Zarpazo de Fuego"
+  personaje: "Solo apuesta cuando hay mucha plata en juego."
+  despierta: 6
+  duerme: 22
+  estilo: normal
+- nombre: "Brasa Viva"
+  personaje: "Cree que su mascota le da suerte."
+  despierta: 7
+  duerme: 23
+  estilo: normal
+- nombre: "Centella de Sal"
+  personaje: "Apuesta más de lo que puede perder."
+  despierta: 12
+  duerme: 4
+  estilo: prudente
+- nombre: "Buitre de Hierro"
+  personaje: "Nunca ve una carrera completa antes de apostar."
+  despierta: 21
+  duerme: 12
+  estilo: arriesgado
+- nombre: "Fénix del Sur"
+  personaje: "Elige al caballo con mejor color de montera."
+  despierta: 14
+  duerme: 6
+  estilo: normal
+- nombre: "Estela de Fuego"
+  personaje: "Cree que el sorteo de la lotería predice carreras."
+  despierta: 2
+  duerme: 18
+  estilo: arriesgado
+- nombre: "Puya de Fuego"
+  personaje: "Siempre apuesta al caballo de su nombre favorito."
+  despierta: 14
+  duerme: 4
+  estilo: prudente
+- nombre: "Rastrero el Roto"
+  personaje: "Nunca pierde una apuesta pequeña."
+  despierta: 18
+  duerme: 12
+  estilo: arriesgado
