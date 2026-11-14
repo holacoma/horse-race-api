@@ -14,7 +14,7 @@
       <%= f.select :caballos, (2..12).map { |n| [ n, n ] }, { selected: 8 } %>
     </div>
     <div class="field">
-      <%= f.label :distancia, "Distancia en metros (2000 m ≈ 20 s)" %>
+      <%= f.label :distancia, "Distancia en metros (2000 m ≈ 40 s)" %>
       <%= f.number_field :distancia, value: 2000, min: Race::DISTANCE_RANGE.min, max: Race::DISTANCE_RANGE.max, step: 100 %>
     </div>
     <%= f.submit "▶ Correr", class: "btn-submit", data: { fx: "start" } %>

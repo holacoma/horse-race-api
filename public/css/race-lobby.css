@@ -201,11 +201,11 @@ body::before, body::after { display: none; }
 .poder-espera i { display: block; height: 100%; width: 0; background: var(--carmesi); }
 .poder.error .poder-cartas { animation: poder-error .3s; }
 @keyframes poder-error { 25% { translate: -8px 0; } 50% { translate: 7px 0; } 75% { translate: -4px 0; } }
-/* ¡A arder!: al lanzar, en letra gótica, un instante. */
-.poder-grito { position: fixed; left: 0; right: 0; top: 30%; z-index: 31; text-align: center; font: 400 64px var(--fuente-gotica); color: var(--noche-12); text-shadow: var(--ecos);
-  opacity: 0; pointer-events: none; }
-.poder-grito.ve { animation: grito .9s cubic-bezier(.2, 1.4, .4, 1); }
-@keyframes grito { 0% { opacity: 0; transform: scale(.6) rotate(-8deg); } 25% { opacity: 1; transform: scale(1.08) rotate(-4deg); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(1) rotate(-4deg); } }
+/* Al lanzar, solo un destello (sin texto): un rayo de luz carmesí que cruza la pantalla un instante. */
+.poder-destello { position: fixed; inset: 0; z-index: 31; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 60% 45% at 50% 40%, color-mix(in srgb, var(--carmesi) 70%, transparent), transparent 70%); }
+.poder-destello.ve { animation: destello .6s ease-out; }
+@keyframes destello { 0% { opacity: 0; transform: scale(.7); } 20% { opacity: 1; } 100% { opacity: 0; transform: scale(1.15); } }
 /* El botón del centro: solo en el teléfono (elegir y lanzar). Recto y recortado, nada circular. */
 .poder-boton { display: none; }
 
@@ -267,7 +267,6 @@ body:has(.poder.tactil:not([hidden])) .hud-map { bottom: 8px; }
 @media (max-width: 500px) {
   .poder.tactil .poder-mazo { left: 8px; right: 8px; }
   .poder-carta kbd { width: 26px; height: 26px; font-size: 15px; }
-  .poder-grito { font-size: 46px; }
 }
 
 @media (max-width: 760px) {

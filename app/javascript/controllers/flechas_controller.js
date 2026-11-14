@@ -4,7 +4,9 @@ import { sonar } from "sonidos"
 // El poder de la carrera intensa.
 // 1. A la izquierda, tres cartas fijas (corta, media, larga) y un resaltado que pasa de una a otra cada 0,2 s, siempre
 //    en el mismo orden: se puede calcular. La barra espaciadora (en el teléfono, el botón del centro) elige.
-//    Se elige la carta que estaba resaltada un instante antes (COMPENSA_MS): lo que tarda una persona en reaccionar.
+//    El resaltado sale del reloj (no de un temporizador que se atrasa) y se pinta en cada cuadro. Se elige la carta que
+//    estaba resaltada un instante antes (COMPENSA_MS): lo que tarda una persona en reaccionar. Se cuenta desde la hora
+//    del toque (event.timeStamp), no desde que el teléfono llega a atender el evento.
 //    Sin eso, con 250 ms de reacción salía siempre la siguiente (banco de pruebas, 0 de 12).
 // 2. Recién elegida se ven sus flechas; en orden, cargan el poder: teclado (flechas o WASD) o, en el teléfono,
 //    deslizando el dedo. Un error reinicia la carta.
@@ -30,7 +32,7 @@ const marcarGuiaVista = () => { try { localStorage.setItem(GUIA_VISTA, "1") } ca
 const azar = n => Array.from({ length: n }, () => FLECHAS[Math.floor(Math.random() * 4)])
 
 export default class extends Controller {
-  static targets = ["cartas", "carga", "accion", "accionTexto", "espera", "guia", "guiaTexto", "gesto", "boton", "grito"]
+  static targets = ["cartas", "carga", "accion", "accionTexto", "espera", "guia", "guiaTexto", "gesto", "boton", "destello"]
   static values = { url: String, prueba: Boolean }
 
   connect() {
@@ -42,7 +44,7 @@ export default class extends Controller {
     document.addEventListener("carrera:termino", this.alTerminar)
     this.teclas = event => {
       if (this.element.hidden) return
-      if (event.code === "Space") { event.preventDefault(); if (!event.repeat) this.espacio(); return }
+      if (event.code === "Space") { event.preventDefault(); if (!event.repeat) this.espacio(event); return }
       const flecha = TECLA[event.key]
       if (!flecha) return
       event.preventDefault()
@@ -82,7 +84,7 @@ export default class extends Controller {
   desactivar() {
     this.activo = false
     this.element.hidden = true
-    clearInterval(this.rueda)
+    cancelAnimationFrame(this.cuadro)
     clearInterval(this.cuentaEspera)
     removeEventListener("keydown", this.teclas)
     removeEventListener("touchstart", this.toque)
@@ -95,32 +97,32 @@ export default class extends Controller {
     this.estado = "eligiendo"
     this.mazo = CARTAS.map(c => ({ ...c, combo: azar(c.flechas) }))
     this.frente = Math.floor(Math.random() * 3)
-    this.historial = [{ t: performance.now(), i: this.frente }]
+    this.origen = { t: performance.now(), i: this.frente }
     this.paso = 0
     this.elegida = null
-    clearInterval(this.rueda)
-    this.rueda = setInterval(() => {
-      this.frente = (this.frente + 1) % 3
-      this.historial.push({ t: performance.now(), i: this.frente })
-      if (this.historial.length > 4) this.historial.shift()
-      this.marcarFrente()
-    }, ROTA_MS)
+    cancelAnimationFrame(this.cuadro)
+    const girar = () => {
+      const i = this.frenteEn(performance.now())
+      if (i !== this.frente) { this.frente = i; this.marcarFrente() }
+      this.cuadro = requestAnimationFrame(girar)
+    }
+    this.cuadro = requestAnimationFrame(girar)
     this.pintar()
   }
 
-  // La carta que estaba resaltada en el instante t.
+  // La carta que estaba resaltada en el instante t: avanza una cada ROTA_MS desde el origen.
   frenteEn(t) {
-    let i = this.historial[0].i
-    for (const h of this.historial) if (h.t <= t) i = h.i
-    return i
+    const pasos = Math.max(0, Math.floor((t - this.origen.t) / ROTA_MS))
+    return (this.origen.i + pasos) % 3
   }
 
   // La barra espaciadora (o el botón del centro): elige la carta, o lanza el poder si está cargado.
-  espacio() {
+  espacio(event) {
     if (!this.activo) return
     if (this.estado === "eligiendo") {
-      clearInterval(this.rueda)
-      this.frente = this.frenteEn(performance.now() - COMPENSA_MS)
+      cancelAnimationFrame(this.cuadro)
+      const toque = event?.timeStamp > 0 && event.timeStamp <= performance.now() ? event.timeStamp : performance.now()
+      this.frente = this.frenteEn(toque - COMPENSA_MS)
       this.elegida = this.mazo[this.frente]
       this.estado = "cargando"
       this.paso = 0
@@ -156,16 +158,18 @@ export default class extends Controller {
     this.estado = "lanzando"
     marcarGuiaVista()
     this.conGuia = false
-    this.gritoTarget.classList.remove("ve"); void this.gritoTarget.offsetWidth
-    this.gritoTarget.classList.add("ve")
+    this.destelloTarget.classList.remove("ve"); void this.destelloTarget.offsetWidth
+    this.destelloTarget.classList.add("ve")
     if (this.pruebaValue) {
       // Banco de pruebas: sin servidor, la página hace arder al caballo.
       this.dispatch("lanzado", { prefix: "poder", detail: { flechas: carta.flechas } })
     } else {
+      // Lo que la pantalla mostraba al lanzar (reloj de la carrera): el servidor lo juzga contra eso, no contra la demora de la red.
+      const visto = window.__sala?.race?.vistoT?.()
       const token = document.querySelector('meta[name="csrf-token"]')?.content
       await fetch(this.urlValue, {
         method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": token, Accept: "application/json" },
-        body: JSON.stringify({ flechas: carta.flechas })
+        body: JSON.stringify({ flechas: carta.flechas, visto })
       }).catch(() => null)
     }
     this.listoDesde = performance.now() + carta.espera * 1000
