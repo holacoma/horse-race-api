@@ -20,14 +20,12 @@ class PruebasControllerTest < ActionDispatch::IntegrationTest
     assert_equal 8, datos["participants"].map { |p| p["element"] }.uniq.size
   end
 
-  test "en producción, solo los admins" do
-    Rails.env.define_singleton_method(:production?) { true }
-    get prueba_carrera_path
-    assert_response :forbidden
-    @me.update!(admin: true)
+  test "se entra sin login (no toca la base): tu caballo es el 1" do
+    delete logout_path
     get prueba_carrera_path
     assert_response :ok
-  ensure
-    Rails.env.singleton_class.send(:remove_method, :production?)
+    datos = JSON.parse(css_select("#prueba-data").first.text)
+    assert_equal 1, datos["myHorseId"]
+    assert_equal RaceSimulationJob::PANEO_SEC, datos["paneo"]
   end
 end

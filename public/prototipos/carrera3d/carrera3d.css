@@ -121,6 +121,9 @@ canvas { display: block; position: fixed; inset: 0; }
 .corte-banda { position: absolute; left: -10%; top: 50%; width: 120%; height: 21%; z-index: 1; background: var(--carmesi); transform: translateY(-50%) rotate(-17.4deg) scaleX(0); box-shadow: 0 -6px 0 #fff, 0 6px 0 #fff; }
 .hud-corte b { position: absolute; left: 50%; top: 50%; z-index: 2; font: 400 clamp(64px, 13vw, 180px)/1 var(--fuente-gotica); color: #fff; white-space: nowrap; text-shadow: 6px 6px 0 var(--noche-1), 12px 10px 0 var(--c); transform: translate(-50%, -50%) rotate(-17.4deg); opacity: 0; }
 .hud-corte small { position: absolute; right: 4vw; bottom: 6vh; z-index: 2; padding: 6px 16px; background: var(--noche-1); font: 800 clamp(13px, 1.4vw, 18px) var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; transform: rotate(-3deg); box-shadow: 5px 5px 0 var(--c); }
+/* Perdiste: el tajo y el grito en negro, sin el carmesí de la victoria. */
+.hud-corte.perdiste .corte-banda { background: var(--noche-1); box-shadow: 0 -6px 0 var(--carmesi), 0 6px 0 var(--carmesi); }
+.hud-corte.perdiste b { color: var(--noche-12); text-shadow: 6px 6px 0 var(--carmesi), 12px 10px 0 var(--noche-1); }
 .hud-corte.show { opacity: 1; transition: opacity .25s .1s; }
 .hud-corte:not(.show) { transition: opacity .35s; }
 .hud-corte.show .corte-arriba { animation: corte-arriba .35s cubic-bezier(.2, 1.4, .4, 1) .08s both; }
@@ -164,6 +167,8 @@ canvas { display: block; position: fixed; inset: 0; }
 }
 .final-ficha { display: grid; gap: 4px; padding: 12px 28px 14px 18px; background: var(--noche-1); color: var(--noche-12); transform: rotate(-3deg); box-shadow: 8px 8px 0 var(--c); clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%); }
 .final-ficha small { justify-self: start; padding: 1px 10px; background: var(--carmesi); font: 800 13px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; }
+/* Perdiste: más grande, en negro con borde carmesí, que se lea antes que el nombre. */
+.final-ficha small.perdiste { padding: 4px 16px; font-size: clamp(16px, 1.8vw, 22px); background: var(--noche-12); color: var(--noche-1); box-shadow: 4px 4px 0 var(--carmesi); }
 .final-ficha b { font: 400 clamp(32px, 4vw, 56px)/1 var(--fuente-gotica); text-shadow: 3px 3px 0 var(--c); }
 .final-ficha span { color: var(--noche-11, #cfc8bd); font: 600 14px var(--fuente-texto); }
 @keyframes final-entra { from { transform: translateX(-30%); opacity: 0; } to { transform: none; opacity: 1; } }

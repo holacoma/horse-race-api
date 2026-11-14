@@ -276,3 +276,8 @@ body:has(.poder.tactil:not([hidden])) .hud-map { bottom: 8px; }
   .poder-guia b { font-size: 19px; }
   .poder-guia span { font-size: 12.5px; }
 }
+
+/* Sonido bloqueado por el navegador (link abierto directo, sin tocar la página): un aviso arriba hasta el primer toque. */
+.sin-sonido { position: fixed; left: 0; right: 0; top: 12px; margin-inline: auto; width: fit-content; max-width: calc(100vw - 24px); z-index: 45;
+  padding: 8px 22px 9px 14px; font: 700 13px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase; color: var(--noche-12);
+  background: var(--carmesi); border: 0; clip-path: var(--recorte); cursor: pointer; animation: flecha-late .9s ease-in-out infinite; --c: var(--carmesi); }
