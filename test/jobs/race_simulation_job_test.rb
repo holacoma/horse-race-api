@@ -92,4 +92,18 @@ margen promedio #{(margenes.sum / margenes.size).round(1)} m · cambios de líde
     @race.participants.create!(user: User.create!(username: "otra"), horse_id: 2, horse_name: "Dos")
     assert_empty capture_broadcasts("race_#{@race.id}") { run_race }.select { |m| m["type"] == "impulso" }
   end
+
+  test "un jugador humano le gana casi siempre a los bots" do
+    humano = User.create!(username: "humana")
+    victorias = 20.times.count do
+      @race = Race.create!(status: :running, capacity: 4)
+      Horse.all.first(4).each_with_index do |horse, i|
+        @race.participants.create!(user: (i.zero? ? humano : User.create!(username: "bot#{i}-#{@race.id}", bot: true)),
+                                   horse_id: horse.id, horse_name: horse.name)
+      end
+      run_race
+      @race.reload.participants.find_by(user: humano).final_rank == 1
+    end
+    assert_operator victorias, :>=, 19
+  end
 end
