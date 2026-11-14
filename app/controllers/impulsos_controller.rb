@@ -9,6 +9,9 @@ class ImpulsosController < WebController
 
   def self.espera(flechas) = CARTAS.fetch(flechas, CARTAS.values.max)
 
+  # `visto` es el segundo de la carrera que mostraba la pantalla al lanzar (el `t` de los mensajes «progress»). El
+  # simulador lo usa para no castigar la demora de la red (ver RaceSimulationJob::COMPENSA_MAX).
+
   def create
     race = Race.find_by!(slug: params[:race_slug])
     participant = race.participants.find_by(user: current_user)
@@ -21,7 +24,8 @@ class ImpulsosController < WebController
     if anterior && Time.current - anterior < self.class.espera(participant.ultimas_flechas || 3)
       return render(json: { error: "Todavía no" }, status: :too_many_requests)
     end
-    participant.update!(impulsos: participant.impulsos + 1, ultimo_impulso_at: Time.current, ultimas_flechas: flechas)
+    participant.update!(impulsos: participant.impulsos + 1, ultimo_impulso_at: Time.current, ultimas_flechas: flechas,
+                        impulso_visto: Float(params[:visto], exception: false))
     render json: { ok: true, espera: self.class.espera(flechas) }
   end
 

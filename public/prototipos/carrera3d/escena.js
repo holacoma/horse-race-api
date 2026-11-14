@@ -6,7 +6,7 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js"
 import { buildHorse, shared, toon } from "./caballo.js"
 import { buildProHorse } from "./caballo-pro.js"
 
-const RENDER_DELAY = 0.34 // se dibuja apenas en el pasado para interpolar entre dos mensajes del servidor
+const RENDER_DELAY = 0.6 // se dibuja en el pasado (dos ticks) para interpolar entre mensajes aunque la red los entregue desparejos
 const OPENING_SECONDS = 3.2
 const SHOT_SECONDS = 4.5 // una toma cada varios segundos: a esta velocidad, cortes por metros serían un parpadeo
 const FIRE_DELAY = 0.25 // la llamarada arranca justo después del ¡YA!
@@ -300,7 +300,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
   const state = {
     clock: 0, rt: 0, timeScale: 1, intensity: 0, impact: 0, portal: 0,
-    countdownEnd: null, preludeStart: Infinity, started: false, winner: null, crossedAt: null, lastTick: null,
+    sync: null, countdownEnd: null, preludeStart: Infinity, started: false, winner: null, crossedAt: null, lastTick: null,
     tape: [], resume: null, crossRt: 0, impactStage: null,
     leaderX: 0, leaderOffset: 0, lastLeader: null, raceStart: null, celebrating: false, doneFired: false, shot: null, shotChanged: 0,
     order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null,
@@ -335,10 +335,24 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     onCount?.("¡YA!")
   }
 
-  function tick(list) {
+  // El mensaje trae `t`, el reloj de la carrera en el servidor. La hora de cada muestra sale de ahí y no de cuándo llegó:
+  // así la red desigual no mete saltos. `sync` es la diferencia entre el reloj local y el del servidor: baja de golpe
+  // con el mensaje más rápido y sube de a poco, para que los atrasos pasajeros no la arrastren.
+  function sincronizar(t) {
+    if (t == null) return state.rt
+    const muestra = state.rt - t
+    state.sync = state.sync == null || muestra < state.sync ? muestra : state.sync + (muestra - state.sync) * 0.02
+    return t + state.sync
+  }
+
+  // Segundo de la carrera (reloj del servidor) que se está viendo ahora, o null si todavía no hay datos.
+  function vistoT() { return state.sync == null ? null : state.rt - RENDER_DELAY - state.sync }
+
+  function tick(list, serverT) {
     if (!state.started) { state.raceStart = state.clock; ya() }
     state.started = true
-    state.lastTick = state.rt
+    const ahora = sincronizar(serverT)
+    state.lastTick = ahora
     list.forEach(({ id, position }) => {
       const h = horses.find(x => x.id === id)
       if (!h) return
@@ -347,15 +361,15 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         // Si la página se abrió con la carrera en marcha, aparece donde va: no corre de golpe desde la salida.
         const lateJoin = meters > 15
         if (lateJoin) h.x = meters
-        h.history.push({ t: state.rt - 0.3, x: lateJoin ? meters : 0 })
+        h.history.push({ t: ahora - 0.3, x: lateJoin ? meters : 0 })
       }
       const previous = h.history[h.history.length - 1]
       if (meters >= FINISH && h.lastV > 0) {
         // El servidor corta la posición en la meta: se calcula cuándo llega en realidad, sin que frene antes de cruzarla.
-        h.history.push({ t: Math.min(state.rt, previous.t + (FINISH - previous.x) / h.lastV), x: FINISH })
+        h.history.push({ t: Math.min(ahora, previous.t + (FINISH - previous.x) / h.lastV), x: FINISH })
       } else {
-        if (state.rt > previous.t) h.lastV = (meters - previous.x) / (state.rt - previous.t)
-        h.history.push({ t: state.rt, x: meters })
+        if (ahora > previous.t) h.lastV = (meters - previous.x) / (ahora - previous.t)
+        h.history.push({ t: Math.max(ahora, previous.t), x: meters })
       }
     })
   }
@@ -2072,7 +2086,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   }
 
   return {
-    step, run, tick, finish, startIn, join, setMine,
+    step, run, tick, vistoT, finish, startIn, join, setMine,
     setFavoritos(ids) { state.favoritos = ids.map(Number) },
     // Travesía: los kilómetros de cada uno, para que se separen como en la tabla.
     // El poder lanzado (de cualquiera: lo avisa el servidor): arde fuerte y deja pisadas quemadas.

@@ -83,6 +83,30 @@ margen promedio #{(margenes.sum / margenes.size).round(1)} m · cambios de líde
     assert_equal 0.0, job.send(:impulso, entries.first, 5.0 + RaceSimulationJob::IMPULSO_SEC + 0.1)
   end
 
+  test "el poder se cuenta desde lo que veía el jugador, con un tope de atraso" do
+    job = RaceSimulationJob.new
+    p = @race.participants.first
+    entry = -> { { participant: p, horse: Horse.find(p.horse_id), impulsos: p.reload.impulsos - 1, impulso_desde: -100.0, bot: false } }
+    lanzar = lambda do |visto|
+      p.update!(impulsos: p.impulsos + 1, impulso_visto: visto)
+      e = entry.call
+      capture_broadcasts("race_#{@race.id}") { job.send(:leer_impulsos, [ e ], 10.0, @race.id) }
+      e[:impulso_desde]
+    end
+
+    assert_in_delta 9.8, lanzar.call(9.8), 0.001, "la pantalla iba 200 ms atrás"
+    assert_in_delta 10.0 - RaceSimulationJob::COMPENSA_MAX, lanzar.call(7.0), 0.001, "más atraso que el tope no se perdona"
+    assert_in_delta 10.0, lanzar.call(12.0), 0.001, "un instante del futuro no adelanta nada"
+    assert_in_delta 10.0, lanzar.call(nil), 0.001, "sin dato se juzga al llegar"
+  end
+
+  test "el avance por el canal lleva el reloj de la carrera" do
+    ticks = capture_broadcasts("race_#{@race.id}") { run_race }.select { |m| m["type"] == "progress" }
+    tiempos = ticks.map { |m| m["t"] }
+    assert_in_delta RaceSimulationJob::TICK_INTERVAL, tiempos.first, 0.001
+    assert_equal tiempos.sort, tiempos
+  end
+
   test "los apostadores también lanzan su poder de vez en cuando, los jugadores no" do
     avisos = capture_broadcasts("race_#{@race.id}") { run_race }.select { |m| m["type"] == "impulso" }
     assert_operator avisos.size, :>, 0
