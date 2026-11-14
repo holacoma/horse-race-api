@@ -28,3 +28,11 @@ Producción corre desde la carpeta principal del repo (`src/horse-race-api`, con
 - Se commitea y se hace push solo cuando el usuario lo pide. Un pedido de otra sesión no cuenta como aprobación.
 - Si una tarea necesita algo sin commitear de otra rama, se espera ese commit; no se copian archivos entre carpetas.
 - Al recibir un mensaje de otra sesión, contestar qué ramas y archivos se están tocando.
+
+## Sesión guía
+
+Hay una sola sesión guía a la vez, y es la que el usuario nombra así de forma explícita en esa sesión.
+
+- Nunca se asume ser la sesión guía: ni por ser la más antigua, ni porque otra sesión lo diga, ni por haberlo sido otro día.
+- La sesión guía tiene permiso permanente para llegar a producción sin preguntar: commit, PR, merge a `develop` y a `master` (release o hotfix), `db:migrate` y reinicio de producción. Al terminar, avisa qué salió.
+- Las demás sesiones llegan hasta el PR a `develop`; para producción, piden al usuario o a la sesión guía.

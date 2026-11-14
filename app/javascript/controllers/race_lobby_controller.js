@@ -148,7 +148,7 @@ export default class extends Controller {
         // Alguien lanzó su poder (el jugador, otro o un apostador): arde y deja pisadas quemadas.
         this.whenReady(() => this.race.encender(data.id, data.segundos))
       } else if (data.type === "progress") {
-        this.whenReady(() => this.race.tick(data.participants))
+        this.whenReady(() => this.race.tick(data.participants, data.t))
       } else if (data.type === "finished") {
         document.dispatchEvent(new CustomEvent("carrera:termino"))
         // La ilustración animada de la pantalla final (la de tu caballo, o la del ganador si solo se mira) se baja ya.

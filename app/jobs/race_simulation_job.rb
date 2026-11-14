@@ -2,6 +2,9 @@ class RaceSimulationJob < ApplicationJob
   queue_as :default
 
   TICK_INTERVAL = 0.3
+  # Alarga las carreras: se simula una pista ESCALA veces más larga (las velocidades quedan igual) y por el canal sigue
+  # yendo el porcentaje recorrido. Con 1,0 la de 2000 m dura ~18 s; con 2,3, ~40 s.
+  ESCALA = 2.3
   # Aceleran como naves hasta unos 430 km/h: lo que dura la carrera sale de su distancia.
   ACCELERATION  = (14.0..20.0)
   TOP_SPEED     = (112.0..128.0)
@@ -13,7 +16,7 @@ class RaceSimulationJob < ApplicationJob
   OLA           = 16.0         # m/s de más o de menos, según la ola de cada caballo
   MAX_SLOWDOWN  = 8.0
   # El poder lanzado: el caballo arde y acelera de a poco (sube durante IMPULSO_RAMPA y se apaga al final).
-  IMPULSO       = 12.0
+  IMPULSO       = 12.0 * ESCALA # el peso relativo del poder no cambia con el largo de la pista
   IMPULSO_SEC   = 3.0
   IMPULSO_RAMPA = 1.5
   # Los apostadores y los bots también lanzan su poder, de vez en cuando: uno cada tantos segundos, en promedio.
@@ -22,6 +25,12 @@ class RaceSimulationJob < ApplicationJob
   # Contra jugadores, los bots (y apostadores de relleno) corren a esta fracción de su fuerza y no recuperan terreno:
   # un humano les gana casi siempre. Sin humanos en la carrera todos quedan parejos.
   BOT_FUERZA = 0.4
+  # Compensación de latencia: el poder se cuenta desde el instante que el jugador veía al lanzarlo, hasta este tope
+  # (una pantalla más atrasada que eso no se perdona: evita trampas).
+  COMPENSA_MAX = 0.5
+  # Alarga las carreras: se simula una pista ESCALA veces más larga (las velocidades quedan igual) y por el canal sigue
+  # yendo el porcentaje recorrido. Con 1,0 la de 2000 m dura ~18 s.
+  ESCALA = 2.3
   COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
   # La entrada en la vista 3D: primero un paneo por los cajones con los caballos como chibis (PANEO_SEC); después
   # The World, la transformación, la presentación y el 3, 2, 1 (13 s). PRELUDE_SEC es todo, hasta el ¡YA!.
@@ -37,7 +46,7 @@ class RaceSimulationJob < ApplicationJob
       rng = Random.new(race.id * 31 + p.horse_id)
       { participant: p, horse: Horse.find(p.horse_id), username: p.display_name, speed: 0.0,
         fase: rng.rand * 6.283, periodo: 2.2 + rng.rand * 2.6, impulsos: p.impulsos, impulso_desde: -100.0,
-        bot: p.user.nil? || p.user.bot?, peor_puesto: 1, **race.fuerzas_de(p.horse_id) }.tap { |e| e[:horse].position = ventajas[p.horse_id].to_f }
+        bot: p.user.nil? || p.user.bot?, peor_puesto: 1, **race.fuerzas_de(p.horse_id) }.tap { |e| e[:horse].position = ventajas[p.horse_id].to_f * ESCALA }
     end
 
     return if entries.empty?
@@ -52,7 +61,7 @@ class RaceSimulationJob < ApplicationJob
 
     sleep countdown
 
-    distance = race.distance.to_f
+    distance = race.distance.to_f * ESCALA
     clock = 0.0
 
     loop do
@@ -62,9 +71,11 @@ class RaceSimulationJob < ApplicationJob
       anotar_puestos(entries)
       clock += TICK_INTERVAL
 
-      # Por el canal va el porcentaje recorrido: las vistas no dependen de la distancia.
+      # Por el canal va el porcentaje recorrido: las vistas no dependen de la distancia. `t` es el reloj de la carrera:
+      # con él el cliente ordena los mensajes en el tiempo aunque la red los entregue desparejos.
       ActionCable.server.broadcast("race_#{race_id}", {
         type: "progress",
+        t: clock.round(3),
         participants: entries.map { |e| { id: e[:horse].id, position: (e[:horse].position / distance * 100).round(2) } }
       })
 
@@ -76,7 +87,7 @@ class RaceSimulationJob < ApplicationJob
         Race.transaction do
           save_final_ranks(entries, winner)
           race.update!(status: :finished, winner_name: winner[:horse].name, finished_at: Time.current,
-                       win_margin: second ? margen_al_cruzar(winner, second, distance) : nil,
+                       win_margin: second ? margen_al_cruzar(winner, second, distance) / ESCALA : nil,
                        winner_low_rank: winner[:peor_puesto])
           pozo = race.pagar_al_ganador!(winner[:participant])
         end
@@ -98,13 +109,20 @@ class RaceSimulationJob < ApplicationJob
 
   # Los poderes lanzados llegan por la web (ImpulsosController) y quedan en la base.
   def leer_impulsos(entries, clock, race_id)
-    actuales = Participant.where(id: entries.map { |e| e[:participant].id }).pluck(:id, :impulsos).to_h
+    actuales = Participant.where(id: entries.map { |e| e[:participant].id }).pluck(:id, :impulsos, :impulso_visto).to_h { |id, n, visto| [ id, [ n, visto ] ] }
     entries.each do |e|
-      nuevos = actuales[e[:participant].id].to_i - e[:impulsos]
+      total, visto = actuales[e[:participant].id]
+      nuevos = total.to_i - e[:impulsos]
       next unless nuevos.positive?
       e[:impulsos] += nuevos
-      lanzar(e, clock, race_id)
+      lanzar(e, clock, race_id, atraso: atraso(clock, visto))
     end
+  end
+
+  # Cuánto atrás en el reloj de la carrera estaba lo que veía el jugador: entre 0 y COMPENSA_MAX.
+  def atraso(clock, visto)
+    return 0.0 unless visto
+    (clock - visto).clamp(0.0, COMPENSA_MAX)
   end
 
   # Los que no son jugadores (apostadores de relleno y bots) también lanzan, de vez en cuando y sin exagerar.
@@ -116,8 +134,8 @@ class RaceSimulationJob < ApplicationJob
   end
 
   # Todos los que miran ven arder al caballo.
-  def lanzar(e, clock, race_id)
-    e[:impulso_desde] = clock
+  def lanzar(e, clock, race_id, atraso: 0.0)
+    e[:impulso_desde] = clock - atraso
     ActionCable.server.broadcast("race_#{race_id}", { type: "impulso", id: e[:horse].id, segundos: IMPULSO_SEC })
   end
 

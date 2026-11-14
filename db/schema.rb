@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_14_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,6 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_030000) do
     t.integer "impulsos", default: 0, null: false
     t.datetime "ultimo_impulso_at"
     t.integer "ultimas_flechas"
+    t.float "impulso_visto"
     t.index ["race_id", "horse_id"], name: "index_participants_on_race_id_and_horse_id", unique: true
     t.index ["race_id", "user_id"], name: "index_participants_on_race_id_and_user_id", unique: true
     t.index ["race_id"], name: "index_participants_on_race_id"

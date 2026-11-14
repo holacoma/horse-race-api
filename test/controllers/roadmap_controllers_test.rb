@@ -134,6 +134,19 @@ class RoadmapControllersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "el poder guarda el instante que el jugador veía, si es un número" do
+    race = Race.create!(slug: "visto", status: :running, started_at: 20.seconds.ago)
+    participant = race.participants.create!(user: @me, horse_id: 1, horse_name: "Uno")
+    post race_impulso_path(race), params: { flechas: 8, visto: 41.7 }, as: :json
+    assert_response :ok
+    assert_in_delta 41.7, participant.reload.impulso_visto, 0.001
+    travel 2.seconds do
+      post race_impulso_path(race), params: { flechas: 8, visto: "basura" }, as: :json
+      assert_response :ok
+    end
+    assert_nil participant.reload.impulso_visto
+  end
+
   test "el perfil muestra el favorito en vez de administrar una lista" do
     @me.update!(favorite_horse_id: 26)
     get profile_path(@me.username)
