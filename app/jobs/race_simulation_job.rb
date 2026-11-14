@@ -19,6 +19,9 @@ class RaceSimulationJob < ApplicationJob
   # Los apostadores y los bots también lanzan su poder, de vez en cuando: uno cada tantos segundos, en promedio.
   BOT_IMPULSO_CADA = 10.0
   BOT_IMPULSO_MIN  = 6.0
+  # Contra jugadores, los bots (y apostadores de relleno) corren a esta fracción de su fuerza y no recuperan terreno:
+  # un humano les gana casi siempre. Sin humanos en la carrera todos quedan parejos.
+  BOT_FUERZA = 0.4
   COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
   # La entrada en la vista 3D: primero un paneo por los cajones con los caballos como chibis (PANEO_SEC); después
   # The World, la transformación, la presentación y el 3, 2, 1 (13 s). PRELUDE_SEC es todo, hasta el ¡YA!.
@@ -38,6 +41,8 @@ class RaceSimulationJob < ApplicationJob
     end
 
     return if entries.empty?
+
+    entries.select { |e| e[:bot] }.each { |e| e[:top_speed] *= BOT_FUERZA; e[:acceleration] *= BOT_FUERZA; e[:sin_recuperar] = true } if entries.any? { |e| !e[:bot] }
 
     ActionCable.server.broadcast("race_#{race_id}", {
       type: "race_started",
@@ -133,7 +138,7 @@ class RaceSimulationJob < ApplicationJob
       # En el final las olas se calman un poco: el pelotón llega apretado y se define por poco.
       ola = Math.sin(clock * 2 * Math::PI / e[:periodo] + e[:fase]) * OLA * (1 - 0.5 * final)
       impulso = impulso(e, clock)
-      target = e[:top_speed] + (leader - e[:horse].position) * catch_up + ola + impulso + rand(SURGE)
+      target = e[:top_speed] + (e[:sin_recuperar] ? 0 : (leader - e[:horse].position) * catch_up) + ola + impulso + rand(SURGE)
       e[:speed] += (target - e[:speed]).clamp(-MAX_SLOWDOWN, e[:acceleration] * TICK_INTERVAL + impulso)
       e[:previa] = e[:horse].position
       e[:reached] = e[:horse].position + e[:speed] * TICK_INTERVAL
