@@ -20,7 +20,10 @@ class RaceSimulationJob < ApplicationJob
   BOT_IMPULSO_CADA = 10.0
   BOT_IMPULSO_MIN  = 6.0
   COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
-  PRELUDE_SEC   = 13 # vista 3D: presentación de la pista y 3-2-1
+  # La entrada en la vista 3D: primero un paneo por los cajones con los caballos como chibis (PANEO_SEC); después
+  # The World, la transformación, la presentación y el 3, 2, 1 (13 s). PRELUDE_SEC es todo, hasta el ¡YA!.
+  PANEO_SEC     = 4
+  PRELUDE_SEC   = PANEO_SEC + 13
 
   def perform(race_id, countdown = COUNTDOWN_SEC)
     race = Race.find(race_id)
