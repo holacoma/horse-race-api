@@ -12,6 +12,10 @@
 # Configure Using Gemfile
 # gem "pg"
 #
+# Cada worktree (ver AGENTS.md) usa su propia base de desarrollo y de test, con el nombre de su carpeta como
+# sufijo; la carpeta principal (horse-race-api) usa las de siempre. Así dos agentes no se pisan los datos.
+<% carpeta = File.basename(Rails.root.to_s) %>
+<% sufijo = carpeta == "horse-race-api" ? "" : "_" + carpeta.downcase.gsub(/[^a-z0-9]+/, "_") %>
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -24,7 +28,7 @@ default: &default
 
 development:
   <<: *default
-  database: horse_race_api_development
+  database: horse_race_api_development<%= sufijo %>
 
   # Schema search path. The server defaults to $user,public
   #schema_search_path: myapp,sharedapp,public
@@ -40,7 +44,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: horse_race_api_test
+  database: horse_race_api_test<%= sufijo %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

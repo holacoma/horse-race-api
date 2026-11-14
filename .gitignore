@@ -44,3 +44,6 @@ config/credentials.yml.enc
 /public/sonidos/candidatos/
 /public/sonidos/paleta/
 __pycache__/
+
+# Puerto de desarrollo de cada worktree (bin/worktree).
+/.puerto
