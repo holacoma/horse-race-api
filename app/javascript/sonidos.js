@@ -104,8 +104,23 @@ function tocar(buffer, { t = ahora(), rate = 1, gain = 1, out = sfx, desde = 0 }
 const archivo = (nombre, opciones) => !!archivos[nombre] && !!tocar(archivos[nombre], opciones)
 
 // La música se agenda contra el ¡YA!: empieza cuando termina The World (o ya, si no suena), desde el punto del tema
-// que hace que la parte principal caiga en el ¡YA!. Si el audio recién se pudo activar a mitad de carrera, entra en
-// el punto que corresponde, sincronizada igual.
+// que hace que la parte principal caiga en el ¡YA!. Si el audio recién se pudo activar después del ¡YA! (el navegador
+// lo bloquea hasta el primer toque en la página), entra desde la parte principal: nunca a la mitad del tema.
+// El navegador no deja sonar nada hasta que se toca la página (por ejemplo, si se abrió un link directo).
+export const audioBloqueado = () => !audio() || ctx.state !== "running"
+
+// Si al empezar la carrera el audio sigue bloqueado, un aviso lo pide; se va solo al primer toque o tecla.
+export function avisarSinSonido() {
+  if (!audioBloqueado() || document.querySelector(".sin-sonido")) return
+  const aviso = document.createElement("button")
+  aviso.type = "button"
+  aviso.className = "sin-sonido"
+  aviso.textContent = "🔊 Toca la pantalla o presiona una tecla para activar el sonido"
+  document.body.append(aviso)
+  const listo = () => { if (ctx.state === "running") { aviso.remove(); ctx.removeEventListener("statechange", listo) } }
+  ctx.addEventListener("statechange", listo)
+}
+
 export function programarMusica(segundosAlYa) {
   yaEn = performance.now() + segundosAlYa * 1000
   clearInterval(reintentoMusica)
@@ -122,7 +137,7 @@ function agendarMusica() {
   const tema = archivos[`musica-${pista}`] ? `musica-${pista}` : "musica-carrera"
   const buffer = archivos[tema]
   if (!buffer) return
-  const tYa = ahora() + (yaEn - performance.now()) / 1000
+  const tYa = Math.max(ahora() + (yaEn - performance.now()) / 1000, ahora() + 0.02)
   const base = tYa - (PRINCIPAL[tema] ?? 0) // cuándo tendría que haber empezado el archivo desde cero
   const inicio = Math.max(base, finTheWorld, ahora() + 0.02)
   const desde = inicio - base
@@ -131,9 +146,15 @@ function agendarMusica() {
   window.__musica = { inicio, desde, tYa, tema, finTheWorld, yaEn, ahora: ahora(), perf: performance.now() } // para las pruebas
 }
 
+// Se terminó (festejo): se apaga y se olvida el ¡YA!.
 function pararMusica(fundido = 1.5) {
   yaEn = null
   clearInterval(reintentoMusica)
+  cortarMusica(fundido)
+}
+
+// Solo apaga lo que suena (o lo que estaba por sonar); el ¡YA! agendado sigue en pie.
+function cortarMusica(fundido) {
   if (!musica) return
   const { src, g } = musica
   musica = null
@@ -163,23 +184,24 @@ const SONIDOS = {
   },
   moneda: () => archivo("moneda", { gain: 0.8 }),
   premio: () => archivo("premio", { gain: 0.8 }),
-  // El mundo se detiene: The World. Una carrera nueva corta la música que haya quedado de otra.
-  // Si la música ya estaba agendada para esta carrera, se vuelve a agendar para que entre cuando The World termine.
+  // El mundo se detiene: The World. Corta la música que estuviera sonando y, si la de esta carrera ya estaba agendada,
+  // la vuelve a agendar para que entre cuando The World termine. Si The World todavía no bajó, no toca nada: la
+  // música agendada sigue en pie (antes se borraba y entraba recién en el ¡YA!).
   tiempo() {
-    const ya = yaEn
-    pararMusica(0.3)
     if (!theWorld) return false
+    cortarMusica(0.3)
     tocar(theWorld)
     finTheWorld = ahora() + theWorld.duration
-    if (ya) programarMusica((ya - performance.now()) / 1000)
+    if (yaEn) programarMusica((yaEn - performance.now()) / 1000)
     return true
   },
   // 3, 2, 1: el mismo golpe, un poco más agudo en cada número.
   cuenta: n => archivo("cuenta", { rate: { 3: 1, 2: 1.06, 1: 1.12 }[n] ?? 1 }),
-  // Si nadie agendó la música (se entró sobre la hora), entra ahora, en su parte principal.
+  // El ¡YA! ya no tiene efecto propio: lo marca la música. Si nadie la agendó (se entró sobre la hora), entra ahora,
+  // en su parte principal.
   ya() {
     if (!musica && !yaEn) programarMusica(0)
-    return archivo("ya")
+    return true
   },
   meta: () => archivo("meta"),
   ganador() {
