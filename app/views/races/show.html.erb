@@ -2,8 +2,8 @@
 <% content_for :pantalla_completa, true %>
 <% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=14">
-  <link rel="stylesheet" href="/css/race-lobby.css?v=10">
+  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=15">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=11">
 <% end %>
 
 <%# La escena 3D se arma con un carril por lugar y estos caballos ya en la largada; el resto aparece al unirse. %>
@@ -18,6 +18,7 @@
   myHorseId: @my_participant&.horse_id,
   favoritos: @race.running? ? @race.favoritos : nil,
   resultsUrl: results_race_path(@race),
+  paneo: RaceSimulationJob::PANEO_SEC,
   pista: @race.pista,
   kind: @race.kind,
   travesia: (@race.travesia? && @race.pending? ? { posiciones: @race.travesia_posiciones.map { |id, km| { id: id, km: km.round(2) } } } : nil)

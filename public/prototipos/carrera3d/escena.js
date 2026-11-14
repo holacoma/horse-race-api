@@ -17,7 +17,9 @@ const ARRIVAL_SECONDS = 2.4 // antes de cruzar, la cámara se planta pasando la 
 const WIDE_SHOTS = new Set(["peloton", "recta", "llegada"])
 const TOP_SPEED = 120 // m/s, para escalar los efectos de velocidad
 const CRUISE_BRAKE = 55 // m/s² al pasar la meta
-export const PRELUDE_SECONDS = 13 // 10 de presentación y 3, 2, 1
+export const PRELUDE_SECONDS = 13 // desde The World: 10 de presentación y 3, 2, 1
+// Antes del preludio puede ir un paneo por los cajones con los caballos como chibis (startIn con más de
+// PRELUDE_SECONDS: lo que sobra es el paneo). La entrada completa la marca el servidor (RaceSimulationJob::PRELUDE_SEC).
 const WORLD_FROM = 1.0 // cuándo se abre la grieta, dentro del preludio
 const WORLD_SECONDS = 2.8
 const LANE = 2.3
@@ -202,6 +204,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   // Preludio: los 3 favoritos se presentan uno tras otro, cada uno unos 2,3 s, a partir de los 2,2 s. Corte a su
   // primer plano en 3D y, al rato, la escena se congela (como The World): deja de dibujarse, queda en blanco y negro
   // teñida de su color, y encima entra la tarjeta. Al terminar, la escena sigue.
+  // Desde The World. Igual en race_lobby (relinchar).
   const FAVORITOS = { desde: 2.2, cada: 2.6, dura: 2.3, congela: 0.4 }
   function presentarFavoritos() {
     if (state.celebrating) return // la tarjeta del ganador la maneja actualizarFinal
@@ -290,6 +293,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
   const dust = buildDust()
   const quemaduras = buildQuemaduras()
+  const rayos = buildRayos()
   const confetti = buildConfetti()
   const post = buildPost()
   const hud = buildHud()
@@ -316,10 +320,12 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       })
     }
     // Larga ahora: explotan. Si la página abre con la carrera ya avanzada, aparecen en llamas sin explotar.
-    state.explotaDesde = state.clock + 0.55
     if (seconds < PRELUDE_SECONDS - 1.5) horses.forEach(h => verChibi(h, false))
     state.countdownEnd = state.clock + seconds
     state.preludeStart = state.countdownEnd - PRELUDE_SECONDS
+    // Si sobra tiempo antes del preludio, es el paneo de los chibis; la transformación empieza con The World.
+    state.paneoDesde = Math.min(state.clock, state.preludeStart)
+    state.explotaDesde = Math.max(state.clock, state.preludeStart) + 0.55
   }
 
   // La largada suena una vez: con el cartel "¡YA!" o, si la carrera arranca antes de mostrarlo, con el primer avance.
@@ -506,6 +512,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     animateHorses(realDt, motion)
     dust.update(motion)
     quemaduras.update(realDt)
+    rayos.update()
     confetti.update(realDt)
     actualizarExplosiones()
     presentarFavoritos()
@@ -738,6 +745,18 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         look = [h.x + 1.2, 2.0, h.z]
         fov = 30
         roll = -0.1 * lado
+      } else if (t < 0) {
+        // Antes de The World: paneo lento a lo largo de los cajones, a la altura de los chibis, todavía de día.
+        const u = (state.clock - state.paneoDesde) / Math.max(0.1, state.preludeStart - state.paneoDesde)
+        // Solo por los cajones ocupados: de un extremo al otro, sin pasarse a la pista vacía.
+        const zs = horses.map(h => h.z)
+        const desde = Math.min(...zs) - 0.6, hasta = Math.max(...zs) + 0.6
+        const zp = desde + (hasta - desde) * u
+        shot = "paneo-chibis"
+        pos = [6.2 - 0.6 * u, 1.7, zp + 1.6]
+        look = [0, 1.5, zp]
+        fov = 44
+        roll = 0.03
       } else if (t < 3.6) {
         const u = span(0, 3.6)
         shot = "preludio-aire"
@@ -799,6 +818,16 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       pos = [L - back, 2.3 + back * 0.13, z + inward * (2.6 + back * 0.28)]
       look = [L + 14, 1.8, z + inward * 0.6]
       fov = 46
+    } else if (mine && state.poderMio && state.poderMio.hasta > state.clock && state.crossedAt === null) {
+      // Tu poder: por delante y de costado, cerca del piso, mirando hacia atrás. Se ve el rayo, el aura, cómo se
+      // despega y las pisadas quemadas que deja. La cámara se va quedando atrás a medida que acelera.
+      const u = (state.clock - state.poderMio.desde) / (state.poderMio.hasta - state.poderMio.desde)
+      const lado = mine.z > 0 ? -1 : 1
+      shot = "poder"
+      pos = [mine.x + 7.5 - 4 * u, 1.1 + 0.5 * u, mine.z + lado * (3.2 + 0.8 * u)]
+      look = [mine.x - 1.5, 1.5, mine.z]
+      fov = 42 + 14 * u
+      roll = 0.08 * lado
     } else if (L >= STRETCH_FROM) {
       // Recta final: por delante y en alto, con el puntero bien grande y los que lo persiguen detrás.
       const back = clamp(state.gapThird * 0.45 + 9, 10, 26)
@@ -853,7 +882,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     uSpeed.value *= 1 - 0.85 * state.clarity
     scenery.trees.visible = !wide
     // Las cámaras pegadas al caballo de fuego van entre él y la baranda: de ese lado, la baranda taparía la imagen.
-    const pegado = shot === "favorito" ? state.favorito : fireHorse && (shot === "transformacion" || shot === "heroe") ? fireHorse : null
+    const pegado = shot === "favorito" ? state.favorito : shot === "poder" ? mine : fireHorse && (shot === "transformacion" || shot === "heroe") ? fireHorse : null
     scenery.rails.forEach(rail => { rail.visible = !(pegado && rail.userData.side === Math.sign(pegado.z || 1)) })
     // Vibración de cámara en mano, más fuerte al final. Las tomas generales van firmes.
     const shake = (0.005 + 0.05 * i) * (1 - state.clarity)
@@ -1325,6 +1354,78 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   }
 
   // Pisadas quemadas: mientras un caballo arde, cada pisada deja una marca negra con borde de brasa que se apaga sola.
+  // Cada poder lanzado: un rayo cae del cielo sobre el caballo (parpadea, ramificado, con un destello al pegar) y
+  // desde ahí sale una onda que deforma la imagen, como la del principio. La onda la dibuja el postproceso.
+  function buildRayos() {
+    const DURA = 0.42, ONDA = 0.75
+    const materiales = [
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }),
+      new THREE.MeshBasicMaterial({ color: 0x8fb4ff, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })
+    ]
+    // Un camino quebrado del cielo al lomo.
+    const quebrado = (desde, hasta, tramos, abre) => {
+      const puntos = [desde.clone()]
+      for (let i = 1; i < tramos; i++) {
+        const p = desde.clone().lerp(hasta, i / tramos)
+        p.x += (Math.random() - 0.5) * abre; p.z += (Math.random() - 0.5) * abre
+        puntos.push(p)
+      }
+      puntos.push(hasta.clone())
+      return new THREE.CatmullRomCurve3(puntos, false, "catmullrom", 0)
+    }
+    const armar = () => {
+      const grupo = new THREE.Group()
+      const cielo = new THREE.Vector3((Math.random() - 0.5) * 6, 26, (Math.random() - 0.5) * 4)
+      const lomo = new THREE.Vector3(0, 1.6, 0)
+      const tronco = quebrado(cielo, lomo, 14, 2.6)
+      grupo.add(new THREE.Mesh(new THREE.TubeGeometry(tronco, 64, 0.07, 5), materiales[0]))
+      grupo.add(new THREE.Mesh(new THREE.TubeGeometry(tronco, 64, 0.32, 6), materiales[1]))
+      // Una rama que se abre a mitad de camino.
+      const medio = tronco.getPoint(0.45)
+      const rama = quebrado(medio, medio.clone().add(new THREE.Vector3((Math.random() - 0.5) * 7, -6, (Math.random() - 0.5) * 3)), 6, 1.6)
+      grupo.add(new THREE.Mesh(new THREE.TubeGeometry(rama, 24, 0.04, 4), materiales[0]))
+      const golpe = new THREE.Sprite(new THREE.SpriteMaterial({ map: destello, color: 0xcfe0ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }))
+      golpe.position.copy(lomo)
+      golpe.scale.setScalar(7)
+      grupo.add(golpe)
+      grupo.userData.golpe = golpe
+      return grupo
+    }
+    let activos = []
+    const v = new THREE.Vector3()
+    return {
+      lanzar(h) {
+        const grupo = armar()
+        scene.add(grupo)
+        activos.push({ h, t0: state.clock, grupo })
+      },
+      update() {
+        let onda = null
+        activos = activos.filter(r => {
+          const t = state.clock - r.t0
+          if (t <= DURA) {
+            r.grupo.position.set(r.h.x, 0, r.h.z)
+            // Parpadeo de rayo: prende, apaga, vuelve a prender y se va.
+            r.grupo.visible = t < 0.09 || (t > 0.14 && t < 0.24) || (t > 0.29 && Math.random() < 0.6)
+            r.grupo.userData.golpe.material.opacity = 1 - t / DURA
+          } else if (r.grupo.parent) {
+            scene.remove(r.grupo)
+            r.grupo.traverse(o => o.geometry?.dispose())
+          }
+          if (t < ONDA) onda = r
+          return t < ONDA
+        })
+        // La onda más reciente, desde donde está el caballo en la pantalla (si está delante de la cámara).
+        if (onda) {
+          const t = state.clock - onda.t0
+          v.set(onda.h.x, 1.4, onda.h.z).project(camera)
+          const enCuadro = v.z < 1 ? 1 : 0
+          post.onda(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5, (t / ONDA) * 1.25, (1 - t / ONDA) * enCuadro, t < 0.12 ? 1 - t / 0.12 : 0)
+        } else post.onda(0, 0, 0, 0, 0)
+      }
+    }
+  }
+
   function buildQuemaduras() {
     const c = document.createElement("canvas"); c.width = c.height = 128
     const g = c.getContext("2d")
@@ -1529,11 +1630,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const compositeMaterial = new THREE.ShaderMaterial({
       uniforms: {
         tScene: { value: rtScene.texture }, tBloom: { value: rtBloomB.texture }, tPrev: { value: null },
-        uI: uPostI, uT, uWorld, uSpeed, uAspect: { value: 1 }, uImpact: { value: 0 }, uLens: { value: 0 }, uPortal: { value: 0 }
+        uI: uPostI, uT, uWorld, uSpeed, uAspect: { value: 1 }, uImpact: { value: 0 }, uLens: { value: 0 }, uPortal: { value: 0 },
+        uOndaC: { value: new THREE.Vector2() }, uOndaR: { value: 0 }, uOndaF: { value: 0 }, uFlash: { value: 0 }
       },
       vertexShader,
       fragmentShader: `
-        uniform sampler2D tScene, tBloom, tPrev; uniform float uI, uT, uWorld, uSpeed, uAspect, uImpact, uLens, uPortal; varying vec2 vUv;
+        uniform sampler2D tScene, tBloom, tPrev; uniform float uI, uT, uWorld, uSpeed, uAspect, uImpact, uLens, uPortal, uOndaR, uOndaF, uFlash;
+        uniform vec2 uOndaC; varying vec2 vUv;
         ${NOISE}
         void main() {
           vec2 asp = vec2(uAspect, 1.0);
@@ -1546,6 +1649,11 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
           vec2 dir = normalize(p + 1e-4) * (0.0035 * uWorld + 0.011 * uI) * smoothstep(0.2, 0.9, r) / asp;
           vec2 uv = q / asp + 0.5;
+          // La onda del rayo: un anillo que sale del caballo golpeado y empuja la imagen hacia afuera.
+          vec2 dO = (uv - uOndaC) * asp;
+          float dd = length(dO);
+          float anillo = exp(-pow((dd - uOndaR) / 0.055, 2.0)) * uOndaF;
+          uv -= normalize(dO + 1e-4) / asp * anillo * 0.045;
           // Desenfoque radial con la velocidad: el centro queda nítido y los bordes se estiran hacia afuera.
           float pull = uSpeed * uSpeed * 0.075 * smoothstep(0.1, 0.62, r);
           vec3 col = vec3(0.0);
@@ -1558,6 +1666,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
           col += texture2D(tBloom, uv).rgb * (0.28 + 0.4 * uWorld + 0.6 * uI);
           col += vec3(1.0, 0.72, 0.36) * uPortal * 0.2 * smoothstep(1.0, 0.1, r);
+          col += vec3(0.75, 0.85, 1.0) * anillo * 0.45 + vec3(0.8, 0.88, 1.0) * uFlash * 0.4;
 
           // Estelas: lo del cuadro anterior, un poco agrandado, sigue brillando detrás.
           // Solo lejos del centro: ahí están los caballos, y tienen que seguir nítidos.
@@ -1613,6 +1722,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         renderer.setRenderTarget(rtScene)
         renderer.compile(scene, camera)
         renderer.setRenderTarget(null)
+      },
+      onda(x, y, radio, fuerza, flash) {
+        const u = compositeMaterial.uniforms
+        u.uOndaC.value.set(x, y)
+        u.uOndaR.value = radio
+        u.uOndaF.value = fuerza
+        u.uFlash.value = flash
       },
       resize(w, h) {
         rtScene.setSize(w, h)
@@ -1839,10 +1955,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         }
         const banda = document.createElement("div")
         banda.className = "corte-banda"
+        // Si tienes caballo y no fue el que cruzó primero, lo primero que se lee es que perdiste.
+        const perdiste = !!mine && h !== mine
+        corteEl.classList.toggle("perdiste", perdiste)
         const grito = document.createElement("b")
-        grito.textContent = h === mine ? "¡GANASTE!" : "¡GANÓ!"
+        grito.textContent = h === mine ? "¡GANASTE!" : perdiste ? "PERDISTE" : "¡GANÓ!"
         const quien = document.createElement("small")
-        quien.textContent = `${h.name} · ${elementoDe(h)}`
+        quien.textContent = perdiste ? `Ganó ${h.name} · ${elementoDe(h)}` : `${h.name} · ${elementoDe(h)}`
         corteEl.append(banda, grito, quien)
         corteEl.classList.remove("show"); void corteEl.offsetWidth; corteEl.classList.add("show")
         clearTimeout(corteEl.timer)
@@ -1868,7 +1987,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         const plata = n => `${n.toLocaleString("es")} USD`
         rotulo.textContent = h !== mine ? "Ganador"
           : h === ganador ? (pozo ? `¡Ganaste ${plata(pozo)}!` : "¡Ganaste!")
-          : `Tu caballo · ${puesto}.º de ${orden.length}${apuesta ? ` · −${plata(apuesta)}` : ""}`
+          : `Perdiste · ${puesto}.º de ${orden.length}${apuesta ? ` · −${plata(apuesta)}` : ""}`
+        rotulo.classList.toggle("perdiste", !!mine && h !== ganador)
         const nombre = document.createElement("b")
         nombre.textContent = h.name
         const de = document.createElement("span")
@@ -1956,9 +2076,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     setFavoritos(ids) { state.favoritos = ids.map(Number) },
     // Travesía: los kilómetros de cada uno, para que se separen como en la tabla.
     // El poder lanzado (de cualquiera: lo avisa el servidor): arde fuerte y deja pisadas quemadas.
+    // Le cae un rayo y sale la onda; si es el tuyo, la cámara lo sigue mientras arde (toma «poder»).
     encender(id, segundos = 3) {
       const h = horses.find(x => x.id === Number(id))
-      if (h) h.ardeHasta = state.clock + segundos
+      if (!h) return
+      h.ardeHasta = state.clock + segundos
+      rayos.lanzar(h)
+      if (h === mine) state.poderMio = { desde: state.clock, hasta: state.clock + segundos }
     },
     setTravesia(posiciones) { if (state.travesia) posiciones.forEach(p => state.travesia.km.set(Number(p.id), Number(p.km))) },
     setConectado(si) { state.reconectando = !si; hud.reconectando(!si) },

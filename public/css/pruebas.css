@@ -7,3 +7,10 @@
 .banco-registro { margin: 4px 0 0; padding: 0; list-style: none; max-height: 220px; overflow: hidden; font: 500 11px ui-monospace, monospace; color: var(--noche-11); }
 .banco-registro li:first-child { color: var(--noche-12); }
 @media (max-width: 860px) { .banco { width: 180px; top: 8px; right: 8px; padding: 8px; } .banco-registro { max-height: 120px; } }
+/* Empezar: solo si el audio está bloqueado (link abierto directo). El toque lo activa. */
+.banco-empezar { position: fixed; inset: 0; margin: auto; width: fit-content; height: fit-content; z-index: 50; padding: 18px 44px 18px 30px;
+  font: 400 34px var(--fuente-gotica); color: var(--noche-12); background: var(--carmesi); border: 0; clip-path: var(--recorte); cursor: pointer; }
+.banco-empezar[hidden] { display: none; }
+.banco-dificultad { display: grid; gap: 4px; }
+.banco-dificultad output { color: var(--noche-12); font-variant-numeric: tabular-nums; }
+.banco-dificultad input { width: 100%; accent-color: var(--carmesi); }

@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { sonar, sonarCuandoSePueda, programarMusica, elegirPista } from "sonidos"
+import { sonar, sonarCuandoSePueda, programarMusica, elegirPista, audioBloqueado } from "sonidos"
 
 // Banco de pruebas de la carrera intensa: la misma escena 3D y el mismo poder (_flechas) que la sala, pero la
 // carrera se simula acá, en el navegador, con las mismas reglas que RaceSimulationJob. Sin sala, sin apuesta y sin
@@ -9,18 +9,23 @@ const TICK = 0.3
 const ACELERACION = [14, 20], PUNTA = [112, 128], SURGE = 9, OLA = 16, MAX_FRENO = 8
 const CATCH_UP = 0.08, CATCH_UP_FINAL = 0.9
 const IMPULSO = 12, IMPULSO_SEC = 3, IMPULSO_RAMPA = 1.5
-const BOT_CADA = 10, BOT_MIN = 6
+// Dificultad de los rivales (0 a 100): cuántas veces por segundo lanza cada uno, en promedio. 40 es lo de la carrera
+// real (RaceSimulationJob::BOT_IMPULSO_CADA = 10 s); 100, cada 4 s; 0, nunca. Queda guardada en este navegador.
+const LANZA_POR_SEGUNDO_MAX = 0.25
+const DIFICULTAD = "clubrace:banco-dificultad"
 const PRESENTACION_SEC = 13
 const entre = ([a, b]) => a + Math.random() * (b - a)
 
 export default class extends Controller {
-  static targets = ["cargando", "registro", "rivales"]
+  static targets = ["cargando", "registro", "dificultad", "dificultadTexto", "empezar"]
 
   connect() {
     this.datos = JSON.parse(document.getElementById("prueba-data").textContent)
     elegirPista(this.datos.pista)
     this.alLanzar = event => this.lanzar(this.datos.myHorseId, `tú (carta de ${event.detail.flechas})`)
     document.addEventListener("poder:lanzado", this.alLanzar)
+    try { const d = localStorage.getItem(DIFICULTAD); if (d !== null) this.dificultadTarget.value = d } catch {}
+    this.dificultad()
     this.espiar()
     this.armar()
   }
@@ -36,7 +41,7 @@ export default class extends Controller {
 
   async armar() {
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=21"),
+      import("/prototipos/carrera3d/escena.js?v=24"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -65,11 +70,18 @@ export default class extends Controller {
     this.race.run()
     await document.fonts.ready
     this.cargandoTarget.hidden = true
+    // Con el audio bloqueado (link abierto directo, sin tocar la página) no sonaría nada: se empieza con un toque.
+    if (audioBloqueado()) {
+      this.empezarTarget.hidden = false
+      await new Promise(r => this.empezarTarget.addEventListener("click", r, { once: true }))
+      this.empezarTarget.hidden = true
+    }
     if (d.presentacion) {
+      // Como en la sala: paneo de los chibis, después The World y la transformación.
       this.race.setFavoritos(d.participants.slice(0, 3).map(p => p.id))
-      sonarCuandoSePueda("tiempo")
-      this.race.startIn(PRESENTACION_SEC)
-      programarMusica(PRESENTACION_SEC)
+      this.race.startIn(d.paneo + PRESENTACION_SEC)
+      programarMusica(d.paneo + PRESENTACION_SEC)
+      setTimeout(() => sonarCuandoSePueda("tiempo"), d.paneo * 1000)
     } else {
       this.race.setFavoritos([])
       this.race.startIn(3.5)
@@ -91,9 +103,10 @@ export default class extends Controller {
 
   tick() {
     const distancia = this.datos.distance
-    if (this.rivalesTarget.checked) {
+    if (this.cada) {
+      const minimo = Math.min(6, this.cada * 0.6)
       this.entradas.forEach(e => {
-        if (e.bot && this.clock - e.desde > BOT_MIN && Math.random() < TICK / BOT_CADA) this.lanzar(e.id, e.nombre)
+        if (e.bot && this.clock - e.desde > minimo && Math.random() < TICK / this.cada) this.lanzar(e.id, e.nombre)
       })
     }
     const lider = Math.max(...this.entradas.map(e => e.pos))
@@ -160,6 +173,13 @@ export default class extends Controller {
     li.textContent = `${t} s · ${texto}`
     this.registroTarget.prepend(li)
     while (this.registroTarget.children.length > 14) this.registroTarget.lastChild.remove()
+  }
+
+  dificultad() {
+    const d = Number(this.dificultadTarget.value)
+    this.cada = d > 0 ? 1 / (LANZA_POR_SEGUNDO_MAX * d / 100) : 0
+    this.dificultadTextoTarget.textContent = d > 0 ? `${d} · cada ~${Math.round(this.cada)} s` : "0 · no lanzan"
+    try { localStorage.setItem(DIFICULTAD, String(d)) } catch {}
   }
 
   guiaDeNuevo() {

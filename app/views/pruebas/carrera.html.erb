@@ -2,29 +2,33 @@
 <% content_for :pantalla_completa, true %>
 <% content_for :fase, "carrera" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=14">
-  <link rel="stylesheet" href="/css/race-lobby.css?v=10">
-  <link rel="stylesheet" href="/css/pruebas.css?v=1">
+  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=15">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=11">
+  <link rel="stylesheet" href="/css/pruebas.css?v=3">
 <% end %>
 
 <%# Banco de pruebas: la carrera intensa simulada en el navegador, con el poder real (_flechas) y sin servidor. %>
 <script id="prueba-data" type="application/json"><%= raw({
-  participants: @caballos.map { |h| { id: h.id, name: h.name, username: h.id == @mio ? current_user.username : "bot", element: elemento_de(h.id) } },
+  participants: @caballos.map { |h| { id: h.id, name: h.name, username: h.id == @mio ? (current_user&.username || "tú") : "bot", element: elemento_de(h.id) } },
   myHorseId: @mio,
   pista: @pista,
   distance: (params[:distancia].presence || 3000).to_i.clamp(500, 20_000),
-  presentacion: params[:presentacion] == "1"
+  presentacion: params[:presentacion] == "1",
+  paneo: RaceSimulationJob::PANEO_SEC
 }.to_json) %></script>
 
 <div class="sala en-carrera" data-controller="prueba-carrera">
   <div class="sala-cargando" data-prueba-carrera-target="cargando">Preparando la pista…</div>
+  <button type="button" class="banco-empezar" data-prueba-carrera-target="empezar" hidden>Empezar</button>
 
   <aside class="banco">
     <b>Banco de pruebas</b>
     <a href="<%= prueba_carrera_path(presentacion: params[:presentacion], pista: params[:pista], distancia: params[:distancia]) %>">Otra carrera</a>
     <a href="<%= prueba_carrera_path(presentacion: params[:presentacion] == "1" ? nil : "1", pista: params[:pista], distancia: params[:distancia]) %>"><%= params[:presentacion] == "1" ? "Sin presentación" : "Con presentación y música" %></a>
     <button type="button" data-action="prueba-carrera#guiaDeNuevo">Ver la guía otra vez</button>
-    <label><input type="checkbox" data-prueba-carrera-target="rivales" checked> Rivales lanzan</label>
+    <label class="banco-dificultad">Dificultad de los rivales <output data-prueba-carrera-target="dificultadTexto"></output>
+      <input type="range" min="0" max="100" step="5" value="40" data-prueba-carrera-target="dificultad" data-action="input->prueba-carrera#dificultad">
+    </label>
     <ol class="banco-registro" data-prueba-carrera-target="registro" aria-live="polite"></ol>
   </aside>
 

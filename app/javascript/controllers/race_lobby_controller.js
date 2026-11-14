@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { sonar, sonarCuandoSePueda, programarMusica, GOLPE_TIEMPO, elegirPista } from "sonidos"
+import { sonar, sonarCuandoSePueda, programarMusica, avisarSinSonido, GOLPE_TIEMPO, elegirPista } from "sonidos"
 
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
@@ -7,6 +7,8 @@ const CLOSE_ANIMATION_MS = 150
 const precargar = urls => Promise.all(urls.map(src => { const img = new Image(); img.src = src; return img.decode().catch(() => {}) }))
 
 const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
+// Desde The World hasta el ¡YA! (escena.js: PRELUDE_SECONDS). Antes va el paneo de los chibis (race-data: paneo).
+const PRELUDIO = 13
 
 // La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
 // esperan en la largada y aparecen a medida que alguien se une. Al largar, la sala se corre y empieza el preludio.
@@ -30,6 +32,8 @@ export default class extends Controller {
     this.data3d = JSON.parse(document.getElementById("race-data").textContent)
     elegirPista(this.data3d.pista)
     this.myHorseId = this.data3d.myHorseId
+    // Si la página abre con la carrera ya iniciada, un «race_started» que llegue tarde no la vuelve a empezar.
+    this.started = this.data3d.running
     this.pending = []
     this.setupWebSocket()
     this.buildScene()
@@ -46,7 +50,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=21"),
+      import("/prototipos/carrera3d/escena.js?v=24"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -77,10 +81,14 @@ export default class extends Controller {
     // Lo que llegó mientras cargaba la escena.
     this.pending.splice(0).forEach(fn => fn())
     if (data.favoritos) this.race.setFavoritos(data.favoritos)
-    // La música se agenda contra el ¡YA!, el mismo instante que la escena.
-    if (data.running) { this.race.startIn(data.secondsToStart ?? 0); programarMusica(data.secondsToStart ?? 0) }
-    // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
-    if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
+    // La música se agenda contra el ¡YA!, el mismo instante que la escena. Los segundos que faltan se calcularon al
+    // armar la página; desde entonces pasó lo que tardó en cargar la escena (performance.now() cuenta desde que se
+    // pidió la página): sin descontarlo, la cuenta local llegaba tarde al ¡YA! del servidor.
+    const faltan = Math.max(0, (data.secondsToStart ?? 0) - performance.now() / 1000)
+    if (data.running) { this.race.startIn(faltan); programarMusica(faltan); avisarSinSonido() }
+    // Entró con la carrera recién iniciada (por ejemplo, con "Jugar ya"): The World suena igual, cuando termina el
+    // paneo de los chibis (si todavía falta) o enseguida.
+    if (data.running && faltan > PRELUDIO - 4) setTimeout(() => sonarCuandoSePueda("tiempo", 2500), Math.max(0, faltan - PRELUDIO) * 1000)
     this.race.run()
     // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
     await Promise.all([
@@ -271,29 +279,31 @@ export default class extends Controller {
   }
 
   // ── Largada: la sala se corre con un corte seco y la escena pasa al preludio ─────────────
+  // La entrada: la sala se corre y la cámara pasea por los cajones con los caballos como chibis (todavía de día).
+  // Después, The World: el corte cruza justo con el golpe, todo pasa al lado dark y empieza la transformación.
   onRaceStarted() {
     if (this.started) return
     this.started = true
-    // El mundo se detiene: el sonido crece y el corte cruza justo con el golpe.
-    sonarCuandoSePueda("tiempo")
-    const cut = this.corteTarget
+    const paneo = this.data3d.paneo ?? 0
+    this.element.classList.add("en-carrera")
+    this.whenReady(() => { this.race.startIn(paneo + PRELUDIO); programarMusica(paneo + PRELUDIO); avisarSinSonido() })
     setTimeout(() => {
-      cut.classList.remove("ya")
-      void cut.offsetWidth
-      cut.classList.add("ya")
-    }, GOLPE_TIEMPO * 1000 - 160)
-    // El cambio de fase, justo cuando el bloque tapa la pantalla.
-    setTimeout(() => {
-      document.documentElement.dataset.fase = "carrera"
-      this.element.classList.add("en-carrera")
-    }, GOLPE_TIEMPO * 1000)
-    this.whenReady(() => { this.race.startIn(13); programarMusica(13) })
+      sonarCuandoSePueda("tiempo")
+      const cut = this.corteTarget
+      setTimeout(() => {
+        cut.classList.remove("ya")
+        void cut.offsetWidth
+        cut.classList.add("ya")
+      }, GOLPE_TIEMPO * 1000 - 160)
+      // El cambio de fase, justo cuando el bloque tapa la pantalla.
+      setTimeout(() => { document.documentElement.dataset.fase = "carrera" }, GOLPE_TIEMPO * 1000)
+    }, paneo * 1000)
   }
 
   // Cada favorito se presenta con su relincho, justo cuando la escena se congela en su tarjeta (escena.js: FAVORITOS).
   relinchar(favoritos) {
     (favoritos || []).slice(0, 3).forEach((id, i) => {
-      setTimeout(() => sonar("relincho", Number(id)), (2.2 + i * 2.6 + 0.4) * 1000)
+      setTimeout(() => sonar("relincho", Number(id)), ((this.data3d.paneo ?? 0) + 2.2 + i * 2.6 + 0.4) * 1000)
     })
   }
 
