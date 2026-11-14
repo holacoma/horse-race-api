@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" data-fase="carrera">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo: carrera 3D simulada</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/css/identidad.css">
+<link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css">
+<script type="importmap">
+  { "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  } }
+</script>
+</head>
+<body>
+<div class="controls">
+  <button id="again">▶ Otra carrera</button>
+</div>
+<script type="module">
+// Simula al servidor con el mismo formato y la misma cadencia que RaceSimulationJob.
+import { createRace, PRELUDE_SECONDS } from "/prototipos/carrera3d/escena.js"
+import { loadHorseModel } from "/prototipos/carrera3d/caballo-pro.js"
+
+const params = new URLSearchParams(location.search)
+const CAPTURE = params.has("capture")
+const N = Math.min(12, Math.max(2, Number(params.get("n")) || 8))
+const DISTANCE = Number(params.get("m")) || 2000
+const horseModel = new URLSearchParams(location.search).get("caballo") === "codigo"
+  ? null
+  : await loadHorseModel().catch(error => { console.error(error); return null })
+const NAMES = ["Filly Mignon", "Turbo Caballo", "El Mago", "Señor Galope", "Don Trote", "Pata de Lana", "Viento Loco", "El Último", "Stable Genius", "Hoof Hearted", "Don Comilón", "Neigh Sayer"]
+const PLAYERS = ["Lady Propina", "Capitán Deuda", "Mañana Pago", "El Cabulero", "Tía Fortuna", "Casi Gano", "Dame Otra", "Doña Suerte", "Hoy Sí Gano", "Don Fiado", "Sin Un Peso", "Rey del Empate"]
+const participants = Array.from({ length: N }, (_, i) => ({ id: i + 1, name: NAMES[i], username: PLAYERS[i] }))
+
+let seed = Number(params.get("seed")) || Math.floor(Math.random() * 1e9)
+const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
+
+const myId = Number(params.get("yo")) || 1 // igual que en el prototipo real: el primero de la lista es el tuyo
+const race = createRace({ participants, distance: DISTANCE, horseModel, myId, capture: CAPTURE, showFps: !CAPTURE })
+
+// Igual que RaceSimulationJob: aceleran hasta su velocidad tope, y los de atrás recuperan algo.
+const positions = participants.map(() => 0)
+const speeds = participants.map(() => 0)
+const reached = participants.map(() => 0)
+const accel = participants.map(() => 14 + random() * 6)
+const top = participants.map(() => 112 + random() * 16)
+let time = 0, nextTick = PRELUDE_SECONDS, finished = false
+race.startIn(PRELUDE_SECONDS)
+
+function drive(dt) {
+  time += dt
+  if (finished || time < nextTick) return
+  nextTick += 0.3
+  const leader = Math.max(...positions)
+  positions.forEach((p, i) => {
+    const target = top[i] + (leader - p) * 0.05 + (random() - 0.5) * 28
+    speeds[i] += Math.max(-8, Math.min(accel[i] * 0.3, target - speeds[i]))
+    reached[i] = p + speeds[i] * 0.3
+    positions[i] = Math.min(DISTANCE, reached[i])
+  })
+  race.tick(positions.map((meters, i) => ({ id: participants[i].id, position: (meters / DISTANCE) * 100 })))
+  const winner = reached.reduce((best, r, i) => (r >= DISTANCE && (best < 0 || r > reached[best]) ? i : best), -1)
+  if (winner >= 0) {
+    finished = true
+    race.finish({ id: participants[winner].id, name: participants[winner].name, username: participants[winner].username })
+  }
+}
+
+window.__proto = { step(dt) { drive(dt); race.step(dt) }, info: () => race.info(), race }
+
+document.getElementById("again").addEventListener("click", () => location.reload())
+
+if (!CAPTURE) {
+  let last = performance.now()
+  const loop = now => {
+    window.__proto.step(Math.min(0.1, (now - last) / 1000))
+    last = now
+    requestAnimationFrame(loop)
+  }
+  requestAnimationFrame(loop)
+}
+window.__ready = true
+</script>
+</body>
+</html>

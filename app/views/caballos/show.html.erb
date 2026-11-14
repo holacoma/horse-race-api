@@ -1,0 +1,64 @@
+<% content_for :title, "Club Race — #{@caballo.name}" %>
+<% content_for :fase, "carrera" %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/ficha.css?v=1">
+<% end %>
+<%
+  horse     = @caballo.horse
+  elemento  = horse.elemento
+  puesto    = @temporada.puesto_de(horse.id)
+  ganancia  = @caballo.te_hizo_ganar(current_user)
+%>
+
+<%# La ficha: del lado dark. Su ilustración animada de fondo; a la izquierda, su nombre, sus números y cómo ganó. %>
+<div class="ficha-fondo" style="--fondo-img: url('/images/retratos/victoria-<%= elemento %>.webp'); --fondo-anim: url('/images/retratos/victoria-<%= elemento %>-anim.webp')" aria-hidden="true"></div>
+<div class="corte entra" aria-hidden="true"></div>
+<main class="ficha" data-controller="ficha">
+  <div>
+    <% if @es_favorito %><span class="ficha-etiqueta">Tu favorito</span><% end %>
+    <h1 class="ficha-nombre"><%= horse.name %></h1>
+    <p class="ficha-sub" style="--c: <%= color_de(horse.id) %>">
+      <b><%= elemento.capitalize %></b>
+      · <%= puesto ? "#{puesto}.º en la temporada #{@temporada.numero}" : "sin carreras en la temporada #{@temporada.numero}" %>
+      · quedan <%= @temporada.dias_restantes %> días
+    </p>
+    <% if @es_favorito %>
+      <%= link_to "Cambiar favorito", favorito_path, class: "ficha-accion secundaria", data: { fx: "nav" } %>
+    <% else %>
+      <%= button_to "Hacerlo mi favorito", favorito_path, method: :patch, params: { horse_id: horse.id, volver: "ficha" }, class: "ficha-accion principal", data: { fx: "add" } %>
+    <% end %>
+  </div>
+
+  <dl class="ficha-numeros">
+    <div><dt>Carreras</dt><dd><%= @caballo.carreras %></dd></div>
+    <div class="fuerte"><dt>Victorias</dt><dd><%= @caballo.victorias %></dd></div>
+    <div><dt>Podios</dt><dd><%= @caballo.podios %></dd></div>
+    <div><dt>Racha</dt><dd><%= @caballo.racha %></dd></div>
+    <div><dt><%= ganancia.negative? ? "Te hizo perder" : "Te hizo ganar" %></dt><dd><%= ganancia.negative? ? "−" : "+" %><%= usd(ganancia.abs) %></dd></div>
+  </dl>
+
+  <% if @caballo.ultimas.any? %>
+    <section class="ficha-forma">
+      <h2>Sus últimas <%= @caballo.ultimas.size %></h2>
+      <ol>
+        <% @caballo.ultimas.each do |p| %>
+          <li class="<%= 'p1' if p == 1 %>"><%= p ? "#{p}.º" : "—" %></li>
+        <% end %>
+      </ol>
+    </section>
+  <% end %>
+
+  <section class="ficha-victorias">
+    <h2>Cómo ganó</h2>
+    <% victorias = @caballo.como_gano %>
+    <% if victorias.empty? %>
+      <p class="ficha-nada">Todavía no ganó ninguna.</p>
+    <% else %>
+      <ol>
+        <% victorias.each do |v| %>
+          <li><b><%= v[:titulo] %></b><span>sala <%= v[:sala] %> · hace <%= time_ago_in_words(v[:cuando]) %><%= " · cobró #{usd(v[:cobro])}" if v[:cobro].positive? %></span></li>
+        <% end %>
+      </ol>
+    <% end %>
+  </section>
+</main>

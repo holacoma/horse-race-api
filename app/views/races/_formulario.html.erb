@@ -1,0 +1,85 @@
+<%# Armar una sala: primero el tipo (carrera o travesía) y después lo de cada uno. Lo usan el panel del inicio y
+    la página /races/new. %>
+<% tipo = race.kind.presence || "carrera" %>
+<%= form_with model: race, url: races_path, method: :post, class: "armar formulario",
+              data: { controller: "slot-machine armar", slot_machine_format_value: "slug", armar_tipo_value: tipo,
+                      action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
+  <header class="armar-cabeza">
+    <h1 id="armar-titulo">Armar una sala</h1>
+    <% if en_dialogo %>
+      <button type="button" class="armar-cerrar" aria-label="Cerrar" data-fx="close" onclick="this.closest('dialog').close()">✕</button>
+    <% end %>
+  </header>
+
+  <% if race.errors.any? %>
+    <ul class="error-list">
+      <% race.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+    </ul>
+  <% end %>
+
+  <div class="armar-tipos" role="radiogroup" aria-label="Tipo de sala">
+    <label class="armar-tipo">
+      <%= f.radio_button :kind, "carrera", checked: tipo == "carrera", data: { action: "armar#elegir" } %>
+      <b>Carrera</b><span>Se corre apenas se llena o a la hora que elijas. Dura unos segundos.</span><em>🏁 ahora</em>
+    </label>
+    <label class="armar-tipo">
+      <%= f.radio_button :kind, "travesia", checked: tipo == "travesia", data: { action: "armar#elegir" } %>
+      <b>Travesía</b><span>Dura días. Corren como stickers todo el tiempo y en los últimos minutos se pone intensa.</span><em>🌄 de 1 a 3 días</em>
+    </label>
+  </div>
+
+  <div class="armar-campos">
+    <div class="field armar-nombre">
+      <span class="field-label">Nombre de sala</span>
+      <%= render "shared/slot_machine", reels: Race::ROOM_NAME_REELS, results: room_name[:words] %>
+      <%= f.hidden_field :slug, value: room_name[:slug], data: { slot_machine_target: "field" } %>
+    </div>
+
+    <div class="field" data-solo="carrera">
+      <%= label_tag :race_espera, "Inicia sola en" %>
+      <%= select_tag "race[espera]", options_for_select([ [ "cuando yo la inicie", "" ] ] + Race::ESPERAS.map { |m| [ "#{m} minutos", m ] }, 5), id: "race_espera" %>
+      <span class="armar-ayuda">Si la inicias antes, cada jugador cobra <%= usd(Race::BONO_ANTICIPADO) %>. Si se espera la hora, el premio se multiplica por <%= Race::PREMIO_A_TIEMPO %>.</span>
+    </div>
+
+    <div class="field" data-solo="travesia" hidden>
+      <span class="field-label">Cuánto dura</span>
+      <div class="opciones">
+        <% Race::TRAVESIA_DIAS.each do |d| %>
+          <label class="opcion"><%= radio_button_tag "race[dias]", d, d == 2 %><span><%= d %> <%= d == 1 ? "día" : "días" %></span></label>
+        <% end %>
+      </div>
+      <span class="armar-ayuda">Inicia apenas la creas y se puede seguir entrando mientras dura.</span>
+    </div>
+
+    <div class="field" data-solo="carrera">
+      <%= f.label :distance, "Distancia en metros (2000 m ≈ 20 s)" %>
+      <%= f.number_field :distance, min: Race::DISTANCE_RANGE.min, max: Race::DISTANCE_RANGE.max, step: 100 %>
+    </div>
+
+    <div class="field">
+      <%= f.label :pista, "Pista" %>
+      <%= f.select :pista, Race::PISTAS.map { |clave, nombre| [ nombre, clave ] } %>
+    </div>
+
+    <div class="field">
+      <%= f.label :bet, "Apuesta base en USD" %>
+      <%= f.number_field :bet, min: Race::BET_RANGE.min, max: Race::BET_RANGE.max, step: 1 %>
+    </div>
+
+    <div class="field">
+      <%= f.label :capacity, "Lugares" %>
+      <%= f.select :capacity, (2..12).map { |n| [ n, n ] } %>
+    </div>
+
+    <div class="toggle-row">
+      <span class="toggle-label">Sala pública</span>
+      <label class="toggle">
+        <%= f.check_box :is_public, { checked: race.is_public != false }, "1", "0" %>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <p class="armar-resumen" data-armar-target="resumen"></p>
+  <%= f.submit tipo == "travesia" ? "Crear travesía" : "Crear sala", class: "btn-submit", data: { slot_machine_target: "button", armar_target: "boton", fx: "create" } %>
+<% end %>

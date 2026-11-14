@@ -1,0 +1,177 @@
+/* Club Race · Identidad. Generado por script/colores.mjs: cambiar ahí y volver a correrlo. */
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fredoka:wght@500;600;700&family=New+Rocker&family=Mochiy+Pop+One&family=Nunito:wght@500;700;800&display=swap");
+
+:root {
+  /* Primitivas: escalas de 12 pasos, compartidas por las dos fases.
+     1–2 fondos · 3–5 elementos (normal, encima, presionado) · 6–8 bordes · 9–10 sólidos · 11–12 texto
+     De noche: noche (neutro), fuego (marca), rojo, verde, ámbar, cian. De día: arena (neutro) y las mismas con -dia. */
+  --noche-1: oklch(0.145 0.006 55); --noche-2: oklch(0.175 0.008 55); --noche-3: oklch(0.215 0.01 55); --noche-4: oklch(0.25 0.012 55); --noche-5: oklch(0.285 0.013 55); --noche-6: oklch(0.325 0.014 55); --noche-7: oklch(0.385 0.016 55); --noche-8: oklch(0.47 0.018 55); --noche-9: oklch(0.6 0.02 55); --noche-10: oklch(0.65 0.02 55); --noche-11: oklch(0.8 0.014 55); --noche-12: oklch(0.95 0.006 55);
+  --fuego-1: oklch(0.145 0.004 45); --fuego-2: oklch(0.175 0.007 45); --fuego-3: oklch(0.215 0.016 45); --fuego-4: oklch(0.25 0.025 45); --fuego-5: oklch(0.285 0.033 45); --fuego-6: oklch(0.325 0.041 45); --fuego-7: oklch(0.385 0.055 45); --fuego-8: oklch(0.47 0.081 45); --fuego-9: oklch(0.7 0.2 45); --fuego-10: oklch(0.75 0.152 45); --fuego-11: oklch(0.83 0.071 45); --fuego-12: oklch(0.95 0.006 45);
+  --rojo-1: oklch(0.145 0.006 25); --rojo-2: oklch(0.175 0.01 25); --rojo-3: oklch(0.215 0.023 25); --rojo-4: oklch(0.25 0.035 25); --rojo-5: oklch(0.285 0.046 25); --rojo-6: oklch(0.325 0.058 25); --rojo-7: oklch(0.385 0.078 25); --rojo-8: oklch(0.47 0.114 25); --rojo-9: oklch(0.7 0.191 25); --rojo-10: oklch(0.75 0.143 25); --rojo-11: oklch(0.83 0.066 25); --rojo-12: oklch(0.95 0.006 25);
+  --verde-1: oklch(0.145 0.004 150); --verde-2: oklch(0.175 0.007 150); --verde-3: oklch(0.215 0.016 150); --verde-4: oklch(0.25 0.024 150); --verde-5: oklch(0.285 0.032 150); --verde-6: oklch(0.325 0.04 150); --verde-7: oklch(0.385 0.053 150); --verde-8: oklch(0.47 0.078 150); --verde-9: oklch(0.7 0.193 150); --verde-10: oklch(0.75 0.196 150); --verde-11: oklch(0.83 0.154 150); --verde-12: oklch(0.95 0.02 150);
+  --ambar-1: oklch(0.145 0.003 80); --ambar-2: oklch(0.175 0.005 80); --ambar-3: oklch(0.215 0.012 80); --ambar-4: oklch(0.25 0.018 80); --ambar-5: oklch(0.285 0.024 80); --ambar-6: oklch(0.325 0.03 80); --ambar-7: oklch(0.385 0.04 80); --ambar-8: oklch(0.47 0.058 80); --ambar-9: oklch(0.7 0.145 80); --ambar-10: oklch(0.75 0.148 80); --ambar-11: oklch(0.83 0.116 80); --ambar-12: oklch(0.95 0.011 80);
+  --cian-1: oklch(0.145 0.003 210); --cian-2: oklch(0.175 0.004 210); --cian-3: oklch(0.215 0.01 210); --cian-4: oklch(0.25 0.015 210); --cian-5: oklch(0.285 0.02 210); --cian-6: oklch(0.325 0.025 210); --cian-7: oklch(0.385 0.033 210); --cian-8: oklch(0.47 0.049 210); --cian-9: oklch(0.7 0.121 210); --cian-10: oklch(0.75 0.123 210); --cian-11: oklch(0.83 0.101 210); --cian-12: oklch(0.95 0.011 210);
+  --rosa-1: oklch(0.145 0.006 350); --rosa-2: oklch(0.175 0.01 350); --rosa-3: oklch(0.215 0.024 350); --rosa-4: oklch(0.25 0.036 350); --rosa-5: oklch(0.285 0.048 350); --rosa-6: oklch(0.325 0.06 350); --rosa-7: oklch(0.385 0.08 350); --rosa-8: oklch(0.47 0.118 350); --rosa-9: oklch(0.7 0.2 350); --rosa-10: oklch(0.75 0.172 350); --rosa-11: oklch(0.83 0.079 350); --rosa-12: oklch(0.95 0.007 350);
+  --arena-1: oklch(0.985 0.01 80); --arena-2: oklch(0.965 0.014 80); --arena-3: oklch(0.94 0.02 80); --arena-4: oklch(0.915 0.024 80); --arena-5: oklch(0.89 0.027 80); --arena-6: oklch(0.86 0.03 80); --arena-7: oklch(0.81 0.032 80); --arena-8: oklch(0.73 0.036 80); --arena-9: oklch(0.6 0.04 80); --arena-10: oklch(0.53 0.04 80); --arena-11: oklch(0.45 0.036 80); --arena-12: oklch(0.28 0.03 80);
+  --fuego-dia-1: oklch(0.985 0.001 45); --fuego-dia-2: oklch(0.968 0.003 45); --fuego-dia-3: oklch(0.945 0.008 45); --fuego-dia-4: oklch(0.92 0.016 45); --fuego-dia-5: oklch(0.895 0.025 45); --fuego-dia-6: oklch(0.865 0.036 45); --fuego-dia-7: oklch(0.815 0.061 45); --fuego-dia-8: oklch(0.745 0.107 45); --fuego-dia-9: oklch(0.7 0.19 45); --fuego-dia-10: oklch(0.655 0.178 45); --fuego-dia-11: oklch(0.5 0.122 45); --fuego-dia-12: oklch(0.32 0.051 45);
+  --rojo-dia-1: oklch(0.985 0.001 25); --rojo-dia-2: oklch(0.968 0.003 25); --rojo-dia-3: oklch(0.945 0.008 25); --rojo-dia-4: oklch(0.92 0.015 25); --rojo-dia-5: oklch(0.895 0.023 25); --rojo-dia-6: oklch(0.865 0.033 25); --rojo-dia-7: oklch(0.815 0.057 25); --rojo-dia-8: oklch(0.745 0.1 25); --rojo-dia-9: oklch(0.7 0.181 25); --rojo-dia-10: oklch(0.655 0.194 25); --rojo-dia-11: oklch(0.5 0.172 25); --rojo-dia-12: oklch(0.32 0.072 25);
+  --verde-dia-1: oklch(0.985 0.003 150); --verde-dia-2: oklch(0.968 0.009 150); --verde-dia-3: oklch(0.945 0.026 150); --verde-dia-4: oklch(0.92 0.05 150); --verde-dia-5: oklch(0.895 0.079 150); --verde-dia-6: oklch(0.865 0.086 150); --verde-dia-7: oklch(0.815 0.103 150); --verde-dia-8: oklch(0.745 0.122 150); --verde-dia-9: oklch(0.7 0.178 150); --verde-dia-10: oklch(0.655 0.171 150); --verde-dia-11: oklch(0.5 0.117 150); --verde-dia-12: oklch(0.32 0.049 150);
+  --ambar-dia-1: oklch(0.985 0.002 80); --ambar-dia-2: oklch(0.968 0.005 80); --ambar-dia-3: oklch(0.945 0.014 80); --ambar-dia-4: oklch(0.92 0.027 80); --ambar-dia-5: oklch(0.895 0.042 80); --ambar-dia-6: oklch(0.865 0.059 80); --ambar-dia-7: oklch(0.815 0.093 80); --ambar-dia-8: oklch(0.745 0.1 80); --ambar-dia-9: oklch(0.7 0.138 80); --ambar-dia-10: oklch(0.655 0.129 80); --ambar-dia-11: oklch(0.5 0.088 80); --ambar-dia-12: oklch(0.32 0.037 80);
+  --cian-dia-1: oklch(0.985 0.002 210); --cian-dia-2: oklch(0.968 0.005 210); --cian-dia-3: oklch(0.945 0.014 210); --cian-dia-4: oklch(0.92 0.026 210); --cian-dia-5: oklch(0.895 0.04 210); --cian-dia-6: oklch(0.865 0.057 210); --cian-dia-7: oklch(0.815 0.075 210); --cian-dia-8: oklch(0.745 0.084 210); --cian-dia-9: oklch(0.7 0.115 210); --cian-dia-10: oklch(0.655 0.108 210); --cian-dia-11: oklch(0.5 0.074 210); --cian-dia-12: oklch(0.32 0.031 210);
+  --rosa-dia-1: oklch(0.985 0.001 350); --rosa-dia-2: oklch(0.968 0.003 350); --rosa-dia-3: oklch(0.945 0.009 350); --rosa-dia-4: oklch(0.92 0.017 350); --rosa-dia-5: oklch(0.895 0.027 350); --rosa-dia-6: oklch(0.865 0.04 350); --rosa-dia-7: oklch(0.815 0.068 350); --rosa-dia-8: oklch(0.745 0.111 350); --rosa-dia-9: oklch(0.7 0.162 350); --rosa-dia-10: oklch(0.655 0.162 350); --rosa-dia-11: oklch(0.5 0.145 350); --rosa-dia-12: oklch(0.32 0.074 350);
+
+  /* Caballos: 11 tonos a la misma distancia más el blanco, cada uno cerca de su croma máximo. En hex: la escena 3D los lee de acá.
+     -tinta: el mismo tono, más oscuro, para fondos claros. */
+  --caballo-fuego: #fe6a00; --caballo-fuego-tinta: #bd4d00; /* oklch(0.7 0.2 45) · ΔE al más cercano 0.114 · contraste 6.9:1 de noche, tinta 4.8:1 de día */
+  --caballo-roca: #feb200; --caballo-roca-tinta: #9a6a00; /* oklch(0.815 0.17 77.7) · ΔE al más cercano 0.112 · contraste 10.9:1 de noche, tinta 4.6:1 de día */
+  --caballo-veneno: #d9db00; --caballo-veneno-tinta: #797a00; /* oklch(0.86 0.188 110.5) · ΔE al más cercano 0.11 · contraste 13.3:1 de noche, tinta 4.4:1 de día */
+  --caballo-naturaleza: #76f173; --caballo-naturaleza-tinta: #208c23; /* oklch(0.86 0.2 143.2) · ΔE al más cercano 0.108 · contraste 13.8:1 de noche, tinta 4.2:1 de día */
+  --caballo-viento: #00f3cd; --caballo-viento-tinta: #008872; /* oklch(0.86 0.161 175.9) · ΔE al más cercano 0.09 · contraste 13.9:1 de noche, tinta 4.2:1 de día */
+  --caballo-hielo: #00e5fe; --caballo-hielo-tinta: #008492; /* oklch(0.845 0.146 208.6) · ΔE al más cercano 0.09 · contraste 12.9:1 de noche, tinta 4.3:1 de día */
+  --caballo-agua: #00abff; --caballo-agua-tinta: #007cba; /* oklch(0.71 0.167 241.4) · ΔE al más cercano 0.099 · contraste 7.8:1 de noche, tinta 4.4:1 de día */
+  --caballo-metal: #7a8cff; --caballo-metal-tinta: #5867d6; /* oklch(0.68 0.169 274.1) · ΔE al más cercano 0.099 · contraste 6.6:1 de noche, tinta 4.7:1 de día */
+  --caballo-electricidad: #b96ff7; --caballo-electricidad-tinta: #8f53c1; /* oklch(0.68 0.2 306.8) · ΔE al más cercano 0.108 · contraste 6.3:1 de noche, tinta 4.8:1 de día */
+  --caballo-cosmos: #e45cbf; --caballo-cosmos-tinta: #b14394; /* oklch(0.68 0.2 339.5) · ΔE al más cercano 0.113 · contraste 6.2:1 de noche, tinta 4.9:1 de día */
+  --caballo-sombra: #fa5576; --caballo-sombra-tinta: #c33d59; /* oklch(0.68 0.2 12.3) · ΔE al más cercano 0.113 · contraste 6.3:1 de noche, tinta 4.9:1 de día */
+  --caballo-luz: #ffffff; --caballo-luz-tinta: #5b5449; /* oklch(1 0 0) · ΔE al más cercano 0.213 · contraste 19.8:1 de noche, tinta 7.2:1 de día */
+
+  /* Luz (de noche): el brillo es un acento, no la forma de marcar altura. */
+  --brillo-acento: 0 0 6px color-mix(in oklch, var(--acento) 70%, transparent), 0 0 18px color-mix(in oklch, var(--acento) 35%, transparent);
+  --brillo-foco: 0 0 0 2px var(--fondo), 0 0 0 4px var(--foco), 0 0 14px color-mix(in oklch, var(--foco) 50%, transparent);
+  --linea-de-luz: 0 0 1px var(--acento), 0 0 8px color-mix(in oklch, var(--acento) 55%, transparent);
+  /* Carmesí: el rojo con filo de la carrera, más oscuro y saturado que el rojo de los estados. */
+  --carmesi: oklch(0.56 0.22 25);
+  /* Franjas: rojo, negro y blanco de corte duro, quietas. Para la meta, los bordes marcados y los carteles. */
+  --franjas: repeating-linear-gradient(-55deg, var(--carmesi) 0 9px, var(--noche-1) 9px 15px, var(--noche-12) 15px 18px, var(--noche-1) 18px 24px);
+  /* Ecos: copias secas y corridas, en negro y carmesí, con un filo frío del otro lado. */
+  --ecos: 3px 3px 0 var(--noche-1), 6px 5px 0 var(--carmesi), -2px 0 0 color-mix(in oklch, var(--caballo-hielo) 55%, transparent);
+  --arcoiris: linear-gradient(100deg, var(--caballo-fuego), var(--caballo-roca), var(--caballo-veneno), var(--caballo-naturaleza), var(--caballo-viento), var(--caballo-hielo), var(--caballo-agua), var(--caballo-metal), var(--caballo-electricidad), var(--caballo-cosmos), var(--caballo-sombra));
+  --arcoiris-banda: linear-gradient(100deg, transparent 0 36%, var(--caballo-fuego) 38.0%, var(--caballo-roca) 40.4%, var(--caballo-veneno) 42.8%, var(--caballo-naturaleza) 45.2%, var(--caballo-viento) 47.6%, var(--caballo-hielo) 50.0%, var(--caballo-agua) 52.4%, var(--caballo-metal) 54.8%, var(--caballo-electricidad) 57.2%, var(--caballo-cosmos) 59.6%, var(--caballo-sombra) 62.0%, transparent 64% 100%);
+  /* Halos de neón: toman el color del elemento (currentColor). En text-shadow o box-shadow; borde fino, nunca relleno grande. */
+  --halo-suave: 0 0 1px currentColor, 0 0 6px color-mix(in oklch, currentColor 50%, transparent);
+  --halo-medio: 0 0 1px currentColor, 0 0 8px color-mix(in oklch, currentColor 70%, transparent), 0 0 22px color-mix(in oklch, currentColor 35%, transparent);
+  --halo-fuerte: 0 0 1px currentColor, 0 0 4px currentColor, 0 0 14px color-mix(in oklch, currentColor 80%, transparent), 0 0 40px color-mix(in oklch, currentColor 45%, transparent);
+}
+
+/* Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos. Nunca lleva piezas de la carrera (negro, carmesí, letra gótica): cada pantalla es de una sola fase. Sin brillos; la altura se marca con sombra. */
+:root, [data-fase="fuera"] {
+  color-scheme: light;
+  --fondo: var(--arena-1);
+  --superficie: var(--arena-2);
+  --superficie-alta: var(--arena-3);
+  --elemento: var(--arena-3);
+  --elemento-encima: var(--arena-4);
+  --elemento-presionado: var(--arena-5);
+  --borde-sutil: var(--arena-6);
+  --borde: var(--arena-7);
+  --borde-fuerte: var(--arena-8);
+  --texto: var(--arena-12);
+  --texto-suave: var(--arena-11);
+  --texto-apagado: var(--arena-10);
+  --acento: var(--arena-12);
+  --acento-encima: var(--arena-11);
+  --acento-texto: var(--arena-12);
+  --acento-fondo: var(--arena-3);
+  --acento-borde: var(--arena-8);
+  --sobre-acento: var(--arena-1);
+  --peligro: var(--rojo-dia-9);
+  --peligro-texto: var(--rojo-dia-11);
+  --peligro-fondo: var(--rojo-dia-3);
+  --exito: var(--verde-dia-9);
+  --exito-texto: var(--verde-dia-11);
+  --exito-fondo: var(--verde-dia-3);
+  --aviso: var(--ambar-dia-9);
+  --aviso-texto: var(--ambar-dia-11);
+  --aviso-fondo: var(--ambar-dia-3);
+  --info: var(--cian-dia-9);
+  --info-texto: var(--cian-dia-11);
+  --info-fondo: var(--cian-dia-3);
+  --foco: var(--cian-dia-9);
+  --radio: 18px;
+  --radio-chico: 10px;
+  --corte: 0px;
+  --borde-ancho: 2px;
+  --borde-marcado: 2px;
+  --recorte: none;
+  --recorte-etiqueta: none;
+  --sombra: 0 3px 0 var(--arena-7), 0 8px 18px color-mix(in oklch, var(--arena-12) 10%, transparent);
+  --sombra-presionada: 0 1px 0 var(--arena-7);
+  --patron: radial-gradient(circle, color-mix(in oklch, var(--arena-7) 45%, transparent) 2.6px, transparent 3.2px) 0 0 / 30px 30px;
+  --fuente-titulo: "Mochiy Pop One", "Fredoka", system-ui, sans-serif;
+  --fuente-texto: "Nunito", system-ui, sans-serif;
+  --fuente-gotica: "New Rocker", Georgia, serif;
+  --titulo-espaciado: 0.01em;
+  --titulo-mayusculas: none;
+  --textura: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.27 0 0 0 0 0.16 0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --textura-opacidad: 0.35;
+  --textura-mezcla: multiply;
+  --rayas: none;
+  --giro: 0.7deg;
+}
+
+/* Durante la carrera: gótico y sucio (Devil May Cry). De noche, tinta y no luz, recta y desbalanceada: sin bordes redondos, cajas asimétricas y letra gótica en los títulos. */
+[data-fase="carrera"] {
+  color-scheme: dark;
+  --fondo: var(--noche-1);
+  --superficie: var(--noche-2);
+  --superficie-alta: var(--noche-3);
+  --elemento: var(--noche-3);
+  --elemento-encima: var(--noche-4);
+  --elemento-presionado: var(--noche-5);
+  --borde-sutil: var(--noche-4);
+  --borde: var(--noche-5);
+  --borde-fuerte: var(--noche-7);
+  --texto: var(--noche-12);
+  --texto-suave: var(--noche-11);
+  --texto-apagado: var(--noche-9);
+  --acento: var(--carmesi);
+  --acento-encima: oklch(0.62 0.22 25);
+  --acento-texto: var(--rojo-11);
+  --acento-fondo: var(--rojo-3);
+  --acento-borde: var(--rojo-7);
+  --sobre-acento: var(--noche-12);
+  --peligro: var(--rojo-9);
+  --peligro-texto: var(--rojo-11);
+  --peligro-fondo: var(--rojo-3);
+  --exito: var(--verde-9);
+  --exito-texto: var(--verde-11);
+  --exito-fondo: var(--verde-3);
+  --aviso: var(--ambar-9);
+  --aviso-texto: var(--ambar-11);
+  --aviso-fondo: var(--ambar-3);
+  --info: var(--cian-9);
+  --info-texto: var(--cian-11);
+  --info-fondo: var(--cian-3);
+  --foco: var(--cian-9);
+  --radio: 0px;
+  --radio-chico: 0px;
+  --corte: 16px;
+  --borde-ancho: 1px;
+  --borde-marcado: 3px;
+  --recorte: polygon(0 0, calc(100% - var(--corte)) 0, 100% var(--corte), 100% 100%, calc(var(--corte) * 0.6) 100%, 0 calc(100% - var(--corte) * 0.6));
+  --recorte-etiqueta: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  --sombra: none;
+  --sombra-presionada: none;
+  --patron: none;
+  --fuente-titulo: "Chakra Petch", system-ui, sans-serif;
+  --fuente-texto: "Chakra Petch", system-ui, sans-serif;
+  --fuente-gotica: "New Rocker", Georgia, serif;
+  --titulo-espaciado: 0.16em;
+  --titulo-mayusculas: uppercase;
+  --textura: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --textura-opacidad: 0.16;
+  --textura-mezcla: overlay;
+  --rayas: none;
+  --halo-suave: 2px 2px 0 var(--noche-1);
+  --halo-medio: 3px 3px 0 var(--noche-1), 5px 5px 0 var(--carmesi);
+  --halo-fuerte: 4px 4px 0 var(--noche-1), 8px 7px 0 var(--carmesi);
+  --brillo-acento: 4px 4px 0 var(--noche-1);
+  --linea-de-luz: 0 3px 0 var(--noche-1);
+  --giro: 1.4deg;
+}
+
+/* De día: latido (corazones y brillitos que laten) y susto (algo raro asoma un instante, como en Doki Doki). */
+@keyframes latido { 0%, 100% { scale: 1; rotate: -8deg } 50% { scale: 1.35; rotate: 8deg } }
+@keyframes susto { 0%, 94%, 100% { color: var(--acento); filter: none; translate: 0 } 94.6% { color: var(--noche-1); filter: contrast(2); translate: 6px 0 } 95.2% { color: var(--carmesi); filter: invert(1); translate: -4px 0 } 95.8% { color: var(--noche-1); filter: none; translate: 2px 2px } }
+@keyframes brillo { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0 } 6% { opacity: .85 } 36% { opacity: .85 } 40%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0 } }
+@keyframes brillo-texto { 0% { background-position: 100% 0 } 40%, 100% { background-position: 0% 0 } }

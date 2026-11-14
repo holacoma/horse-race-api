@@ -1,0 +1,34 @@
+[
+  {
+    "momento": "inicio", "nombre": "t5-oscuro-chillon", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 3102,
+    "tags": "instrumental dark heavy metal, fast and brutal racing theme, menacing catchy lead guitar melody hook, screaming high-gain lead guitar with pinch harmonic squeals and whammy dives, drop B tuned crushing rhythm guitars with long ominous pauses, pounding double kick drums, heavy distorted bass, sinister minor key, very loud and aggressive, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t5-oscuro-chillon-b", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 5102,
+    "tags": "instrumental dark heavy metal, fast and brutal racing theme, menacing catchy lead guitar melody hook, screaming high-gain lead guitar with pinch harmonic squeals and whammy dives, drop B tuned crushing rhythm guitars with long ominous pauses, pounding double kick drums, heavy distorted bass, sinister minor key, very loud and aggressive, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t5-doom", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 5201,
+    "tags": "instrumental brutal modern metal, demon-slaying first person shooter soundtrack, low tuned 8-string guitar chugs, syncopated djent breakdown riffs, screaming squealing lead guitar with pinch harmonics, menacing catchy riff, relentless double kick drums, crushing distorted bass, hellish and furious, extremely loud, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t5-doom-b", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 5202,
+    "tags": "instrumental brutal modern metal, demon-slaying first person shooter soundtrack, low tuned 8-string guitar chugs, syncopated djent breakdown riffs, screaming squealing lead guitar with pinch harmonics, menacing catchy riff, relentless double kick drums, crushing distorted bass, hellish and furious, extremely loud, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t5-nu-metal", "bpm": 172, "segundos": 40, "tono": "E minor", "semilla": 5301,
+    "tags": "instrumental aggressive nu metal, drop B tuning, bouncy heavy groove riffs with sudden stops, screeching lead guitar with whammy bar dives and pinch harmonic squeals, dark catchy riff hook, punchy loud drums, heavy distorted bass, dark minor key, angry, no rap, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t5-nu-metal-b", "bpm": 172, "segundos": 40, "tono": "E minor", "semilla": 5302,
+    "tags": "instrumental aggressive nu metal, drop B tuning, bouncy heavy groove riffs with sudden stops, screeching lead guitar with whammy bar dives and pinch harmonic squeals, dark catchy riff hook, punchy loud drums, heavy distorted bass, dark minor key, angry, no rap, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t5-meta-doom", "bpm": 120, "segundos": 11, "tono": "E minor", "semilla": 5401,
+    "tags": "instrumental brutal dark metal victory stinger, short, screaming lead guitar squeal, crushing low tuned power chords, huge drum fill and cymbal crash, ends on a long ringing low chord with feedback, very loud, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t5-meta-doom-b", "bpm": 120, "segundos": 11, "tono": "E minor", "semilla": 5402,
+    "tags": "instrumental brutal dark metal victory stinger, short, screaming lead guitar squeal, crushing low tuned power chords, huge drum fill and cymbal crash, ends on a long ringing low chord with feedback, very loud, no vocals"
+  }
+]

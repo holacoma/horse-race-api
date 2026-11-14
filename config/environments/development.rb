@@ -21,6 +21,8 @@ Rails.application.configure do
     config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
   else
     config.action_controller.perform_caching = false
+    # Sin esto el navegador reutiliza CSS y JS viejos al recargar: sus URLs no llevan digest.
+    config.public_file_server.headers = { "cache-control" => "no-cache" }
   end
 
   # Change to :null_store to avoid any caching.

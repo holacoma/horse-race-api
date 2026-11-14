@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+# Un worktree por agente y por tarea (ver AGENTS.md). La carpeta principal del repo es la de producción: nadie
+# trabaja ahí. Los worktrees viven al lado, en ../wt/horse-race-api/<rama con guiones>, cada uno con su base.
+#
+#   bin/worktree nueva feature/bots-vivos   crea la rama desde develop, el worktree y sus bases
+#   bin/worktree lista                      quién está en qué rama (el tablero)
+#   bin/worktree quitar feature/bots-vivos  borra el worktree y sus bases (la rama queda)
+require "fileutils"
+require "open3"
+
+def sh!(*cmd, chdir: Dir.pwd)
+  puts "$ #{cmd.join(' ')}"
+  system(*cmd, chdir: chdir) or abort("Falló: #{cmd.join(' ')}")
+end
+
+def git(*args)
+  out, status = Open3.capture2("git", *args)
+  abort("Falló: git #{args.join(' ')}") unless status.success?
+  out.strip
+end
+
+PRINCIPAL = File.dirname(File.expand_path(git("rev-parse", "--path-format=absolute", "--git-common-dir")))
+RAIZ = File.expand_path("../wt/#{File.basename(PRINCIPAL)}", PRINCIPAL)
+
+def carpeta_de(rama) = File.join(RAIZ, rama.tr("/", "-"))
+
+def puerto_libre
+  usados = Dir.glob(File.join(RAIZ, "*", ".puerto")).map { |f| File.read(f).to_i }
+  (3002..3099).find { |p| !usados.include?(p) } # 3000 queda para la carpeta principal y 3001 es producción
+end
+
+accion, rama = ARGV
+case accion
+when "nueva"
+  abort "Uso: bin/worktree nueva feature/<nombre>" unless rama&.match?(%r{\A(feature|hotfix|release|chore)/[a-z0-9.-]+\z})
+  base = rama.start_with?("hotfix/") ? "master" : "develop"
+  dir = carpeta_de(rama)
+  abort "Ya existe #{dir}" if File.exist?(dir)
+  FileUtils.mkdir_p(RAIZ)
+  sh! "git", "worktree", "add", "-b", rama, dir, base
+  puerto = puerto_libre
+  File.write(File.join(dir, ".puerto"), puerto.to_s)
+  sh! "bundle", "install", "--quiet", chdir: dir
+  # db:create antes que db:prepare: en Windows una base que no existe llega como conexión cortada y db:prepare no la crea.
+  sh! "ruby", "bin/rails", "db:create", chdir: dir
+  sh! "ruby", "bin/rails", "db:prepare", chdir: dir
+  puts "\nListo: #{dir}\nServidor: bin/rails server -p #{puerto}"
+when "lista"
+  puts git("worktree", "list")
+when "quitar"
+  abort "Uso: bin/worktree quitar <rama>" unless rama
+  dir = carpeta_de(rama)
+  abort "No existe #{dir}" unless File.exist?(dir)
+  sh! "ruby", "bin/rails", "db:drop", chdir: dir
+  sh! "git", "worktree", "remove", dir
+else
+  abort File.read(__FILE__).lines.grep(/\A#  /).join
+end

@@ -1,0 +1,28 @@
+[
+  {
+    "momento": "inicio", "nombre": "t6-oscuro-turbo", "motor": "turbo", "bpm": 176, "segundos": 45, "tono": "E minor", "semilla": 6101,
+    "tags": "Dark Metal: A fast, menacing instrumental metal track built for a high-speed race. A screaming high-gain lead guitar carries a catchy, sinister main melody right up front, full of pinch-harmonic squeals and whammy dives. Behind it, a rhythm guitar drives tight thrash-metal gallops, then drops out into long, ominous pauses that let the lead breathe. Fast thrash drums with skank beats and crashing cymbals push the energy forward, while a dark analog synth pad hums low in the background like a distant storm. Minor key, aggressive and relentless, built around a memorable hook that keeps coming back."
+  },
+  {
+    "momento": "inicio", "nombre": "t6-oscuro-xl", "motor": "xl", "bpm": 176, "segundos": 45, "tono": "E minor", "semilla": 6101,
+    "tags": "Dark Metal: A fast, menacing instrumental metal track built for a high-speed race. A screaming high-gain lead guitar carries a catchy, sinister main melody right up front, full of pinch-harmonic squeals and whammy dives. Behind it, a rhythm guitar drives tight thrash-metal gallops, then drops out into long, ominous pauses that let the lead breathe. Fast thrash drums with skank beats and crashing cymbals push the energy forward, while a dark analog synth pad hums low in the background like a distant storm. Minor key, aggressive and relentless, built around a memorable hook that keeps coming back."
+  },
+  {
+    "momento": "inicio", "nombre": "t6-arcade-turbo", "motor": "turbo", "bpm": 178, "segundos": 45, "tono": "E minor", "semilla": 6201,
+    "tags": "Racing Metal: An intense instrumental theme in the spirit of late-90s arcade racing games, but darker and heavier. The star is a shrieking lead guitar playing a sticky, singable riff that sounds like an anthem, with squealing harmonics at the end of each phrase. A second guitar answers with galloping thrash rhythm parts and sudden silences. Pounding fast drums keep the speed, and a brooding synth pad sits far behind everything, adding dread. Every section returns to the main hook."
+  },
+  {
+    "momento": "inicio", "nombre": "t6-arcade-xl", "motor": "xl", "bpm": 178, "segundos": 45, "tono": "E minor", "semilla": 6201,
+    "tags": "Racing Metal: An intense instrumental theme in the spirit of late-90s arcade racing games, but darker and heavier. The star is a shrieking lead guitar playing a sticky, singable riff that sounds like an anthem, with squealing harmonics at the end of each phrase. A second guitar answers with galloping thrash rhythm parts and sudden silences. Pounding fast drums keep the speed, and a brooding synth pad sits far behind everything, adding dread. Every section returns to the main hook."
+  },
+  {
+    "momento": "inicio", "nombre": "t6-secciones-turbo", "motor": "turbo", "bpm": 176, "segundos": 45, "tono": "E minor", "semilla": 6301,
+    "letra": "[Intro - dark synth pad swells, drum fill]\n\n[Main Riff - screaming lead guitar hook]\n\n[Verse - thrash gallop rhythm guitar, lead answers]\n\n[Break - guitars stop, drums and synth only]\n\n[Main Riff - lead guitar hook, louder]",
+    "tags": "Dark Metal: A fast, menacing instrumental metal track built for a high-speed race. A screaming high-gain lead guitar carries a catchy, sinister main melody right up front, full of pinch-harmonic squeals and whammy dives. Behind it, a rhythm guitar drives tight thrash-metal gallops, then drops out into long, ominous pauses that let the lead breathe. Fast thrash drums with skank beats and crashing cymbals push the energy forward, while a dark analog synth pad hums low in the background like a distant storm. Minor key, aggressive and relentless."
+  },
+  {
+    "momento": "inicio", "nombre": "t6-secciones-xl", "motor": "xl", "bpm": 176, "segundos": 45, "tono": "E minor", "semilla": 6301,
+    "letra": "[Intro - dark synth pad swells, drum fill]\n\n[Main Riff - screaming lead guitar hook]\n\n[Verse - thrash gallop rhythm guitar, lead answers]\n\n[Break - guitars stop, drums and synth only]\n\n[Main Riff - lead guitar hook, louder]",
+    "tags": "Dark Metal: A fast, menacing instrumental metal track built for a high-speed race. A screaming high-gain lead guitar carries a catchy, sinister main melody right up front, full of pinch-harmonic squeals and whammy dives. Behind it, a rhythm guitar drives tight thrash-metal gallops, then drops out into long, ominous pauses that let the lead breathe. Fast thrash drums with skank beats and crashing cymbals push the energy forward, while a dark analog synth pad hums low in the background like a distant storm. Minor key, aggressive and relentless."
+  }
+]

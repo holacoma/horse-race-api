@@ -1,0 +1,52 @@
+[
+ {
+  "momento": "inicio",
+  "nombre": "t10-do-menor-199",
+  "motor": "minimax",
+  "segundos": 75,
+  "semilla": 10101,
+  "bpm_final": 199,
+  "tags": "Global Metadata: Fast, dark melodic hard rock and heavy metal for a futuristic race. Around 200 BPM, C minor. Driven and determined, with a heroic but menacing edge that builds to a final climax. Tight, punchy late-90s game rock production, the lead guitar loud and in front.\n\nVocal Details: Instrumental. A singing, high-gain lead guitar carries every melody.\n\nArrangement: Intro: a fast drum fill and a rising guitar run. Instrumental sections: the lead guitar plays a long, memorable, catchy melody over chugging rhythm guitar and a busy, driving picked bass that moves on its own. Solo: a fast, expressive guitar solo with bends and harmonic squeals. Outro: the main melody once more, ending on a hard stop.",
+  "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Solo]\n\n[Outro]"
+ },
+ {
+  "momento": "inicio",
+  "nombre": "t10-si-menor-215",
+  "motor": "minimax",
+  "segundos": 75,
+  "semilla": 10201,
+  "bpm_final": 215,
+  "tags": "Global Metadata: Breakneck speed metal racing theme. Around 215 BPM, B minor. Furious, relentless urgency from the first second, like flying at the limit. Loud, aggressive production with twin guitars up front.\n\nVocal Details: Instrumental. Two lead guitars carry the melody in harmony.\n\nArrangement: Intro: guitars and drums hit together at full speed. Instrumental sections: twin lead guitars play a sharp, sticky hook in harmony over tremolo-picked rhythm guitar and nonstop double kick drums. Solo: the two guitars trade fast phrases. Outro: the hook again, louder, and a sudden stop.",
+  "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Solo]\n\n[Outro]"
+ },
+ {
+  "momento": "inicio",
+  "nombre": "t10-do-menor-161-sintes",
+  "motor": "minimax",
+  "segundos": 75,
+  "semilla": 10301,
+  "bpm_final": 175,
+  "tags": "Global Metadata: Dark synth rock racing theme with heavy guitars. Around 165 BPM, C minor. Tense and cinematic, a night chase through a neon-lit city that keeps accelerating. Big modern production, strong synthesizers and guitars sharing the spotlight.\n\nVocal Details: Instrumental. A bold synth lead and an overdriven guitar share the main melody.\n\nArrangement: Intro: a pulsing synth bass and a filtered synth arpeggio. Instrumental sections: a powerful synth lead plays a dark catchy hook, answered by a distorted lead guitar, over heavy palm-muted rhythm guitar, punchy drums and a thick synth bass. Solo: guitar and synth trade the hook. Outro: everything together on the hook, ending on a big chord.",
+  "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Solo]\n\n[Outro]"
+ },
+ {
+  "momento": "inicio",
+  "nombre": "t10-dosmenor-185-pesado",
+  "motor": "minimax",
+  "segundos": 75,
+  "semilla": 10401,
+  "bpm_final": 185,
+  "tags": "Global Metadata: Heavy, grooving hard rock and metal for a race. Around 185 BPM, C# minor. Dark, gritty and confident, with a swaggering groove that never slows down. Thick, loud production with a prominent bass guitar.\n\nVocal Details: Instrumental. A gritty, distorted lead guitar carries the melody.\n\nArrangement: Intro: a growling bass riff alone, then the band crashes in. Instrumental sections: a gritty lead guitar plays a short, catchy, menacing riff doubled by a distorted bass, over pounding drums and stabbing rhythm guitar with short silences. Solo: a bluesy, aggressive guitar solo. Outro: the riff one last time and a ringing final chord.",
+  "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Solo]\n\n[Outro]"
+ },
+ {
+  "momento": "inicio",
+  "nombre": "t10-mi-menor-185-mixto",
+  "motor": "minimax",
+  "segundos": 75,
+  "semilla": 10501,
+  "bpm_final": 185,
+  "tags": "Global Metadata: Fast, dark arcade racing rock with an industrial edge. Around 185 BPM, E minor. Intense and mechanical, like engines screaming in a tunnel, building in waves. Loud, crisp production with guitars in front and synths underneath.\n\nVocal Details: Instrumental. A screaming lead guitar carries the melody.\n\nArrangement: Intro: a mechanical synth pulse and a snare roll. Instrumental sections: the lead guitar plays a dark, catchy hook over driving rhythm guitar, a steady bass, fast drums and a low synth layer that adds tension. Solo: a screaming guitar solo with pinch harmonics. Outro: the hook a final time and a hard stop.",
+  "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Solo]\n\n[Outro]"
+ }
+]

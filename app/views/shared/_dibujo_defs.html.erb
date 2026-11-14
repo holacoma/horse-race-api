@@ -1,0 +1,23 @@
+<%# Piezas del dibujo de caballo (estilo Spider-Verse): cabeza, crin en puntas, trama de puntos y sombra.
+    Van una sola vez por página; cada dibujo (RacesHelper#dibujo_caballo) las usa con su color. %>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="dc-cabeza" d="M24 98 C22 80 24 62 32 48 C36 40 40 34 42 28 L40 11 L50 24 C58 25 66 30 72 38 C78 46 86 56 91 64 C94 69 93 76 88 78 C82 80 76 79 71 76 C66 73 62 70 58 70 C54 76 54 86 58 98 Z"/>
+    <path id="dc-crin" d="M43 27 L31 28 L38 34 L23 39 L33 44 L18 53 L29 56 L15 67 L26 69 L14 82 L24 83 L16 98 L30 98 C26 80 27 62 35 48 C38 42 41 35 43 27 Z"/>
+    <g id="dc-detalle">
+      <path d="M58 70 C62 62 66 58 72 56" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M59.5 40 Q64 35 69 40 Q64 44 59.5 40 Z" fill="#111"/>
+      <circle cx="65.6" cy="38.8" r="1.1" fill="#fff"/>
+      <path d="M83.5 68.5 q3 -2.4 5.4 1 q-3 1.2 -5.4 -1 Z" fill="#111"/>
+    </g>
+    <clipPath id="dc-recorte"><use href="#dc-cabeza"/></clipPath>
+    <pattern id="dc-puntos" width="4.6" height="4.6" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+      <circle cx="2.3" cy="2.3" r="1.25" fill="#111"/>
+    </pattern>
+    <linearGradient id="dc-sombra" x1="1" y1="0" x2="0" y2="1">
+      <stop offset=".42" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="dc-mascara"><rect x="-10" y="-10" width="120" height="120" fill="url(#dc-sombra)"/></mask>
+  </defs>
+</svg>

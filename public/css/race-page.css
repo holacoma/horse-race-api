@@ -5,22 +5,22 @@
 
 #controls button {
   padding: 0.6rem 1.25rem;
-  background: var(--color-surface); color: var(--color-text);
-  border: 3px solid var(--color-border);
-  box-shadow: 3px 3px 0 var(--color-primary);
-  font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
+  background: var(--superficie); color: var(--texto);
+  border: var(--borde-ancho) solid var(--borde); border-radius: var(--radio-chico);
+  box-shadow: var(--sombra);
+  font-family: var(--fuente-titulo); font-size: 14px; cursor: pointer;
   transition: box-shadow 0.08s;
 }
-#controls button:hover:not(:disabled) { box-shadow: 1px 1px 0 var(--color-primary); }
+#controls button:hover:not(:disabled) { box-shadow: var(--sombra-presionada); }
 #controls button:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
 #btn-new {
-  background: var(--color-primary) !important;
-  color: var(--color-bg) !important;
-  border-color: var(--color-text) !important;
+  background: var(--acento) !important;
+  color: var(--sobre-acento) !important;
+  border-color: var(--texto) !important;
 }
 
-#status-text { font-size: 9px; color: var(--color-muted); }
+#status-text { font-size: 14px; color: var(--texto-apagado); }
 
 #animal-selector {
   margin-bottom: 1.5rem;
@@ -28,13 +28,13 @@
 }
 #animal-selector button {
   padding: 0.5rem 1rem;
-  background: var(--color-surface);
-  border: 2px solid var(--color-border);
-  color: var(--color-text); font-family: var(--font-pixel); font-size: 9px; cursor: pointer;
+  background: var(--superficie);
+  border: 2px solid var(--borde);
+  color: var(--texto); font-family: var(--fuente-titulo); font-size: 14px; cursor: pointer;
 }
 #animal-selector button.selected {
-  background: var(--color-primary); color: var(--color-bg);
-  border-color: var(--color-text);
+  background: var(--acento); color: var(--fondo);
+  border-color: var(--texto);
 }
 
 #picker-timer-wrap {
@@ -42,13 +42,13 @@
   display: flex; flex-direction: column; gap: 0.4rem;
 }
 #picker-timer-bar {
-  height: 16px; background: var(--color-surface); border: 2px solid var(--color-border);
+  height: 16px; background: var(--superficie); border: 2px solid var(--borde);
   overflow: hidden;
 }
 #picker-timer-fill {
-  height: 100%; background: var(--color-primary);
+  height: 100%; background: var(--acento);
   transition: width 1s linear;
 }
-#picker-timer-text { font-size: 8px; color: var(--color-muted); text-align: right; }
+#picker-timer-text { font-size: 13px; color: var(--texto-apagado); text-align: right; }
 
-.lane-label.my-horse { color: var(--color-primary); }
+.lane-label.my-horse { color: var(--acento); }

@@ -38,3 +38,12 @@
 /config/*.key
 
 config/credentials.yml.enc
+
+# Audio de terceros que se deja a mano para uso personal: no se versiona.
+/public/sonidos/the-world.*
+/public/sonidos/candidatos/
+/public/sonidos/paleta/
+__pycache__/
+
+# Puerto de desarrollo de cada worktree (bin/worktree).
+/.puerto

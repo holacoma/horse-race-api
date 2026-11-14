@@ -1,0 +1,26 @@
+<%# Requiere un form con data-controller="slot-machine". results: la palabra en que frena cada carrete; sin results, al azar.
+    Cada carrete se gira de a una palabra (flechas arriba y abajo, o la rueda del mouse) para elegir el nombre; la palanca sortea. %>
+<% results = local_assigns.fetch(:results, []) %>
+<div class="slot-machine" data-slot-machine-target="machine">
+  <div class="slot-cabinet">
+    <div class="slot-display" data-slot-machine-target="display" aria-live="polite">ELEGÍ O TIRÁ DE LA PALANCA</div>
+    <div class="slot-reels">
+      <% reels.each_with_index do |words, i| %>
+        <% at = words.index(results[i].presence || words.sample) || 0 %>
+        <%= tag.div class: "slot-reel", data: { slot_machine_target: "reel", words: words, result: results[i],
+                                                action: "wheel->slot-machine#wheel:!passive" } do %>
+          <div class="slot-strip">
+            <% [ -1, 0, 1 ].each do |d| %>
+              <div class="slot-cell"><%= words[(at + d) % words.size] %></div>
+            <% end %>
+          </div>
+          <button type="button" class="slot-nudge arriba" aria-label="Palabra anterior"
+                  data-action="slot-machine#nudge" data-slot-machine-reel-param="<%= i %>" data-slot-machine-step-param="-1">▲</button>
+          <button type="button" class="slot-nudge abajo" aria-label="Palabra siguiente"
+                  data-action="slot-machine#nudge" data-slot-machine-reel-param="<%= i %>" data-slot-machine-step-param="1">▼</button>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+  <button type="button" class="slot-lever" aria-label="Tirar de la palanca" data-action="slot-machine#shuffle"><span class="slot-lever-stick"></span></button>
+</div>

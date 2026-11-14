@@ -1,51 +1,11 @@
-<% content_for :title, "Horse Race — Nueva sala" %>
-<% content_for :page_title, "NUEVA SALA" %>
+<% content_for :title, "Club Race — Nueva sala" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-new.css">
+  <link rel="stylesheet" href="/css/races-new.css?v=4">
+  <link rel="stylesheet" href="/css/slot-machine.css?v=3">
 <% end %>
 
+<%# La misma forma que el panel del inicio, como página: para el teléfono y para mostrar errores. %>
 <div class="new-race-wrap">
-<h1>＋ Nueva sala</h1>
-<p class="subtitle">Configurá tu carrera multijugador</p>
-
-<%= form_with model: @race, url: races_path, method: :post, class: "pixel-form" do |f| %>
-
-  <% if @race.errors.any? %>
-    <ul class="error-list">
-      <% @race.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
-    </ul>
-  <% end %>
-
-  <div class="field">
-    <%= f.label :slug, "Nombre de sala (slug)" %>
-    <%= f.text_field :slug, placeholder: "swift-fox-42" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :capacity, "Capacidad" %>
-    <%= f.select :capacity, (2..12).map { |n| [n, n] }, {}, {} %>
-  </div>
-
-  <div class="field">
-    <%= f.label :animal_type, "Tipo de animal" %>
-    <%= f.select :animal_type, [["🐴 Caballos", "horse"], ["🐹 Cobayas", "guinea_pig"]] %>
-  </div>
-
-  <div class="toggle-row">
-    <span class="toggle-label">Sala pública</span>
-    <label class="toggle">
-      <%= f.check_box :is_public, { checked: @race.is_public != false }, "1", "0" %>
-      <span class="toggle-slider"></span>
-    </label>
-  </div>
-
-  <%= f.submit "Crear sala", class: "btn-submit" %>
-
-  <div class="back-link">
-    <%= link_to "← Volver a salas", root_path %>
-  </div>
-
-<% end %>
+  <%= render "races/formulario", race: @race, room_name: @room_name, en_dialogo: false %>
+  <div class="back-link"><%= link_to "← Volver a salas", root_path, data: { fx: "back" } %></div>
 </div>

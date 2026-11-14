@@ -7,12 +7,12 @@ class ParticipantsController < WebController
 
     return render json: { error: "Caballo no encontrado" }, status: :not_found unless horse
 
-    if params[:guest_name].present?
+    if params.key?(:guest_name)
       return render json: { error: "Solo el creador puede agregar apostadores" }, status: :forbidden \
         unless race.creator_id == current_user.id
 
       participant = race.participants.build(
-        name: params[:guest_name].strip,
+        name: params[:guest_name].to_s.strip.presence || race.random_bettor_name,
         horse_id: horse.id,
         horse_name: horse.name
       )
@@ -28,18 +28,11 @@ class ParticipantsController < WebController
       return render json: { error: participant.errors.full_messages.first }, status: :conflict
     end
 
-    ActionCable.server.broadcast("race_#{race.id}", {
-      type: "player_joined",
-      participant: {
-        username: participant.display_name,
-        horse_name: horse.name,
-        horse_id: horse.id,
-        profile_username: participant.user&.username
-      }
-    })
+    participant.announce_joined
 
-    race.reload.start! if race.full? && race.pending?
+    # Llena, larga al toque (antes de la hora: bono). La travesía no: corre días y larga sola al final.
+    race.reload.start! if race.carrera? && race.full? && race.pending?
 
-    render json: { ok: true, race_started: race.running?, participant: { horse_name: horse.name, display_name: participant.display_name } }
+    render json: { ok: true, race_started: race.running?, participant: { horse_id: horse.id, horse_name: horse.name, display_name: participant.display_name } }
   end
 end

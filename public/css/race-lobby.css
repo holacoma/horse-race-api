@@ -1,143 +1,278 @@
-.lobby-header { text-align: center; margin-bottom: 1.5rem; }
-.lobby-header h1 { font-size: 16px; }
-.lobby-header .players-count { color: var(--color-primary); font-size: 9px; margin-top: 0.4rem; }
+/* Sala: un panel sobre la escena 3D. La escena ocupa toda la pantalla (carrera3d.css); el panel es de la fase
+   "fuera" (kawaii) mientras se espera, y al largar se corre con un corte seco y queda la carrera. */
 
-.share-row {
-  display: flex; gap: 0.5rem; align-items: center;
-  margin-bottom: 1.5rem; width: 100%; max-width: 520px;
-}
-.share-row input {
-  flex: 1; padding: 0.5rem 0.75rem;
-  background: var(--color-bg); border: 2px solid var(--color-border);
-  color: var(--color-muted); font-family: var(--font-pixel); font-size: 8px;
-}
-.share-row button {
-  padding: 0.5rem 0.75rem;
-  background: var(--color-surface); color: var(--color-text);
-  border: 2px solid var(--color-border);
-  font-family: var(--font-pixel); font-size: 8px; cursor: pointer;
-}
-.share-row button:hover { background: var(--color-border); }
+/* Sobre la escena no va el grano ni la trama de la página: la escena tiene los suyos. */
+body::before, body::after { display: none; }
 
-#participants-list {
-  width: 100%; max-width: 520px;
-  display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;
+/* Mientras se espera, el HUD de la carrera no se ve. */
+.esperando .hud { opacity: 0 !important; }
+
+.sala-cargando {
+  position: fixed; right: 32px; bottom: 28px; z-index: 5;
+  font: 400 15px var(--fuente-titulo); color: var(--texto); padding: 8px 16px;
+  background: var(--superficie); border-radius: var(--radio-chico); box-shadow: var(--sombra);
 }
+
+.sala-panel {
+  position: fixed; top: 18px; left: 18px; bottom: 18px; z-index: 10;
+  width: min(410px, calc(100vw - 36px)); overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 24px;
+  background: var(--superficie); background-image: var(--patron);
+  border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio);
+  box-shadow: var(--sombra), 0 18px 40px rgb(0 0 0 / 0.25);
+  transform: rotate(-0.6deg);
+  transition: transform .55s cubic-bezier(.7, 0, .3, 1), opacity .35s;
+}
+.en-carrera .sala-panel { transform: translateX(calc(-100% - 60px)) rotate(-6deg); opacity: 0; pointer-events: none; }
+
+.sala-cabecera { display: grid; gap: 4px; }
+.sala-volver { justify-self: start; font-weight: 800; text-decoration: none; font-size: 14px; }
+.sala-nombre { font-size: 30px; line-height: 1.05; overflow-wrap: anywhere; transform: rotate(-2deg); transform-origin: left; }
+.players-count {
+  justify-self: start; margin-top: 4px; padding: 3px 12px; border-radius: 99px;
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); font-weight: 800; font-size: 13px;
+}
+.share-row { display: flex; gap: 8px; }
+.share-row input { flex: 1; min-width: 0; font-size: 13px; }
+.share-row button { padding: 8px 14px; font-size: 14px; }
+/* Tu caballo: tarjeta crema con contorno de tinta y la sombra del color de su elemento, tu chibi grande y su cartel. */
+.tu-caballo {
+  display: grid; grid-template-columns: 104px 1fr; grid-template-rows: auto 1fr; column-gap: 12px; align-items: center;
+  padding: 12px 16px 12px 10px; border-radius: var(--radio); background: var(--fondo); color: var(--texto);
+  border: 2px solid var(--acento); box-shadow: 6px 6px 0 var(--c, var(--arena-7)); transform: rotate(-1deg);
+}
+.tu-caballo[hidden] { display: none; }
+.tu-chibi { grid-column: 1; grid-row: 1 / 3; width: 104px; height: 104px; object-fit: contain; transform: rotate(-4deg) translateY(-6px); }
+.tu-cartel {
+  grid-column: 2; grid-row: 1; justify-self: start; align-self: end; padding: 2px 12px; white-space: nowrap; border-radius: 99px; transform: rotate(-3deg);
+  background: var(--acento); color: var(--sobre-acento); font: 400 12px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase;
+}
+.tu-caballo b { grid-column: 2; grid-row: 2; margin-top: 6px; align-self: start; font: 400 26px/1.05 var(--fuente-titulo); overflow-wrap: anywhere; }
+.section-title { margin: 6px 0 0; }
+
+#participants-list { display: flex; flex-direction: column; gap: 6px; }
 .participant-row {
-  background: var(--color-surface);
-  border: 2px solid var(--color-border);
-  padding: 0.6rem 0.9rem;
-  display: flex; align-items: center; gap: 0.75rem;
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radio-chico);
+  background: var(--fondo); border: var(--borde-ancho) solid var(--borde-sutil); font-size: 14px;
 }
-.participant-row .p-username { font-size: 9px; font-weight: 700; flex: 1; }
-.participant-row .p-horse { font-size: 8px; color: var(--color-primary); }
-
-#horse-picker {
-  width: 100%; max-width: 640px;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 1.25rem; margin-bottom: 1.5rem;
-}
-#horse-picker h2 { font-size: 12px; }
-#horse-picker .picker-cards { flex-wrap: nowrap; }
-.picker-card { flex: 1; min-width: 0; }
-.picker-card.taken { opacity: 0.3; cursor: not-allowed; }
-.picker-card.taken:hover { box-shadow: 4px 4px 0 var(--color-primary); }
-.picker-card.favorite { border-color: var(--color-primary); }
-
-#status-bar {
-  margin-top: 1rem; font-size: 9px; color: var(--color-muted); text-align: center;
-}
-#status-bar.ready { color: var(--color-green); }
-
-#race-section {
-  width: 100%; display: none; flex-direction: column; align-items: center; gap: 1rem;
-}
-
-#btn-start {
-  margin-top: 1.5rem; padding: 0.7rem 2rem;
-  background: var(--color-green); color: var(--color-bg);
-  border: 3px solid var(--color-text);
-  box-shadow: 4px 4px 0 var(--color-border);
-  font-family: var(--font-pixel); font-size: 10px; cursor: pointer;
-  transition: box-shadow 0.08s;
-}
-#btn-start:hover { box-shadow: 2px 2px 0 var(--color-border); }
-#btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
-
-#apostador-section {
-  width: 100%; max-width: 640px;
-  background: var(--color-surface);
-  border: 3px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-muted);
-  padding: 1.25rem;
-  display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;
-}
-#apostador-section h3 { font-size: 10px; color: var(--color-primary); }
-#apostador-name-input {
-  width: 100%; padding: 0.55rem 0.85rem;
-  background: var(--color-bg); border: 2px solid var(--color-border);
-  color: var(--color-text); font-family: var(--font-pixel); font-size: 9px;
-}
-#apostador-name-input:focus { outline: none; border-color: var(--color-primary); }
-
-.profile-btn {
-  background: none; border: none; cursor: pointer;
-  color: var(--color-primary); font-size: 1rem; padding: 0 0.25rem;
-  opacity: 0.7; transition: opacity 0.1s; flex-shrink: 0;
-}
+.participant-row.recien { animation: entra .35s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes entra { from { transform: translateX(-14px) scale(.96); opacity: 0; } }
+.p-chibi { width: 40px; height: 40px; object-fit: contain; flex: none; margin: -8px 0 -6px; }
+/* Primero el caballo, grande y en su color; abajo, chico, de quién es. */
+.participant-row .p-horse { flex: 0 1 auto; min-width: 0; margin-right: auto; font-size: 16px; }
+.participant-row .p-username { color: var(--texto-suave); font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
+.profile-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: .7; flex: none; }
 .profile-btn:hover { opacity: 1; }
 
-/* ── Profile popup ──────────────────────── */
-#profile-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75); z-index: 200;
-  align-items: center; justify-content: center;
+#horse-picker, #apostador-section { display: flex; flex-direction: column; gap: 10px; }
+#horse-picker h2 { font-size: 20px; }
+#apostador-section { padding: 14px; border: var(--borde-ancho) dashed var(--borde); border-radius: var(--radio); }
+#apostador-section h3 { font-size: 16px; }
+.sala-ayuda { font-size: 13px; color: var(--texto-suave); }
+.picker-cards { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.picker-card {
+  padding: 10px; font: inherit; cursor: pointer; text-align: center; color: var(--texto);
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra);
 }
+.picker-card:nth-child(n) { transform: none; }
+.picker-card:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-1deg); }
+.picker-card .card-name { margin: 2px auto 0; font-size: 15px; }
+/* Para elegir, la imagen manda: el chibi grande arriba y el nombre abajo. */
+.picker-chibi { display: block; width: 100%; height: 92px; object-fit: contain; margin: 0 auto 4px; transition: transform .15s; }
+.picker-card:hover .picker-chibi { transform: scale(1.08) rotate(-3deg); }
+#apostador-cards .picker-chibi { height: 56px; }
+.picker-card.favorite { background: var(--acento-fondo); border-color: var(--acento-borde); }
+.picker-card.picking { opacity: .5; transform: scale(.96); }
+.picker-card.taken { opacity: .35; cursor: not-allowed; }
+
+#status-bar { font-weight: 700; color: var(--texto-suave); text-align: center; font-size: 14px; }
+#status-bar.ready { color: var(--exito-texto); }
+#status-bar.error { color: var(--peligro-texto); }
+#btn-start { width: 100%; font-size: 20px; padding: 14px; }
+
+/* Perfil emergente: igual que antes, sobre todo. */
+#profile-overlay { display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; padding: 16px; background: color-mix(in oklch, var(--texto) 55%, transparent); }
 #profile-overlay.open { display: flex; }
+#profile-popup { position: relative; width: 100%; max-width: 340px; padding: 24px; background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio); box-shadow: var(--sombra); animation: pop .18s ease-out both; }
+@keyframes pop { from { transform: scale(.9); opacity: 0; } }
+#profile-popup .pp-close { position: absolute; top: 12px; right: 14px; background: none; border: none; cursor: pointer; color: var(--texto-apagado); font-size: 18px; }
+.pp-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.pp-avatar, .pp-avatar-placeholder { width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--acento); flex: none; object-fit: cover; }
+.pp-avatar-placeholder { display: grid; place-items: center; background: var(--acento-fondo); color: var(--acento-texto); font: 400 22px var(--fuente-titulo); }
+.pp-username { font: 400 18px var(--fuente-titulo); }
+.pp-link { font-size: 13px; text-decoration: none; }
+.pp-stats { display: flex; gap: 24px; margin-bottom: 16px; }
+.pp-stat-val { font: 400 24px var(--fuente-titulo); color: var(--acento-texto); }
+.pp-stat-lbl, .pp-favs-title { font-size: 12px; font-weight: 700; color: var(--texto-apagado); text-transform: uppercase; letter-spacing: .06em; }
+.pp-favs-title { margin-bottom: 6px; }
+.pp-favs { display: flex; gap: 6px; flex-wrap: wrap; }
+.pp-fav-chip { padding: 2px 10px; border-radius: 99px; background: var(--acento-fondo); color: var(--acento-texto); font-size: 13px; font-weight: 700; }
+.pp-no-favs { color: var(--texto-apagado); font-size: 13px; }
+#profile-popup.loading { opacity: .5; pointer-events: none; }
 
-#profile-popup {
-  background: var(--color-surface);
-  border: 3px solid var(--color-primary);
-  box-shadow: 6px 6px 0 var(--color-primary);
-  padding: 1.5rem;
-  width: 100%; max-width: 320px; position: relative;
-  animation: pop 0.15s steps(4) both;
-}
-#profile-popup .pp-close {
-  position: absolute; top: 0.75rem; right: 0.9rem;
-  background: none; border: none; cursor: pointer;
-  color: var(--color-muted); font-size: 1.2rem;
-}
-#profile-popup .pp-close:hover { color: var(--color-text); }
+/* El corte de la largada: un bloque carmesí cruza en diagonal y deja un flash blanco seco. Solo transform y opacidad. */
+.corte { position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden; }
+.corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -120%; width: 70%; background: var(--carmesi); transform: skewX(-18deg); }
+.corte::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; }
+.corte.ya::before { animation: cruce .42s cubic-bezier(.7, 0, .3, 1) both; }
+.corte.ya::after { animation: flash .42s steps(1) both; }
+@keyframes cruce { to { transform: skewX(-18deg) translateX(380%); } }
+@keyframes flash { 0%, 35% { opacity: 0; } 36% { opacity: .85; } 46%, 100% { opacity: 0; } }
 
-.pp-header { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem; }
-.pp-avatar {
-  width: 48px; height: 48px;
-  border: 3px solid var(--color-primary);
-  image-rendering: pixelated;
-  object-fit: cover; flex-shrink: 0;
+@media (max-width: 760px) {
+  .sala-panel { top: auto; left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 60vh; transform: none; }
+  .en-carrera .sala-panel { transform: translateY(calc(100% + 40px)); }
+  .sala-cargando { right: 16px; top: 16px; bottom: auto; }
 }
-.pp-avatar-placeholder {
-  width: 48px; height: 48px;
-  background: var(--color-border);
-  border: 3px solid var(--color-primary);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; color: var(--color-primary); flex-shrink: 0;
-}
-.pp-username { font-size: 10px; color: var(--color-primary); }
-.pp-link { font-size: 8px; color: var(--color-muted); text-decoration: none; }
-.pp-link:hover { color: var(--color-primary); text-decoration: underline; }
 
-.pp-stats { display: flex; gap: 1.25rem; margin-bottom: 1rem; }
-.pp-stat-val { font-size: 14px; color: var(--color-primary); }
-.pp-stat-lbl { font-size: 8px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+/* ── Travesía en curso (light): HUD sobre la escena 3D de día, a la derecha; el panel de la sala sigue a la izquierda. ── */
+.trav-hud { position: fixed; top: 18px; right: 18px; z-index: 9; width: min(340px, calc(100vw - 36px)); display: grid; gap: 12px; justify-items: stretch; }
+.en-carrera .trav-hud, .en-carrera .larga-sola { display: none; }
+.tarjeta-hud { background: color-mix(in oklch, var(--fondo) 94%, transparent); border: 2px solid var(--acento); border-radius: var(--radio);
+  box-shadow: 5px 5px 0 color-mix(in oklch, var(--arena-12) 35%, transparent); }
+.trav-reloj { padding: 10px 16px 12px; display: grid; gap: 6px; }
+.trav-reloj small { font-weight: 800; font-size: 13px; color: var(--texto-suave); }
+.trav-reloj b { font: 400 28px var(--fuente-titulo); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.barra { position: relative; height: 12px; border-radius: 99px; background: var(--arena-5); border: 2px solid var(--acento); overflow: hidden; }
+.barra i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--acento); transition: width 1s; }
+.barra-texto { display: flex; justify-content: space-between; gap: 8px; font: 800 12px var(--fuente-texto); color: var(--texto-suave); }
+.adelantar-form { display: contents; }
+.adelantar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 16px; border-radius: 99px;
+  border: 2px dashed var(--acento); background: var(--fondo); color: var(--texto); cursor: pointer; font: inherit; }
+.adelantar b { font: 400 15px var(--fuente-titulo); }
+.adelantar em { font: 800 11px var(--fuente-texto); font-style: normal; padding: 1px 9px; border-radius: 99px; background: var(--acento); color: var(--sobre-acento); }
+.trav-pos { padding: 10px 12px; }
+.trav-pos h2 { margin: 0 0 6px 4px; font-size: 16px; }
+.trav-pos ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.trav-pos li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 8px; padding: 2px 8px; border-radius: 10px; font: 800 13px var(--fuente-texto); }
+.trav-pos li b { font: 400 13px var(--fuente-titulo); }
+.trav-pos li span:last-child { color: var(--texto-suave); font-size: 12px; white-space: nowrap; }
+.trav-pos li.tu { background: var(--acento); color: var(--sobre-acento); }
+.trav-pos li.tu span:last-child { color: var(--sobre-acento); }
 
-.pp-favs-title { font-size: 8px; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
-.pp-favs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.pp-fav-chip {
-  background: var(--color-surface);
-  border: 2px solid var(--color-primary);
-  padding: 2px 6px; font-size: 8px; color: var(--color-primary);
+/* Carrera con hora límite (light): cuánto falta para que larga sola. */
+.larga-sola { position: fixed; top: 18px; right: 18px; z-index: 9; display: grid; gap: 2px; max-width: 300px; padding: 10px 16px 12px;
+  background: var(--fondo); border: 2px solid var(--acento); border-radius: var(--radio); box-shadow: 5px 5px 0 var(--arena-7); }
+.larga-sola small { font-weight: 800; font-size: 13px; color: var(--texto-suave); }
+.larga-sola b { font: 400 28px var(--fuente-titulo); font-variant-numeric: tabular-nums; }
+.larga-sola span { font-size: 12.5px; font-weight: 700; color: var(--texto-suave); }
+
+/* ── El poder de la carrera intensa (dark). A la izquierda las tres cartas, fijas, y un resaltado que pasa de una a
+   otra; al lado la barra que se carga y abajo la acción (Espacio). En el teléfono, las cartas en fila sobre el botón. ── */
+.poder[hidden] { display: none; }
+.poder .corta { --c: var(--caballo-agua); } .poder .media { --c: var(--caballo-roca); } .poder .larga { --c: var(--carmesi); }
+.poder-mazo { position: fixed; left: 28px; top: 50%; translate: 0 -50%; z-index: 30; display: grid; grid-template-columns: auto 16px; gap: 12px; align-items: stretch;
+  padding: 12px; background: color-mix(in oklch, var(--noche-1) 70%, transparent); pointer-events: none; }
+.poder-cartas { display: grid; gap: 8px; width: 270px; align-content: start; }
+.poder-carta { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px 12px; padding: 10px 20px 12px 14px; background: var(--noche-1);
+  border: 1px solid var(--noche-7); border-left: 4px solid var(--c); clip-path: var(--recorte); transform-origin: left center;
+  opacity: .4; filter: saturate(.5); transition: opacity 60ms, transform 60ms, background-color 60ms; }
+/* La resaltada: a todo color, corrida hacia afuera. Lo único que cambia cada 0,2 s. */
+.poder-carta.frente { opacity: 1; filter: none; transform: translateX(14px) scale(1.06); border-color: var(--c);
+  background: color-mix(in oklch, var(--c) 26%, var(--noche-1)); }
+.poder-carta.elegida { opacity: 1; filter: none; border-color: var(--noche-12); border-left-color: var(--c); }
+.poder-carta.fuera { display: none; }
+.poder-carta .tipo { justify-self: start; padding: 2px 20px 2px 10px; background: var(--c); color: var(--noche-12); clip-path: var(--recorte-etiqueta);
+  font: 700 13px var(--fuente-titulo); letter-spacing: .16em; text-transform: uppercase; }
+/* El largo de la carta mientras se elige: un cuadrito por flecha. */
+.poder-carta .largo { display: flex; align-items: center; gap: 4px; }
+.poder-carta .largo i { width: 12px; height: 12px; background: var(--c); }
+.poder-carta .largo b { margin-left: 6px; font: 700 15px var(--fuente-titulo); color: var(--noche-12); }
+.poder-carta .flechas { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.poder-carta kbd { width: 34px; height: 34px; display: grid; place-items: center; font: 700 19px var(--fuente-titulo); color: var(--noche-12);
+  background: var(--noche-3); border: 1px solid var(--noche-7); transition: transform .1s; }
+.poder-carta kbd.hecha { background: var(--c); border-color: var(--c); }
+.poder-carta kbd.actual { transform: scale(1.15); border: 2px solid var(--noche-12); box-shadow: 0 0 0 3px var(--c); animation: flecha-late .7s ease-in-out infinite; }
+@keyframes flecha-late { 50% { box-shadow: 0 0 0 7px color-mix(in oklch, var(--c) 55%, transparent); } }
+.poder-carta .despues { grid-column: 1 / -1; font: 600 11px var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; color: var(--noche-11); }
+.poder-carta .despues b { color: var(--noche-12); }
+.poder-carga { position: relative; align-self: stretch; background: var(--noche-2); border: 1px solid var(--noche-7); }
+.poder-carga i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(0deg, var(--carmesi), oklch(0.75 0.2 45)); transition: height .12s; }
+.poder.listo .poder-carga { --c: var(--carmesi); box-shadow: 0 0 0 3px var(--carmesi); animation: flecha-late .7s ease-in-out infinite; }
+.poder-accion { position: fixed; left: 28px; top: calc(50% + 150px); z-index: 30; display: flex; align-items: center; gap: 10px; padding: 8px 20px 8px 10px;
+  background: var(--noche-1); clip-path: var(--recorte); pointer-events: none; }
+.poder-accion kbd { padding: 4px 16px; font: 700 13px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; color: var(--noche-1); background: var(--noche-11); }
+.poder-accion span { font: 700 13px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; color: var(--noche-11); }
+.poder[data-estado="eligiendo"] .poder-accion kbd, .poder.listo .poder-accion kbd { background: var(--noche-12); }
+.poder.listo .poder-accion { background: var(--carmesi); }
+.poder.listo .poder-accion span { color: var(--noche-12); }
+.poder-espera { position: fixed; left: 28px; top: calc(50% + 196px); z-index: 30; width: 322px; height: 6px; background: var(--noche-3); }
+.poder-espera[hidden] { display: none; }
+.poder-espera i { display: block; height: 100%; width: 0; background: var(--carmesi); }
+.poder.error .poder-cartas { animation: poder-error .3s; }
+@keyframes poder-error { 25% { translate: -8px 0; } 50% { translate: 7px 0; } 75% { translate: -4px 0; } }
+/* ¡A arder!: al lanzar, en letra gótica, un instante. */
+.poder-grito { position: fixed; left: 0; right: 0; top: 30%; z-index: 31; text-align: center; font: 400 64px var(--fuente-gotica); color: var(--noche-12); text-shadow: var(--ecos);
+  opacity: 0; pointer-events: none; }
+.poder-grito.ve { animation: grito .9s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes grito { 0% { opacity: 0; transform: scale(.6) rotate(-8deg); } 25% { opacity: 1; transform: scale(1.08) rotate(-4deg); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(1) rotate(-4deg); } }
+/* El botón del centro: solo en el teléfono (elegir y lanzar). Recto y recortado, nada circular. */
+.poder-boton { display: none; }
+
+/* La guía (solo la primera carrera): un cartel carmesí arriba, bien marcado. */
+.poder-guia { position: fixed; left: 0; right: 0; top: 18%; margin-inline: auto; width: fit-content; z-index: 31; display: grid; gap: 2px; justify-items: center; text-align: center;
+  max-width: min(520px, calc(100vw - 24px)); padding: 8px 22px 10px 16px; background: var(--carmesi); color: var(--noche-12); clip-path: var(--recorte);
+  pointer-events: none; animation: guia-entra .4s cubic-bezier(.2, 1.4, .4, 1); }
+.poder-guia[hidden] { display: none; }
+.poder-guia b { font: 400 22px var(--fuente-gotica); letter-spacing: .01em; }
+.poder-guia span { font: 700 14px var(--fuente-titulo); letter-spacing: .06em; text-transform: uppercase; }
+@keyframes guia-entra { from { translate: 0 20px; opacity: 0; } }
+.poder.aprendiendo[data-estado="eligiendo"] .poder-accion, .poder.aprendiendo.listo .poder-accion { --c: var(--carmesi); animation: flecha-late .7s ease-in-out infinite; }
+
+/* En el teléfono: se carga deslizando el dedo; una mano dibuja el gesto que toca. */
+.poder-gesto { position: fixed; left: 50%; top: 42%; width: 0; height: 0; z-index: 31; pointer-events: none; }
+.poder-gesto[hidden] { display: none; }
+.poder-gesto i { position: absolute; left: -36px; top: -36px; width: 72px; height: 72px; display: grid; place-items: center; font-style: normal; font-size: 60px;
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #fff) drop-shadow(0 0 12px var(--carmesi)); animation: gesto-derecha 1.1s cubic-bezier(.5, 0, .3, 1) infinite; }
+.poder-gesto i::before { content: "\1F446"; }
+.poder-gesto i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 120px; height: 6px; translate: -100% -50%; background: linear-gradient(90deg, transparent, var(--carmesi)); border-radius: 3px; }
+.poder-gesto[data-flecha="izquierda"] i { animation-name: gesto-izquierda; }
+.poder-gesto[data-flecha="izquierda"] i::after { translate: 0 -50%; background: linear-gradient(270deg, transparent, var(--carmesi)); }
+.poder-gesto[data-flecha="arriba"] i { animation-name: gesto-arriba; }
+.poder-gesto[data-flecha="arriba"] i::after { width: 6px; height: 120px; translate: -50% 0; background: linear-gradient(0deg, transparent, var(--carmesi)); }
+.poder-gesto[data-flecha="abajo"] i { animation-name: gesto-abajo; }
+.poder-gesto[data-flecha="abajo"] i::after { width: 6px; height: 120px; translate: -50% -100%; background: linear-gradient(180deg, transparent, var(--carmesi)); }
+@keyframes gesto-derecha { from { transform: translateX(-70px); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { transform: translateX(70px); opacity: 0; } }
+@keyframes gesto-izquierda { from { transform: translateX(70px); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { transform: translateX(-70px); opacity: 0; } }
+@keyframes gesto-arriba { from { transform: translateY(70px); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { transform: translateY(-70px); opacity: 0; } }
+@keyframes gesto-abajo { from { transform: translateY(-70px); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } to { transform: translateY(70px); opacity: 0; } }
+body:has(.poder.tactil:not([hidden])) { touch-action: none; overscroll-behavior: none; }
+
+/* 800 × 800 y teléfono: las tres cartas en fila, abajo, sobre el mapa de la carrera. */
+@media (max-width: 860px) {
+  .poder-mazo { top: auto; bottom: 150px; left: 12px; right: 12px; translate: none; grid-template-columns: 1fr 12px; gap: 8px; padding: 8px; }
+  .poder-cartas { width: auto; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .poder-carta { grid-template-columns: 1fr; gap: 6px; padding: 8px 12px 9px 9px; }
+  .poder-carta.frente { transform: translateY(-8px) scale(1.04); transform-origin: center bottom; }
+  .poder-carta.elegida { grid-column: 1 / -1; grid-template-columns: auto 1fr; }
+  .poder-carta .tipo { font-size: 11px; padding-right: 14px; }
+  .poder-carta .largo { flex-wrap: wrap; gap: 3px; }
+  .poder-carta .largo i { width: 8px; height: 8px; }
+  .poder-carta .largo b { display: none; }
+  .poder-carta .despues { font-size: 10px; letter-spacing: .06em; }
+  .poder-accion { left: 12px; top: auto; bottom: 112px; }
+  .poder-espera { left: 12px; top: auto; bottom: 100px; width: calc(100vw - 24px); }
 }
-.pp-no-favs { font-size: 8px; color: var(--color-muted); }
-#profile-popup.loading { opacity: 0.5; pointer-events: none; }
+/* En el teléfono: el botón del centro reemplaza a la barra espaciadora; abajo de todo, el mapa de la carrera. */
+.poder.tactil .poder-accion { display: none; }
+.poder.tactil .poder-boton { display: block; position: fixed; left: 0; right: 0; bottom: 96px; margin-inline: auto; width: min(240px, 60vw); z-index: 32;
+  padding: 14px 12px; font: 700 18px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; color: var(--noche-12);
+  background: var(--noche-2); border: 1px solid var(--noche-7); border-left: 3px solid var(--noche-12); clip-path: var(--recorte); cursor: pointer; }
+.poder.tactil[data-estado="eligiendo"] .poder-boton { background: var(--noche-12); color: var(--noche-1); }
+.poder.tactil.listo .poder-boton { --c: var(--carmesi); background: var(--carmesi); border-color: var(--carmesi); animation: flecha-late .7s ease-in-out infinite; }
+.poder.tactil .poder-boton:disabled { opacity: .45; }
+.poder.tactil .poder-mazo { bottom: 166px; }
+.poder.tactil .poder-espera { bottom: 156px; }
+body:has(.poder.tactil:not([hidden])) .hud-map { bottom: 8px; }
+@media (max-width: 500px) {
+  .poder.tactil .poder-mazo { left: 8px; right: 8px; }
+  .poder-carta kbd { width: 26px; height: 26px; font-size: 15px; }
+  .poder-grito { font-size: 46px; }
+}
+
+@media (max-width: 760px) {
+  .trav-hud, .larga-sola { top: 10px; right: 10px; left: 10px; width: auto; max-width: none; }
+  .trav-pos { display: none; }
+  .poder-guia b { font-size: 19px; }
+  .poder-guia span { font-size: 12.5px; }
+}

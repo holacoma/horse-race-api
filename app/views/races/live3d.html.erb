@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es" data-fase="carrera">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= @race.slug %> — Carrera 3D</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/css/identidad.css?v=5">
+  <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=14">
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <script id="race-data" type="application/json"><%= json_escape({
+    raceId: @race.id,
+    distance: @race.distance,
+    resultsUrl: results_race_path(@race),
+    myHorseId: @my_horse_id,
+    secondsToStart: @seconds_to_start.to_f,
+    participants: @participants_json
+  }.to_json).html_safe %></script>
+
+  <div class="controls">
+    <%= link_to "Ver resultados", results_race_path(@race), id: "results", hidden: true %>
+  </div>
+
+  <script type="module">
+    import { createRace } from "/prototipos/carrera3d/escena.js"
+    import { loadHorseModel } from "/prototipos/carrera3d/caballo-pro.js"
+
+    const data = JSON.parse(document.getElementById("race-data").textContent)
+    const resultsLink = document.getElementById("results")
+
+    const horseModel = new URLSearchParams(location.search).get("caballo") === "codigo"
+      ? null
+      : await loadHorseModel().catch(error => { console.error(error); return null })
+
+    const race = createRace({
+      participants: data.participants,
+      horseModel,
+      distance: data.distance,
+      myId: data.myHorseId,
+      onCelebrate: () => { resultsLink.hidden = false },
+      onDone: () => window.location.assign(data.resultsUrl)
+    })
+    race.startIn(data.secondsToStart)
+
+    // Mismo canal y mismos mensajes que la vista normal de la carrera.
+    const live = { ticks: 0, winner: null, race }
+    window.__live = live
+    const socket = new WebSocket((location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/cable")
+    const identifier = JSON.stringify({ channel: "RaceChannel", race_id: data.raceId })
+    socket.onopen = () => socket.send(JSON.stringify({ command: "subscribe", identifier }))
+    socket.onmessage = event => {
+      const message = JSON.parse(event.data).message
+      if (!message) return
+      if (message.type === "progress") {
+        live.ticks++
+        race.tick(message.participants)
+      }
+      if (message.type === "finished") {
+        live.winner = message.winner
+        race.finish(message.winner)
+      }
+    }
+
+    race.run()
+  </script>
+</body>
+</html>

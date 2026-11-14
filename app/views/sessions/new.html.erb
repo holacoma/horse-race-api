@@ -1,38 +1,50 @@
-<% content_for :title, "Horse Race — Ingresar" %>
+<% content_for :title, "Club Race — Ingresar" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/sessions.css">
+  <link rel="stylesheet" href="/css/sessions.css?v=7">
+  <link rel="stylesheet" href="/css/slot-machine.css?v=3">
 <% end %>
 
-<div class="login-logo">
-  <h1>🏇 PIXEL RACE</h1>
-  <p class="subtitle">THE ULTIMATE RETRO HORSE RACE</p>
+<%# Al llegar, antes de tener nombre: llueven monedas, cruzan caballos y la marca cae (sessions.css). %>
+<%= render "shared/pradera" %>
+<div class="lluvia" aria-hidden="true">
+  <% 14.times do |i| %>
+    <i style="--x: <%= (i * 7.3 + 3) % 96 %>vw; --d: <%= (i * 0.09).round(2) %>s; --s: <%= 20 + (i * 7 % 16) %>px; --r: <%= 360 + i * 45 %>deg">🪙</i>
+  <% end %>
 </div>
 
-<div class="login-form-wrap">
+<div class="login">
+<div class="login-logo">
+  <h1 class="marca brilla-texto" data-texto="Club Race">Club Race<span class="deco moneda" aria-hidden="true">🪙</span><span class="deco caballo" aria-hidden="true">🐎</span></h1>
+  <p class="regla">La primera regla del Club Race es: no se habla del Club Race.</p>
+</div>
+
+<div class="login-form-wrap tarjeta">
 
   <% if flash[:error] %>
     <div class="login-error"><%= flash[:error] %></div>
   <% end %>
 
   <%= form_with url: "/auth/google_oauth2", method: :post do |f| %>
-    <button type="submit" class="btn-google-pixel">
+    <button type="submit" class="btn-google-pixel" data-fx="enter" data-fx-hold>
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
       </svg>
-      CONTINUAR CON GOOGLE
+      Continuar con Google
     </button>
   <% end %>
 
-  <div class="divider">O</div>
+  <div class="divider">o</div>
 
-  <%= form_with url: guest_session_path, method: :post, class: "guest-form" do |f| %>
-    <%= f.text_field :username, placeholder: "NOMBRE DE USUARIO", class: "nes-input is-dark" %>
-    <%= f.submit "▶ ENTRAR COMO INVITADO", class: "nes-btn is-primary" %>
+  <%= form_with url: guest_session_path, method: :post, class: "guest-form",
+                data: { controller: "slot-machine",
+                        action: "submit->slot-machine#spin pageshow@window->slot-machine#restore" } do |f| %>
+    <%= render "shared/slot_machine", reels: User::GUEST_NAME_REELS %>
+    <%= f.hidden_field :username, data: { slot_machine_target: "field" } %>
+    <%= f.button "Entrar como invitado", type: "submit", class: "brilla", data: { slot_machine_target: "button", fx: "enter" } %>
   <% end %>
 
 </div>
-
-<p class="login-footer">INSERT COIN TO CONTINUE</p>
+</div>

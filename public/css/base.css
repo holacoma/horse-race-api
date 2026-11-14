@@ -1,75 +1,63 @@
-/* ── Picker cards (shared across race pages) ─ */
-.picker-cards {
-  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; width: 100%;
-}
+/* Piezas compartidas por las pantallas de carrera: tarjetas para elegir caballo, la pista 2D,
+   la cuenta regresiva y el cartel del ganador. Toman la fase de la página. */
+
+/* ── Tarjetas para elegir caballo ─────────────────────────────────────────────────── */
+.picker-cards { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; width: 100%; }
 .picker-card {
-  background: var(--color-surface);
-  border: 3px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-primary);
-  padding: 1rem 1.25rem;
-  cursor: pointer; text-align: center;
-  transition: box-shadow 0.08s;
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil);
+  border-radius: var(--radio); box-shadow: var(--sombra); clip-path: var(--recorte);
+  padding: 14px 16px; cursor: pointer; text-align: center; transition: transform .12s, border-color .12s;
 }
-.picker-card:hover { box-shadow: 6px 6px 0 var(--color-primary); }
-.picker-card img {
-  width: 82px; height: 66px;
-  image-rendering: pixelated; image-rendering: crisp-edges;
-  display: block; margin: 0 auto;
-}
-.picker-card .card-name { font-size: 9px; margin-top: 0.5rem; color: var(--color-text); }
+.picker-card:nth-child(2n) { transform: rotate(var(--giro)); }
+.picker-card:nth-child(3n) { transform: rotate(calc(var(--giro) * -1)); }
+.picker-card:hover { border-color: var(--acento-borde); transform: translateY(-3px) rotate(0deg); }
+.picker-card img { width: 82px; height: 66px; image-rendering: pixelated; display: block; margin: 0 auto; }
+.picker-card .card-name { font: 700 14px var(--fuente-titulo); margin-top: 8px; color: var(--texto); }
 
-/* ── Race track ───────────────────────────── */
+/* ── Pista 2D ─────────────────────────────────────────────────────────────────────── */
 #track { width: 100%; display: flex; flex-direction: column; gap: 4px; }
-
-.lane-row { display: flex; align-items: flex-end; gap: 10px; }
-
+.lane-row { display: flex; align-items: flex-end; gap: 12px; }
 .lane-label {
-  width: 90px; font-size: 8px;
-  text-align: right; flex-shrink: 0; color: var(--color-muted);
+  width: 96px; flex-shrink: 0; text-align: right; padding-bottom: 10px;
+  font: 700 12px var(--fuente-titulo); color: var(--texto-suave);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  padding-bottom: 10px;
 }
-
 .track-wrap { flex: 1; position: relative; height: 132px; }
-
+/* De día, un camino de arena con pasto a los costados. */
 .track-bg {
   position: absolute; bottom: 0; left: 0; right: 0; height: 44px;
-  background: #5a3a1a;
-  border-top: 4px solid #2d5a1b;
-  border-bottom: 4px solid #2d5a1b;
+  background: var(--ambar-dia-4); border-block: 4px solid var(--verde-dia-7); border-radius: var(--radio-chico);
 }
 .track-bg::after {
-  content: ""; position: absolute; inset: 0;
-  background: repeating-linear-gradient(
-    90deg, transparent, transparent 40px,
-    rgba(255,255,255,0.06) 40px, rgba(255,255,255,0.06) 41px
-  );
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: repeating-linear-gradient(90deg, transparent 0 40px, color-mix(in oklch, var(--texto) 7%, transparent) 40px 41px);
 }
+/* La meta: cuadros de los dos colores del texto y el fondo. */
 .track-bg::before {
-  content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 10px;
-  background: repeating-linear-gradient(180deg,
-    #fff 0px, #fff 5px, #000 5px, #000 10px);
-  z-index: 2;
+  content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 10px; z-index: 2;
+  background: repeating-conic-gradient(var(--texto) 0 25%, var(--fondo) 0 50%) 0 0 / 10px 10px;
 }
-
+/* De noche, un carril oscuro con borde de tinta y la meta en franjas rojas, negras y blancas. */
+[data-fase="carrera"] .track-bg {
+  background: var(--noche-2); border-block: 1px solid color-mix(in oklch, var(--acento) 45%, transparent);
+  box-shadow: inset 0 0 18px rgb(0 0 0 / .6);
+}
+[data-fase="carrera"] .track-bg::before { width: 8px; background: var(--franjas); box-shadow: none; }
 .horse-sprite {
-  position: absolute; bottom: 0; left: 0;
-  width: 164px; height: 132px;
-  image-rendering: pixelated; image-rendering: crisp-edges;
-  transform: scaleX(-1); transition: left 0.28s linear; z-index: 1;
+  position: absolute; bottom: 0; left: 0; width: 164px; height: 132px;
+  image-rendering: pixelated; transform: scaleX(-1); transition: left .28s linear; z-index: 1;
 }
 
-/* ── Winner & countdown ───────────────────── */
-#winner-banner {
-  display: none; margin-top: 1.5rem;
-  background: var(--color-surface);
-  border: 3px solid var(--color-primary);
-  box-shadow: 6px 6px 0 var(--color-primary);
-  padding: 1.25rem 2.5rem; text-align: center;
-  font-size: 14px; color: var(--color-primary);
-}
-
+/* ── Cuenta regresiva y ganador ───────────────────────────────────────────────────── */
 #countdown {
-  font-size: 64px; color: var(--color-primary);
-  text-align: center; min-height: 8rem; display: none;
+  display: none; min-height: 8rem; text-align: center;
+  font: 700 72px/1 var(--fuente-titulo); color: var(--acento-texto); text-shadow: 4px 4px 0 var(--acento-fondo);
 }
+#winner-banner {
+  display: none; margin-top: 24px; padding: 20px 36px; text-align: center;
+  font: 700 22px/1.4 var(--fuente-titulo); color: var(--acento-texto);
+  background: var(--acento-fondo); border: var(--borde-ancho) solid var(--acento-borde);
+  border-radius: var(--radio); box-shadow: var(--sombra); transform: rotate(-1.5deg);
+}
+[data-fase="carrera"] #countdown { color: var(--noche-12); text-shadow: 5px 5px 0 var(--noche-1), 10px 8px 0 var(--carmesi); transform: skewX(-10deg); }
+[data-fase="carrera"] #winner-banner { color: var(--texto); background: var(--superficie); text-shadow: var(--ecos); border: 2px solid transparent; border-image: var(--franjas) 1; }

@@ -1,0 +1,9 @@
+/* Banco de pruebas: un panel chico arriba a la derecha (lado dark), con el registro de lo que llega. */
+.banco { position: fixed; right: 12px; top: 12px; z-index: 40; width: 250px; display: grid; gap: 6px; padding: 10px 12px;
+  background: color-mix(in oklch, var(--noche-1) 88%, transparent); border: 1px solid var(--noche-7); color: var(--noche-11);
+  font: 600 12px var(--fuente-titulo); letter-spacing: .04em; }
+.banco > b { color: var(--noche-12); text-transform: uppercase; letter-spacing: .14em; }
+.banco a, .banco button { justify-self: start; padding: 0; background: none; border: 0; color: var(--noche-12); font: inherit; text-decoration: underline; cursor: pointer; }
+.banco-registro { margin: 4px 0 0; padding: 0; list-style: none; max-height: 220px; overflow: hidden; font: 500 11px ui-monospace, monospace; color: var(--noche-11); }
+.banco-registro li:first-child { color: var(--noche-12); }
+@media (max-width: 860px) { .banco { width: 180px; top: 8px; right: 8px; padding: 8px; } .banco-registro { max-height: 120px; } }

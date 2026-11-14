@@ -1,0 +1,23 @@
+[
+ {
+  "momento": "tonteras",
+  "nombre": "tontera-minimax",
+  "motor": "minimax",
+  "segundos": 100,
+  "semilla": 11101,
+  "letra": "[Intro]\n\n[Verse]\nAposté mi sueldo entero a un caballo de cartón\nse llamaba Turbo Caballo y corría en pantalón\nel Capitán Deuda me dijo \"esto es inversión\"\ny ahora pago en cuotas hasta el último botón\n\n[Chorus]\n¡Galopa, galopa, que mañana pago yo!\n¡La primera regla del club ya se me olvidó!\nRelincha, relincha, que la plata se esfumó\npero el caballo era lindo y eso cuenta, ¿o no?\n\n[Verse]\nLa Tía Fortuna juega con un trébol en el pie\nDoña Suerte apuesta al último y nunca sabe por qué\nEl Mago se tomó un café y salió a correr\nllegó tercero de dos, nadie lo puede entender\n\n[Chorus]\n¡Galopa, galopa, que mañana pago yo!\n¡La primera regla del club ya se me olvidó!\nRelincha, relincha, que la plata se esfumó\npero el caballo era lindo y eso cuenta, ¿o no?\n\n[Outro]\nHoy sí gano... (no ganó)",
+  "tags": "Global Metadata: Silly, upbeat Latin pop-rock party song, around 128 BPM, major key. Cheerful, ridiculous and self-mocking, like a stadium chant sung by friends who just lost all their money at the horse races. Bright, punchy, modern production.\n\nVocal Details: A charismatic male lead singing in Spanish with a playful, theatrical, slightly exaggerated delivery, laughing between lines. A rowdy gang of friends shouts the chorus together.\n\nArrangement: Intro: a galloping drum beat and a cheeky brass riff. Verses: strummed electric guitars, bouncy bass and handclaps under the storytelling vocal. Chorus: everyone shouts along over big drums, brass stabs and guitars. Outro: the beat stops for a final spoken joke."
+ },
+ {
+  "momento": "tonteras",
+  "nombre": "tontera-acestep-xl",
+  "motor": "xl",
+  "segundos": 100,
+  "semilla": 11201,
+  "bpm": 128,
+  "tono": "C major",
+  "letra": "[Intro]\n\n[Verse]\nAposté mi sueldo entero a un caballo de cartón\nse llamaba Turbo Caballo y corría en pantalón\nel Capitán Deuda me dijo \"esto es inversión\"\ny ahora pago en cuotas hasta el último botón\n\n[Chorus]\n¡Galopa, galopa, que mañana pago yo!\n¡La primera regla del club ya se me olvidó!\nRelincha, relincha, que la plata se esfumó\npero el caballo era lindo y eso cuenta, ¿o no?\n\n[Verse]\nLa Tía Fortuna juega con un trébol en el pie\nDoña Suerte apuesta al último y nunca sabe por qué\nEl Mago se tomó un café y salió a correr\nllegó tercero de dos, nadie lo puede entender\n\n[Chorus]\n¡Galopa, galopa, que mañana pago yo!\n¡La primera regla del club ya se me olvidó!\nRelincha, relincha, que la plata se esfumó\npero el caballo era lindo y eso cuenta, ¿o no?\n\n[Outro]\nHoy sí gano... (no ganó)",
+  "idioma": "es",
+  "tags": "Silly upbeat Latin pop-rock party song sung in Spanish. A charismatic male lead with a playful, theatrical delivery tells a ridiculous story about losing money at the horse races, and a rowdy gang of friends shouts the chorus. Galloping drums, strummed electric guitars, bouncy bass, handclaps and cheeky brass stabs. Bright, punchy, fun."
+ }
+]

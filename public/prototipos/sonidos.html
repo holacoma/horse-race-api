@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="es" data-fase="carrera">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="sonido-the-world" content="/sonidos/the-world.mp3">
+<title>Club Race · Soundboard</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/css/identidad.css">
+<style>
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); font: 500 14px/1.45 var(--fuente-texto); }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+
+  .escenario { position: sticky; top: 0; z-index: 2; background: var(--fondo); padding: 18px 0 12px; border-bottom: 2px solid var(--acento); }
+  .titulo { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 10px; }
+  h1 { font: 400 32px/1 var(--fuente-titulo); margin: 0; }
+  .bajada { margin: 0; color: var(--texto-suave); font-size: 13px; }
+  canvas { display: block; width: 100%; height: 150px; background: var(--superficie); }
+  .ahora { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; font-size: 13px; }
+  .ahora .nombre { flex: 1 1 180px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ahora .tiempo { color: var(--texto-suave); font-variant-numeric: tabular-nums; min-width: 82px; text-align: right; }
+  .ahora label { display: flex; align-items: center; gap: 6px; color: var(--texto-suave); }
+  .ahora input { width: 100px; accent-color: var(--acento); }
+  .ahora #posicion { width: auto; }
+  .ahora #posicion:disabled { opacity: .35; }
+  .controles { display: flex; gap: 4px; }
+  .controles button {
+    min-width: 36px; height: 28px; padding: 0 8px; border: 1px solid var(--borde-sutil); background: var(--superficie);
+    color: var(--texto); font: 700 12px var(--fuente-texto); cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .controles button:hover:not(:disabled) { border-color: var(--acento); }
+  .controles button:disabled { opacity: .35; cursor: default; }
+
+  section { margin-top: 26px; }
+  section header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+  h2 { font: 400 22px/1.1 var(--fuente-titulo); margin: 0; }
+  .cuando { color: var(--texto-suave); font-size: 12px; }
+  .pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .vacio { color: var(--texto-suave); font-size: 13px; }
+
+  .pad {
+    position: relative; display: grid; gap: 4px; align-content: start; min-height: 74px; padding: 12px 40px 16px 14px;
+    background: var(--superficie); color: var(--texto); border: 1px solid var(--borde-sutil); border-left: var(--borde-marcado) solid var(--acento);
+    text-align: left; font: inherit; cursor: pointer; box-shadow: 4px 4px 0 #000;
+  }
+  .pad:hover { border-color: var(--acento); }
+  .pad:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  .pad .nombre { font-weight: 700; overflow-wrap: anywhere; }
+  .pad .dura { color: var(--texto-suave); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .pad .barra { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--acento); }
+  .pad.sonando { background: color-mix(in oklch, var(--acento) 22%, var(--superficie)); border-color: var(--acento); }
+  .pad .queda {
+    position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; display: grid; place-items: center;
+    color: var(--texto-suave); font-size: 16px; line-height: 1;
+  }
+  .pad .queda:hover { color: var(--texto); }
+  .pad.elegido .queda { color: var(--acento); }
+  .pad.elegido { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .pad { padding-right: 66px; grid-template-columns: minmax(0, 1fr); }
+  .pad .descartar {
+    position: absolute; top: 8px; right: 36px; width: 26px; height: 26px; display: grid; place-items: center;
+    color: var(--texto-suave); font-size: 15px; line-height: 1;
+  }
+  .pad .descartar:hover { color: var(--acento); }
+  .pad:focus-visible { outline: 2px solid var(--texto); outline-offset: 2px; }
+
+  textarea {
+    width: 100%; box-sizing: border-box; resize: vertical; font: 500 13px/1.4 var(--fuente-texto); color: var(--texto);
+    background: var(--fondo); border: 1px solid var(--borde-sutil); padding: 6px 8px;
+  }
+  textarea:focus { outline: none; border-color: var(--acento); }
+  .pad textarea.nota { margin: 6px -52px 0 0; width: calc(100% + 52px); min-height: 30px; height: 30px; cursor: text; }
+  .pad textarea.nota:focus, .pad textarea.nota.con-texto { height: 54px; }
+  .proxima { margin-top: 18px; }
+  .proxima h2 { margin-bottom: 4px; }
+  .proxima p { margin: 0 0 8px; color: var(--texto-suave); font-size: 12px; }
+  .proxima textarea { min-height: 70px; }
+  .guardado { color: var(--texto-suave); font-size: 12px; min-height: 1em; }
+
+  /* Colores fijos por instrumento: los mismos en el rack, las barras y la leyenda. */
+  :root { --i-guitarra: var(--acento); --i-bateria: #d8d2c8; --i-bajo: #6f6862; --i-otros: #c99a2e; --i-voz: #7aa6c2; --i-piano: #9b80c6; }
+
+  .rack { margin-top: 22px; }
+  .rack > p { margin: 2px 0 10px; color: var(--texto-suave); font-size: 12px; }
+  .fila { display: grid; grid-template-columns: 160px 190px 1fr; gap: 8px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--borde-sutil); }
+  .fila .instrumento { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .muestra { display: inline-block; width: 10px; height: 10px; background: var(--c); flex: none; }
+  .fila .nivel { display: flex; align-items: center; gap: 8px; color: var(--texto-suave); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .fila .nivel input { flex: 1; accent-color: var(--c); }
+  .timbres { display: flex; flex-wrap: wrap; gap: 6px; }
+  .timbres .vacio { font-size: 12px; }
+  .timbre {
+    position: relative; display: flex; align-items: center; gap: 8px; padding: 5px 6px 7px 10px; cursor: pointer;
+    background: var(--superficie); color: var(--texto); border: 1px solid var(--borde-sutil); font: 600 12px var(--fuente-texto);
+  }
+  .timbre:hover { border-color: var(--c); }
+  .timbre.sonando { background: color-mix(in oklch, var(--acento) 22%, var(--superficie)); }
+  .timbre .barra { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--acento); }
+  .timbre .usar { width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--borde-sutil); color: transparent; font-size: 12px; }
+  .timbre.elegido { border-color: var(--c); }
+  .timbre.elegido .usar { background: var(--c); border-color: var(--c); color: #000; }
+  .comparar { display: grid; grid-template-columns: 120px 1fr 120px; gap: 6px 10px; align-items: center; margin-top: 14px; font-size: 12px; color: var(--texto-suave); }
+  .comparar .cifras { font-variant-numeric: tabular-nums; text-align: right; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 12px; color: var(--texto-suave); }
+  .leyenda span { display: flex; align-items: center; gap: 6px; }
+  .mezcla-barra { display: flex; height: 14px; background: var(--fondo); border: 1px solid var(--borde-sutil); }
+  .mezcla-barra span { height: 100%; background: var(--c); }
+  .pad .mezcla-barra { height: 6px; margin: 4px -52px 0 0; border: 0; }
+  @media (max-width: 760px) { .fila { grid-template-columns: 1fr; } .comparar { grid-template-columns: 90px 1fr; } .comparar .cifras { display: none; } }
+
+  /* Marcas en el segundo. */
+  .pista { position: relative; flex: 2 1 220px; display: flex; align-items: center; }
+  .pista #posicion { flex: 1; }
+  .tics { position: absolute; inset: -6px 7px auto 7px; height: 6px; pointer-events: none; }
+  .tic { position: absolute; top: 0; width: 3px; height: 6px; margin-left: -1px; background: var(--texto); }
+  .tic.no { background: var(--texto-suave); }
+  .marcas-pad { display: grid; gap: 4px; margin: 6px -52px 0 0; }
+  .marca { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .marca .ir { flex: none; padding: 1px 6px; border: 1px solid var(--acento); font-variant-numeric: tabular-nums; cursor: pointer; }
+  .marca.no .ir { border-color: var(--borde-sutil); color: var(--texto-suave); }
+  .marca input { flex: 1; min-width: 0; padding: 2px 6px; font: 500 12px var(--fuente-texto); color: var(--texto); background: var(--fondo); border: 1px solid var(--borde-sutil); }
+  .marca input:focus { outline: none; border-color: var(--acento); }
+  .marca .quitar { flex: none; color: var(--texto-suave); cursor: pointer; padding: 0 4px; }
+  .marca .quitar:hover { color: var(--acento); }
+
+  details.descartados { margin-top: 34px; border-top: 1px solid var(--borde-sutil); padding-top: 14px; }
+  details.descartados summary { cursor: pointer; font: 400 20px/1.1 var(--fuente-titulo); color: var(--texto-suave); }
+  details.descartados h3 { font: 700 13px var(--fuente-texto); color: var(--texto-suave); margin: 16px 0 8px; }
+  details.descartados .pad { opacity: .6; border-left-color: var(--borde-sutil); }
+  details.descartados .pad:hover, details.descartados .pad.sonando { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <div class="escenario">
+    <div class="titulo">
+      <h1>Soundboard</h1>
+      <p class="bajada">Dejá archivos en <code>public/sonidos/candidatos/&lt;momento&gt;/</code>: aparecen solos. Clic para escuchar, ★ para marcar cuál queda, ✕ para descartar.</p>
+    </div>
+    <canvas id="espectro"></canvas>
+    <div class="ahora">
+      <span class="nombre" id="ahora">Nada sonando</span>
+      <span class="controles">
+        <button type="button" id="atras" title="5 s atrás (←)">−5</button>
+        <button type="button" id="pausa" title="Pausa (espacio)">❚❚</button>
+        <button type="button" id="adelante" title="5 s adelante (→)">+5</button>
+        <button type="button" id="marcar-si" title="Me gusta este momento (S)">👍</button>
+        <button type="button" id="marcar-no" title="No me gusta este momento (N)">👎</button>
+      </span>
+      <span class="tiempo" id="tiempo"></span>
+      <span class="pista"><span class="tics" id="tics"></span><input type="range" id="posicion" min="0" max="1000" step="1" value="0" aria-label="Posición" disabled></span>
+      <label>vol <input type="range" id="volumen" min="0" max="1.5" step="0.05"></label>
+    </div>
+  </div>
+  <section class="proxima">
+    <h2>Para la próxima tanda</h2>
+    <p>Lo que quieras que cambie en la próxima ronda. Claude lo lee antes de generar; las notas de cada sonido también.</p>
+    <textarea id="nota-general" placeholder="Ej.: el riff del t4-metal-oscuro-b pero más lento y con más presencia de la guitarra líder"></textarea>
+    <div class="guardado" id="guardado-general"></div>
+  </section>
+  <section class="rack">
+    <h2>Instrumentos</h2>
+    <p>Cuánto querés de cada uno y con qué timbre: clic en un timbre para escucharlo solo, ✓ para elegirlo. Las barras comparan tu mezcla con F-Zero X y con lo que está sonando (medido con Demucs).</p>
+    <div id="rack"></div>
+    <div class="comparar" id="comparar"></div>
+    <div class="leyenda" id="leyenda"></div>
+  </section>
+  <div id="momentos"></div>
+</main>
+
+<script type="module">
+// Todo lo que suena en la página pasa por un analizador, también los sonidos sintetizados del juego (sonidos.js crea su propio
+// contexto): por eso se reemplaza AudioContext antes de importarlo, y su "destination" es la entrada de un analizador.
+const analizadores = []
+const Base = window.AudioContext || window.webkitAudioContext
+let proto = Base.prototype
+while (!Object.getOwnPropertyDescriptor(proto, "destination")) proto = Object.getPrototypeOf(proto)
+const destinoReal = Object.getOwnPropertyDescriptor(proto, "destination").get
+let volumen = 1
+try { volumen = Number(localStorage.getItem("soundboard.volumen") ?? 1) } catch {}
+class Contexto extends Base {
+  constructor(...args) {
+    super(...args)
+    this.entrada = this.createGain()
+    this.entrada.gain.value = volumen
+    this.analizador = this.createAnalyser()
+    this.analizador.fftSize = 4096
+    this.analizador.smoothingTimeConstant = 0.78
+    // Más rango que el de fábrica (-100 a -30 dB), que con música mezclada fuerte deja todas las barras arriba.
+    this.analizador.minDecibels = -85
+    this.analizador.maxDecibels = -12
+    this.entrada.connect(this.analizador).connect(destinoReal.call(this))
+    analizadores.push(this)
+  }
+  get destination() { return this.entrada }
+}
+window.AudioContext = Contexto
+window.webkitAudioContext = Contexto
+const { sonar } = await import("/sonidos.js")
+
+const MOMENTOS = {
+  sala: "Fase liviana: la sala y la espera antes de largar",
+  referencias: "Temas de referencia, para comparar",
+  instrumentos: "Un tema separado por instrumento (Demucs), para escuchar cada uno aislado",
+  inicio: "Música de la carrera: arranca en el ¡YA! y suena hasta el festejo (la de espera va en sala)",
+  transformacion: "Cuando la cámara va al caballo de fuego, casi en el ¡YA!",
+  final: "Al cruzar la meta y en el festejo del ganador"
+}
+// Los que suenan hoy en el juego, sintetizados en sonidos.js, para comparar.
+const ACTUALES = [
+  ["tiempo", "El mundo se detiene", 4.2], ["cuenta", "Cuenta 3", 0.8, 3], ["cuenta", "Cuenta 1", 0.8, 1], ["ya", "¡YA! (riff de largada)", 3],
+  ["meta", "Meta", 2.3], ["ganador", "Ganador", 2.5], ["moneda", "Moneda", 0.4], ["premio", "Premio", 0.4], ["click", "Clic", 0.1]
+]
+
+const ctx = new Contexto()
+const buffers = {}
+let actual = null // { pad, src?, inicio, dura, nombre }
+let datos = { momentos: {}, elegidos: {} }
+let firma = ""
+
+const volInput = document.getElementById("volumen")
+volInput.value = volumen
+volInput.addEventListener("input", () => {
+  volumen = Number(volInput.value)
+  analizadores.forEach(c => { c.entrada.gain.value = volumen })
+  try { localStorage.setItem("soundboard.volumen", volumen) } catch {}
+})
+
+const cargar = url => (buffers[url] ??= fetch(url).then(r => r.arrayBuffer()).then(b => ctx.decodeAudioData(b)))
+const segundos = s => `${s.toLocaleString("es", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} s`
+const reloj = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`
+
+const posInput = document.getElementById("posicion")
+const pausaBtn = document.getElementById("pausa")
+
+function callar() {
+  if (!actual) return
+  soltar()
+  actual.pad.classList.remove("sonando")
+  actual.pad.querySelector(".barra").style.width = "0"
+  actual = null
+  document.getElementById("ahora").textContent = "Nada sonando"
+  document.getElementById("tiempo").textContent = ""
+  posInput.value = 0
+  controles()
+  pintarTics()
+  pintarComparar()
+}
+
+// actual: { pad, nombre, dura, inicio, buffer?, src?, pausa? }. Con buffer (un archivo) se puede mover y pausar;
+// los sintetizados del juego solo suenan de corrido.
+function empezar(pad, nombre, dura, buffer = null) {
+  actual = { pad, nombre, dura, buffer, inicio: performance.now(), pausa: null, src: null }
+  if (buffer) actual.src = fuente(buffer, 0)
+  pad.classList.add("sonando")
+  controles()
+}
+
+function fuente(buffer, desde) {
+  const src = ctx.createBufferSource()
+  src.buffer = buffer
+  src.connect(ctx.destination)
+  src.onended = () => { if (actual?.src === src) callar() }
+  src.start(0, desde)
+  return src
+}
+
+// Corta la fuente sin terminar la reproducción (onended no llama a callar porque ya no es la actual).
+function soltar() {
+  const src = actual?.src
+  if (!src) return
+  actual.src = null
+  try { src.stop() } catch {}
+}
+
+const posicion = () => !actual ? 0 : actual.pausa ?? (performance.now() - actual.inicio) / 1000
+
+function ir(t) {
+  if (!actual?.buffer) return
+  t = Math.max(0, Math.min(actual.dura - 0.05, t))
+  if (actual.pausa !== null) { actual.pausa = t; return }
+  soltar()
+  actual.src = fuente(actual.buffer, t)
+  actual.inicio = performance.now() - t * 1000
+}
+
+function pausar() {
+  if (!actual?.buffer) return
+  if (actual.pausa === null) {
+    actual.pausa = posicion()
+    soltar()
+  } else {
+    const t = actual.pausa
+    actual.pausa = null
+    actual.src = fuente(actual.buffer, t)
+    actual.inicio = performance.now() - t * 1000
+  }
+  controles()
+}
+
+function controles() {
+  const mueve = !!actual?.buffer
+  for (const el of [posInput, pausaBtn, document.getElementById("atras"), document.getElementById("adelante")]) el.disabled = !mueve
+  for (const id of ["marcar-si", "marcar-no"]) document.getElementById(id).disabled = !actual?.buffer
+  const pausado = actual?.pausa != null
+  pausaBtn.textContent = pausado ? "▶" : "❚❚"
+  pausaBtn.title = pausado ? "Seguir (espacio)" : "Pausa (espacio)"
+  if (actual) document.getElementById("ahora").textContent = `${pausado ? "❚❚" : "▶"} ${actual.nombre}`
+}
+
+let arrastrando = false
+posInput.addEventListener("input", () => {
+  arrastrando = true
+  if (actual) ir((posInput.value / 1000) * actual.dura)
+})
+posInput.addEventListener("change", () => { arrastrando = false })
+pausaBtn.addEventListener("click", pausar)
+document.getElementById("atras").addEventListener("click", () => ir(posicion() - 5))
+document.getElementById("adelante").addEventListener("click", () => ir(posicion() + 5))
+addEventListener("keydown", e => {
+  if (!actual?.buffer || e.target.closest?.("textarea, input:not([type=range])")) return
+  // Sobre una tarjeta, el espacio la toca (lo maneja la tarjeta); el resto de los atajos funciona igual.
+  const enTarjeta = e.target.matches?.(".pad, .timbre")
+  if (e.key === "ArrowLeft") { e.preventDefault(); ir(posicion() - 5) }
+  else if (e.key === "ArrowRight") { e.preventDefault(); ir(posicion() + 5) }
+  else if (e.key === " " && !enTarjeta) { e.preventDefault(); pausar() }
+  else if (e.key === "s" || e.key === "S") { e.preventDefault(); marcar("si") }
+  else if (e.key === "n" || e.key === "N") { e.preventDefault(); marcar("no") }
+})
+document.getElementById("marcar-si").addEventListener("click", () => marcar("si"))
+document.getElementById("marcar-no").addEventListener("click", () => marcar("no"))
+
+// ── Marcas en el segundo ────────────────────────────────────────────────────
+// Se marcan mientras suena; cada marca guarda el segundo, si gusta o no, y un comentario opcional.
+// No se enfoca el comentario al marcar: así se puede seguir marcando con S y N sin escribir en el campo.
+async function marcar(tipo) {
+  if (!actual?.buffer) return
+  if (!actual.clave) return console.warn("Este sonido no admite marcas")
+  const t = Math.round(posicion() * 10) / 10
+  await guardarMarcas(actual.clave, [...(datos.marcas?.[actual.clave] ?? []), { t, tipo, texto: "" }])
+}
+
+async function guardarMarcas(clave, marcas) {
+  const r = await fetch("/prototipos/sonidos/marcas", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clave, marcas }) })
+  if (!r.ok) return console.warn("no se pudo guardar la marca", clave)
+  datos.marcas = (await r.json()).marcas
+  firma = JSON.stringify(datos)
+  pintar()
+  pintarTics()
+}
+
+function pintarTics() {
+  const tics = document.getElementById("tics")
+  tics.innerHTML = ""
+  if (!actual?.clave) return
+  for (const m of datos.marcas?.[actual.clave] ?? []) {
+    const tic = document.createElement("span")
+    tic.className = `tic ${m.tipo}`
+    tic.style.left = `${(m.t / actual.dura) * 100}%`
+    tic.title = `${reloj(m.t)} ${m.tipo === "si" ? "👍" : "👎"} ${m.texto}`
+    tics.append(tic)
+  }
+}
+
+function listaMarcas(clave, b, a) {
+  const marcas = datos.marcas?.[clave] ?? []
+  if (!marcas.length) return null
+  const cont = document.createElement("div")
+  cont.className = "marcas-pad"
+  marcas.forEach((m, i) => {
+    const fila = document.createElement("div")
+    fila.className = `marca ${m.tipo}`
+    fila.innerHTML = `<span class="ir" title="Ir a ese segundo"></span><input type="text" placeholder="comentario…"><span class="quitar" title="Quitar">✕</span>`
+    fila.querySelector(".ir").textContent = `${reloj(m.t)} ${m.tipo === "si" ? "👍" : "👎"}`
+    const input = fila.querySelector("input")
+    input.value = m.texto
+    fila.dataset.t = m.t
+    for (const tipo of ["click", "keydown", "pointerdown"]) fila.addEventListener(tipo, e => e.stopPropagation())
+    fila.querySelector(".ir").addEventListener("click", async () => {
+      if (actual?.clave !== clave) await tocarArchivo(b, { ...a, clave })
+      ir(m.t)
+    })
+    const guardarTexto = () => {
+      if (input.value.trim() === m.texto) return
+      guardarMarcas(clave, marcas.map((x, j) => (j === i ? { ...x, texto: input.value } : x)))
+    }
+    input.addEventListener("change", guardarTexto)
+    input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur() })
+    fila.querySelector(".quitar").addEventListener("click", () => guardarMarcas(clave, marcas.filter((_, j) => j !== i)))
+    cont.append(fila)
+  })
+  return cont
+}
+
+// ── Instrumentos: rack, mezcla deseada y medidas ────────────────────────────
+const INSTRUMENTOS = [
+  ["guitarra-lider", "Guitarra líder", "guitarra", 90],
+  ["guitarra-ritmica", "Guitarra rítmica", "guitarra", 70],
+  ["bateria", "Batería", "bateria", 30],
+  ["bajo", "Bajo", "bajo", 15],
+  ["otros", "Sintes / otros", "otros", 5]
+]
+const PARTES = [["guitarra", "Guitarra"], ["bateria", "Batería"], ["bajo", "Bajo"], ["otros", "Sintes / otros"], ["voz", "Voz"], ["piano", "Piano"]]
+const REFERENCIA = "referencias/fzx-title-bgm.mp3"
+let moviendoRack = false
+let esperaMezcla = null
+
+const mezclaDe = id => ({ nivel: INSTRUMENTOS.find(i => i[0] === id)[3], ...(datos.mezcla?.[id] ?? {}) })
+
+function guardarMezcla() {
+  clearTimeout(esperaMezcla)
+  esperaMezcla = setTimeout(async () => {
+    const mezcla = Object.fromEntries(INSTRUMENTOS.map(([id]) => [id, mezclaDe(id)]))
+    const r = await fetch("/prototipos/sonidos/mezcla", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mezcla }) })
+    if (!r.ok) return console.warn("no se pudo guardar la mezcla")
+    datos.mezcla = (await r.json()).mezcla
+    firma = JSON.stringify(datos)
+  }, 400)
+}
+
+function barraMezcla(pesos) {
+  const barra = document.createElement("div")
+  barra.className = "mezcla-barra"
+  const total = PARTES.reduce((n, [p]) => n + (pesos?.[p] ?? 0), 0) || 1
+  barra.title = PARTES.filter(([p]) => pesos?.[p]).map(([p, n]) => `${n} ${Math.round((100 * pesos[p]) / total)} %`).join(" · ")
+  for (const [p] of PARTES) {
+    if (!pesos?.[p]) continue
+    const s = document.createElement("span")
+    s.style.setProperty("--c", `var(--i-${p})`)
+    s.style.width = `${(100 * pesos[p]) / total}%`
+    barra.append(s)
+  }
+  return barra
+}
+
+function deseada() {
+  const pesos = {}
+  for (const [id, , parte] of INSTRUMENTOS) pesos[parte] = (pesos[parte] ?? 0) + mezclaDe(id).nivel
+  return pesos
+}
+
+function pintarComparar() {
+  const cont = document.getElementById("comparar")
+  cont.innerHTML = ""
+  const filas = [["Tu mezcla", deseada()], ["F-Zero X", datos.medidas?.[REFERENCIA]], ["Sonando", actual?.clave ? datos.medidas?.[actual.clave] : null]]
+  for (const [nombre, pesos] of filas) {
+    const etiqueta = document.createElement("span")
+    etiqueta.textContent = nombre
+    const cifras = document.createElement("span")
+    cifras.className = "cifras"
+    if (pesos) {
+      const total = PARTES.reduce((n, [p]) => n + (pesos[p] ?? 0), 0) || 1
+      cifras.textContent = `guitarra ${Math.round((100 * (pesos.guitarra ?? 0)) / total)} %`
+    } else {
+      cifras.textContent = nombre === "Sonando" ? (actual ? "sin medir" : "—") : "sin medir"
+    }
+    cont.append(etiqueta, pesos ? barraMezcla(pesos) : Object.assign(document.createElement("div"), { className: "mezcla-barra" }), cifras)
+  }
+  const leyenda = document.getElementById("leyenda")
+  leyenda.innerHTML = PARTES.slice(0, 4).map(([p, n]) => `<span><i class="muestra" style="--c: var(--i-${p})"></i>${n}</span>`).join("")
+}
+
+function pintarRack() {
+  if (moviendoRack) return
+  const rack = document.getElementById("rack")
+  rack.innerHTML = ""
+  const sonandoUrl = actual?.pad.dataset.url
+  for (const [id, nombre, parte] of INSTRUMENTOS) {
+    const m = mezclaDe(id)
+    const fila = document.createElement("div")
+    fila.className = "fila"
+    fila.style.setProperty("--c", `var(--i-${parte})`)
+    fila.innerHTML = `<span class="instrumento"><i class="muestra"></i><span></span></span>
+      <label class="nivel"><input type="range" min="0" max="100" step="5"><span class="valor"></span></label>
+      <div class="timbres"></div>`
+    fila.querySelector(".instrumento span").textContent = nombre
+    const nivel = fila.querySelector("input")
+    const valor = fila.querySelector(".valor")
+    nivel.value = m.nivel
+    nivel.setAttribute("aria-label", `Nivel de ${nombre}`)
+    valor.textContent = m.nivel
+    nivel.addEventListener("pointerdown", () => { moviendoRack = true })
+    nivel.addEventListener("input", () => {
+      datos.mezcla = { ...datos.mezcla, [id]: { ...mezclaDe(id), nivel: Number(nivel.value) } }
+      valor.textContent = nivel.value
+      pintarComparar()
+      guardarMezcla()
+    })
+    nivel.addEventListener("change", () => { moviendoRack = false })
+    const timbres = fila.querySelector(".timbres")
+    const opciones = datos.paleta?.[id] ?? []
+    if (!opciones.length) timbres.innerHTML = `<span class="vacio">Generando timbres…</span>`
+    for (const o of opciones) {
+      const t = document.createElement("div")
+      t.className = "timbre"
+      t.tabIndex = 0
+      t.setAttribute("role", "button")
+      t.dataset.url = o.url
+      t.classList.toggle("elegido", m.tono === o.nombre)
+      t.innerHTML = `<span class="etiqueta"></span><span class="usar" title="Elegir este timbre">✓</span><span class="barra"></span>`
+      t.querySelector(".etiqueta").textContent = o.etiqueta
+      t.addEventListener("click", () => tocarArchivo(t, { url: o.url, nombre: `${nombre}: ${o.etiqueta}` }))
+      t.addEventListener("keydown", e => { if (e.target === t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); t.click() } })
+      t.querySelector(".usar").addEventListener("click", e => {
+        e.stopPropagation()
+        datos.mezcla = { ...datos.mezcla, [id]: { ...mezclaDe(id), tono: m.tono === o.nombre ? null : o.nombre } }
+        guardarMezcla()
+        pintarRack()
+      })
+      if (o.url === sonandoUrl) { actual.pad = t; t.classList.add("sonando") }
+      timbres.append(t)
+    }
+    rack.append(fila)
+  }
+  pintarComparar()
+}
+
+async function tocarArchivo(pad, archivo) {
+  if (actual?.pad === pad) return callar()
+  callar()
+  ctx.resume()
+  const buffer = await cargar(archivo.url).catch(error => { console.warn("no se pudo leer", archivo.url, error); return null })
+  if (!buffer) return
+  empezar(pad, archivo.nombre, buffer.duration, buffer)
+  actual.clave = archivo.clave ?? null
+  pintarTics()
+  pintarComparar()
+}
+
+function tocarActual(pad, [nombre, titulo, dura, arg]) {
+  callar()
+  if (sonar(nombre, ...(arg === undefined ? [] : [arg]))) empezar(pad, titulo, dura)
+}
+
+// ── Pads ────────────────────────────────────────────────────────────────────
+function pad(nombre) {
+  // Un div y no un button: adentro va el campo de nota, que no puede ir dentro de un botón.
+  const b = document.createElement("div")
+  b.className = "pad"
+  b.tabIndex = 0
+  b.setAttribute("role", "button")
+  b.addEventListener("keydown", e => { if (e.target === b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); b.click() } })
+  b.innerHTML = `<span class="nombre"></span><span class="dura"></span><span class="barra"></span>`
+  b.querySelector(".nombre").textContent = nombre
+  return b
+}
+
+function seccion(titulo, cuando) {
+  const sec = document.createElement("section")
+  sec.innerHTML = `<header><h2></h2><span class="cuando"></span></header><div class="pads"></div>`
+  sec.querySelector("h2").textContent = titulo
+  sec.querySelector(".cuando").textContent = cuando
+  return sec
+}
+
+function pintar() {
+  pintarRack()
+  const sonandoUrl = actual?.pad.dataset.url
+  const cont = document.getElementById("momentos")
+  cont.innerHTML = ""
+  for (const [momento, archivos] of Object.entries(datos.momentos)) {
+    const sec = seccion(momento, MOMENTOS[momento] ?? "")
+    const pads = sec.querySelector(".pads")
+    if (!archivos.length) pads.outerHTML = `<p class="vacio">Vacío: dejá archivos en <code>candidatos/${momento}/</code></p>`
+    for (const a of archivos) {
+      const b = pad(a.nombre)
+      b.dataset.url = a.url
+      b.classList.toggle("elegido", datos.elegidos[momento] === a.nombre)
+      const queda = document.createElement("span")
+      queda.className = "queda"
+      queda.title = "Queda"
+      queda.textContent = datos.elegidos[momento] === a.nombre ? "★" : "☆"
+      queda.addEventListener("click", e => { e.stopPropagation(); elegir(momento, datos.elegidos[momento] === a.nombre ? null : a.nombre) })
+      b.append(queda, accion("descartar", "✕", "Descartar", () => descartar(momento, a.nombre, false)))
+      pads.append(padArchivo(b, a, sonandoUrl, `${momento}/${a.nombre}`))
+    }
+    cont.append(sec)
+  }
+  const sec = seccion("Actuales del juego", "Sintetizados en sonidos.js, para comparar")
+  for (const sonido of ACTUALES) {
+    const b = pad(sonido[1])
+    b.querySelector(".dura").textContent = segundos(sonido[2])
+    b.addEventListener("click", () => tocarActual(b, sonido))
+    sec.querySelector(".pads").append(b)
+  }
+  cont.append(sec)
+
+  // Descartados: plegados al final, se pueden escuchar y recuperar con ↺.
+  const grupos = Object.entries(datos.descartados ?? {})
+  if (!grupos.length) return
+  const det = document.createElement("details")
+  det.className = "descartados"
+  det.open = descartadosAbiertos
+  det.addEventListener("toggle", () => { descartadosAbiertos = det.open })
+  const total = grupos.reduce((n, [, a]) => n + a.length, 0)
+  det.innerHTML = `<summary>Descartados (${total})</summary>`
+  for (const [momento, archivos] of grupos) {
+    const h3 = document.createElement("h3")
+    h3.textContent = momento
+    const pads = document.createElement("div")
+    pads.className = "pads"
+    for (const a of archivos) {
+      const b = pad(a.nombre)
+      b.append(accion("descartar", "↺", "Recuperar", () => descartar(momento, a.nombre, true)))
+      pads.append(padArchivo(b, a, sonandoUrl, `${momento}/${a.nombre}`))
+    }
+    det.append(h3, pads)
+  }
+  cont.append(det)
+}
+let descartadosAbiertos = false
+
+function accion(clase, texto, titulo, alHacer) {
+  const s = document.createElement("span")
+  s.className = clase
+  s.title = titulo
+  s.textContent = texto
+  s.addEventListener("click", e => { e.stopPropagation(); alHacer() })
+  return s
+}
+
+// Guarda una nota al dejar de escribir (y al salir del campo).
+function campoNota(textarea, clave, aviso = null) {
+  textarea.value = datos.notas?.[clave] ?? ""
+  textarea.classList.toggle("con-texto", !!textarea.value)
+  let espera = null
+  const guardarNota = async () => {
+    clearTimeout(espera)
+    if ((datos.notas?.[clave] ?? "") === textarea.value.trim()) return
+    const r = await fetch("/prototipos/sonidos/nota", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clave, texto: textarea.value }) })
+    if (!r.ok) { if (aviso) aviso.textContent = "No se pudo guardar"; return }
+    datos.notas = (await r.json()).notas
+    firma = JSON.stringify(datos)
+    if (aviso) aviso.textContent = "Guardado"
+  }
+  textarea.addEventListener("input", () => { if (aviso) aviso.textContent = ""; clearTimeout(espera); espera = setTimeout(guardarNota, 700) })
+  textarea.addEventListener("blur", () => { guardarNota(); textarea.classList.toggle("con-texto", !!textarea.value) })
+  for (const tipo of ["click", "keydown", "pointerdown"]) textarea.addEventListener(tipo, e => e.stopPropagation())
+}
+
+function padArchivo(b, a, sonandoUrl, clave) {
+  const nota = document.createElement("textarea")
+  nota.className = "nota"
+  nota.placeholder = "nota…"
+  nota.rows = 1
+  campoNota(nota, clave)
+  b.insertBefore(nota, b.querySelector(".barra"))
+  b.dataset.url = a.url
+  const medida = datos.medidas?.[clave]
+  if (medida) b.insertBefore(barraMezcla(medida), nota)
+  const marcas = listaMarcas(clave, b, a)
+  if (marcas) b.insertBefore(marcas, nota)
+  cargar(a.url).then(buf => { b.querySelector(".dura").textContent = segundos(buf.duration) }).catch(() => { b.querySelector(".dura").textContent = "no se pudo leer" })
+  b.addEventListener("click", () => tocarArchivo(b, { ...a, clave }))
+  if (a.url === sonandoUrl) { actual.pad = b; b.classList.add("sonando") }
+  return b
+}
+
+async function descartar(momento, archivo, volver) {
+  if (actual?.pad.dataset.url?.endsWith(`/${encodeURIComponent(archivo)}`)) callar()
+  const r = await fetch("/prototipos/sonidos/descartar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ momento, archivo, volver }) })
+  if (!r.ok) return console.warn("no se pudo mover", momento, archivo)
+  firma = ""
+  refrescar()
+}
+
+async function elegir(momento, archivo) {
+  const r = await fetch("/prototipos/sonidos/elegir", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ momento, archivo }) })
+  if (!r.ok) return console.warn("no se pudo guardar", momento, archivo)
+  datos.elegidos = (await r.json()).elegidos
+  firma = JSON.stringify(datos)
+  pintar()
+}
+
+// Revisa la carpeta cada 3 s: los archivos nuevos aparecen sin recargar.
+async function refrescar() {
+  // Mientras escribe una nota no se redibuja, para no perder el foco ni el texto.
+  if (document.hidden || moviendoRack || document.activeElement?.matches?.("textarea, input[type=text]")) return
+  const r = await fetch("/prototipos/sonidos/candidatos").catch(() => null)
+  if (!r?.ok) return
+  const nuevos = await r.json()
+  const f = JSON.stringify(nuevos)
+  if (f === firma) return
+  firma = f
+  datos = nuevos
+  pintar()
+}
+await refrescar()
+campoNota(document.getElementById("nota-general"), "general", document.getElementById("guardado-general"))
+setInterval(refrescar, 3000)
+
+// ── Espectro ────────────────────────────────────────────────────────────────
+// Barras en escala logarítmica de 30 Hz a 16 kHz, en tinta: carmesí con sombra negra desplazada, sin brillo.
+const canvas = document.getElementById("espectro")
+const g = canvas.getContext("2d")
+const BARRAS = 72
+const alturas = new Float32Array(BARRAS)
+const picos = new Float32Array(BARRAS)
+const datosFft = new Uint8Array(2048)
+const color = getComputedStyle(document.documentElement).getPropertyValue("--acento").trim() || "crimson"
+const tenue = getComputedStyle(document.documentElement).getPropertyValue("--borde-sutil").trim() || "#333"
+
+function dibujar() {
+  const dpr = devicePixelRatio || 1
+  const w = canvas.clientWidth, h = canvas.clientHeight
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr) }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0)
+  g.clearRect(0, 0, w, h)
+
+  const nivel = new Float32Array(BARRAS)
+  for (const c of analizadores) {
+    if (c.state !== "running") continue
+    const a = c.analizador
+    a.getByteFrequencyData(datosFft)
+    const hzPorBin = c.sampleRate / a.fftSize
+    for (let i = 0; i < BARRAS; i++) {
+      const desde = 30 * Math.pow(16000 / 30, i / BARRAS), hasta = 30 * Math.pow(16000 / 30, (i + 1) / BARRAS)
+      const b0 = Math.floor(desde / hzPorBin), b1 = Math.max(b0 + 1, Math.ceil(hasta / hzPorBin))
+      let max = 0
+      for (let b = b0; b < b1 && b < a.frequencyBinCount; b++) max = Math.max(max, datosFft[b])
+      nivel[i] = Math.max(nivel[i], max / 255)
+    }
+  }
+
+  const paso = w / BARRAS, ancho = Math.max(2, paso - 3)
+  for (let i = 0; i < BARRAS; i++) {
+    alturas[i] = nivel[i] > alturas[i] ? nivel[i] : alturas[i] * 0.9 + nivel[i] * 0.1
+    picos[i] = Math.max(alturas[i], picos[i] - 0.006)
+    const x = i * paso, alto = Math.max(2, alturas[i] * (h - 10))
+    g.fillStyle = "#000"
+    g.fillRect(x + 3, h - alto + 3, ancho, alto)
+    g.fillStyle = color
+    g.fillRect(x, h - alto, ancho, alto)
+    g.fillStyle = tenue
+    g.fillRect(x, h - picos[i] * (h - 10) - 4, ancho, 2)
+  }
+
+  if (actual) {
+    const t = posicion()
+    actual.pad.querySelector(".barra").style.width = `${Math.min(100, (t / actual.dura) * 100)}%`
+    document.getElementById("tiempo").textContent = `${reloj(Math.min(t, actual.dura))} / ${reloj(actual.dura)}`
+    if (actual.buffer && !arrastrando) posInput.value = Math.round((t / actual.dura) * 1000)
+    if (!actual.buffer && t > actual.dura + 0.3) callar()
+  }
+  requestAnimationFrame(dibujar)
+}
+requestAnimationFrame(dibujar)
+</script>
+</body>
+</html>

@@ -34,6 +34,10 @@ module HorseRaceApi
     # in config/environments, which are processed later.
     #
     # config.time_zone = "Central Time (US & Canada)"
+    # Los jugadores están en Chile: las temporadas y los horarios de largada se cuentan en su hora.
+    config.time_zone = "America/Santiago"
+    config.i18n.default_locale = :es
+    config.i18n.available_locales = [ :es, :en ]
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Only loads a smaller set of middleware suitable for API only apps.
@@ -45,8 +49,10 @@ module HorseRaceApi
     # ActionDispatch::Static doesn't reliably serve from arbitrary roots in this context,
     # so we use Rack::Static inserted before all other middleware.
     config.middleware.insert_before 0, Rack::Static,
-      urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /controllers],
-      root: Rails.root.join("app/javascript").to_s
+      urls: %w[/application.js /stimulus.min.js /stimulus-loading.js /sonidos.js /controllers],
+      root: Rails.root.join("app/javascript").to_s,
+      # Las URLs no llevan digest: el navegador tiene que revalidar para ver los cambios.
+      header_rules: [ [ :all, { "cache-control" => "no-cache" } ] ]
 
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride

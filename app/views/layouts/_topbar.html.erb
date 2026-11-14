@@ -1,9 +1,17 @@
-<header class="pixel-topbar">
-  <span class="topbar-title"><%= content_for?(:page_title) ? yield(:page_title) : "" %></span>
-  <div class="topbar-user">
-    <%= link_to current_user.username, profile_path(current_user.username) %>
+<%# Una sola barra: la marca lleva al inicio; a la derecha, tu perfil y salir. Nada más que decidir. %>
+<header class="app-top">
+  <%# En el inicio la marca ya está grande en la página: arriba no se repite. %>
+  <% if controller_name == "races" && action_name == "index" %><span></span><% else %><%= link_to "Club Race", root_path, class: "marca", data: { fx: "nav" } %><% end %>
+  <div class="app-user">
+    <%# Avisos de carreras por empezar como notificación del sistema (solo si todavía no se preguntó). %>
+    <button type="button" class="btn-avisos" data-avisos-target="permiso" data-action="avisos#pedirPermiso" title="Avisarme cuando una carrera esté por empezar" hidden>🔔</button>
+    <%# La música de las carreras, sí o no (queda en este navegador). %>
+    <button type="button" class="btn-musica" data-controller="musica" data-action="musica#alternar" data-musica-target="boton" aria-pressed="true" title="Música de las carreras">🎵</button>
+    <%# Tu saldo: con esto apuestas al entrar a cada carrera. %>
+    <%= link_to ranking_path, class: "saldo", title: "Tu saldo · ver el ranking", data: { fx: "nav" } do %><span aria-hidden="true">🪙</span> <%= usd(current_user.balance) %><% end %>
+    <%= link_to current_user.username, profile_path(current_user.username), data: { fx: "profile" } %>
     <%= form_with url: logout_path, method: :delete, style: "display:inline" do %>
-      <button type="submit" class="nes-btn is-error" style="font-size:8px;padding:4px 10px;height:auto;line-height:1.4;">SALIR</button>
+      <button type="submit" class="btn-salir" data-fx="exit" data-fx-hold>Salir</button>
     <% end %>
   </div>
 </header>

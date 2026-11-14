@@ -1,0 +1,29 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "53d89ffe7f18baa24a16345166f6f1f0d01c5ff513ffa58ea919fe5555a794e2",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/sonidos_controller.rb",
+      "line": 79,
+      "code": "FileUtils.mv((Rails.public_path.join(\"sonidos\", \"candidatos\").join(File.basename(params.require(:momento).to_s)) or Rails.public_path.join(\"sonidos\", \"candidatos\").join(\"descartados\").join(File.basename(params.require(:momento).to_s))).join(File.basename(params.require(:archivo).to_s)), (Rails.public_path.join(\"sonidos\", \"candidatos\").join(\"descartados\").join(File.basename(params.require(:momento).to_s)) or Rails.public_path.join(\"sonidos\", \"candidatos\").join(File.basename(params.require(:momento).to_s))).join(File.basename(params.require(:archivo).to_s)))",
+      "confidence": "Weak",
+      "note": "Revisado (2026-11-13, aprobado por el usuario): momento y archivo pasan por NOMBRE, se rechazan . y .., y se usan con File.basename. Solo existe fuera de producción."
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "7ac420b2e378a44a19b1b6f5e7007cfd2ec7e39bb01f88e3cca5b069b0ecead9",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/sonidos_controller.rb",
+      "line": 78,
+      "code": "FileUtils.mkdir_p((Rails.public_path.join(\"sonidos\", \"candidatos\").join(\"descartados\").join(File.basename(params.require(:momento).to_s)) or Rails.public_path.join(\"sonidos\", \"candidatos\").join(File.basename(params.require(:momento).to_s))))",
+      "confidence": "Weak",
+      "note": "Revisado (2026-11-13, aprobado por el usuario): momento y archivo pasan por NOMBRE, se rechazan . y .., y se usan con File.basename. Solo existe fuera de producción."
+    }
+  ],
+  "brakeman_version": "8.1.0"
+}

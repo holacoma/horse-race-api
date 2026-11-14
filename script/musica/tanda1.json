@@ -1,0 +1,26 @@
+[
+  {
+    "momento": "inicio", "nombre": "rock-arcade-180", "bpm": 180, "segundos": 40, "tono": "E major", "semilla": 101,
+    "tags": "instrumental, late 90s arcade racing game soundtrack, fast hard rock, soaring distorted electric guitar lead melody, chugging power chord rhythm guitar, punchy slap bass, driving rock drums with double kick, bright synth brass stabs, high energy, futuristic speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "rock-arcade-180-b", "bpm": 180, "segundos": 40, "tono": "E major", "semilla": 202,
+    "tags": "instrumental, late 90s arcade racing game soundtrack, fast hard rock, soaring distorted electric guitar lead melody, chugging power chord rhythm guitar, punchy slap bass, driving rock drums with double kick, bright synth brass stabs, high energy, futuristic speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "metal-carrera-190", "bpm": 190, "segundos": 40, "tono": "E minor", "semilla": 303,
+    "tags": "instrumental, heavy metal racing theme, twin lead guitar harmonies, galloping palm-muted riffs, shredding guitar solo, fast double bass drums, aggressive, adrenaline, 90s video game soundtrack, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "metal-gotico-180", "bpm": 180, "segundos": 40, "tono": "D minor", "semilla": 404,
+    "tags": "instrumental, speed metal racing theme, shredding electric guitar, harpsichord arpeggios, gothic choir stabs, pipe organ, fast double bass drums, dark and aggressive, 90s action video game soundtrack, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "victoria-rock", "bpm": 150, "segundos": 14, "tono": "E major", "semilla": 505,
+    "tags": "instrumental, short victory fanfare, triumphant hard rock guitar melody, big drum fill, cymbal crash, ends on a long sustained power chord, 90s arcade racing game results jingle, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "victoria-gotica", "bpm": 140, "segundos": 14, "tono": "D major", "semilla": 606,
+    "tags": "instrumental, short victory fanfare, triumphant metal guitar, gothic choir, pipe organ chord, big drum fill, cymbal crash, ends on a long sustained chord, 90s action game results jingle, no vocals"
+  }
+]

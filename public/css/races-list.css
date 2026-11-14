@@ -1,55 +1,138 @@
-.lobby-header { margin-bottom: 1.5rem; }
-
-.header-row {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 1.5rem; max-width: 760px;
+/* Inicio: la marca, «Jugar ya» y tu favorito; la temporada y las salas abiertas; lo recién corrido y los más ricos.
+   Todo del lado light: crema, tinta y formas redondas. 1920 × 1080: tres columnas; 800 × 800: dos; teléfono: una. */
+.app-top, .app-main { max-width: 1640px; }
+.inicio { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 28px 32px; align-items: start; padding-top: 24px; }
+.inicio-hero { display: grid; gap: 14px; justify-items: start; }
+.inicio-marca {
+  position: relative; font: 400 clamp(52px, 8vw, 92px)/.95 var(--fuente-titulo); color: var(--acento);
+  transform: rotate(-4deg); transform-origin: left bottom; margin: 0 0 6px; width: min-content;
+  text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 7px 8px 0 var(--arena-7);
 }
-
-.rooms-grid {
-  display: flex; flex-direction: column; gap: 1rem; max-width: 760px;
+.inicio-marca::after { content: "🪙"; text-shadow: none; position: absolute; right: -.45em; top: -.2em; font-size: .4em; animation: latido 1.6s ease-in-out infinite; }
+/* La regla: una nota de papel, en tinta sobre crema. */
+.inicio-regla {
+  max-width: 30ch; text-wrap: balance; padding: 8px 14px; margin: 0; background: var(--fondo); color: var(--texto);
+  font: 800 15px/1.3 var(--fuente-texto); border: 2px solid var(--acento); border-radius: var(--radio-chico);
+  box-shadow: 4px 4px 0 var(--arena-7); transform: rotate(1.2deg);
 }
+.inicio-jugar { margin-top: 18px; }
+.btn-jugar {
+  font: 400 34px/1 var(--fuente-titulo); padding: 22px 46px; border: none; cursor: pointer;
+  background: var(--acento); color: var(--sobre-acento); border-radius: var(--radio);
+  box-shadow: 0 6px 0 var(--arena-7), 0 14px 28px color-mix(in oklch, var(--acento) 35%, transparent);
+  transform: rotate(-1.5deg); transition: transform .12s, box-shadow .12s;
+}
+.btn-jugar:hover { transform: rotate(0deg) translateY(-2px) scale(1.03); }
+.btn-jugar:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--arena-7); }
+.inicio-crear { font: 800 15px var(--fuente-texto); color: var(--acento-texto); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
+/* Tu favorito: tarjeta crema con contorno de tinta; la sombra lleva el color de su elemento. Lleva a su ficha. */
+.tu-favorito { position: relative; justify-self: stretch; margin-top: 22px; background: var(--superficie); border: 2px solid var(--acento);
+  border-radius: var(--radio); box-shadow: 6px 6px 0 var(--c, var(--arena-7)); transform: rotate(-1deg); text-decoration: none; color: var(--texto); }
+.tu-favorito-link, .tu-favorito.sin-favorito { display: grid; grid-template-columns: 104px 1fr; gap: 6px 14px; align-items: center; padding: 12px 34px 12px 10px; color: var(--texto); text-decoration: none; }
+.tu-favorito.sin-favorito { grid-template-columns: 1fr; padding: 16px 18px; }
+.fav-chibi { grid-row: 1 / span 3; width: 104px; height: 104px; object-fit: contain; transform: rotate(-4deg); }
+.tu-favorito b { font: 400 23px/1.1 var(--fuente-titulo); }
+.tu-favorito-link::after { content: "›"; position: absolute; right: 12px; top: 50%; translate: 0 -55%; font: 400 30px var(--fuente-titulo); }
+.fav-cambiar { position: absolute; top: 9px; right: 12px; font: 800 12px var(--fuente-texto); padding: 1px 10px; border-radius: 99px;
+  border: 2px solid var(--acento); background: var(--fondo); color: var(--texto); text-decoration: none; }
+.datos { display: flex; flex-wrap: wrap; gap: 6px; }
+.datos span { font: 800 12.5px var(--fuente-texto); color: var(--texto); padding: 2px 10px; border-radius: 99px; background: var(--fondo); border: 2px solid var(--borde-sutil); }
+
+/* Temporada: una pastilla con los 5 días. */
+.temporada { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 10px 18px; margin-bottom: 22px; background: var(--superficie);
+  border: 2px solid var(--borde-sutil); border-radius: 26px; box-shadow: var(--sombra); }
+.temporada b { font: 400 16px var(--fuente-titulo); white-space: nowrap; }
+.temporada .dias { display: flex; gap: 5px; }
+.temporada .dias i { width: 24px; height: 10px; border-radius: 99px; background: var(--arena-5); }
+.temporada .dias i.pasado { background: var(--acento); }
+.temporada .dias i.hoy { background: var(--caballo-roca); box-shadow: 0 0 0 2px var(--acento); }
+.temporada span { font-weight: 800; font-size: 13.5px; color: var(--texto-suave); white-space: nowrap; }
+.temporada .lider { margin-left: auto; }
+
+.inicio-salas h2, .inicio-lado h2 { font-size: 22px; margin: 0 0 12px; }
+.rooms-grid { display: grid; gap: 12px; }
 .room-card {
-  background: var(--color-surface);
-  border: 3px solid var(--color-border);
-  box-shadow: 4px 4px 0 var(--color-primary);
-  padding: 1rem 1.25rem;
-  display: flex; align-items: center; gap: 1rem;
-  transition: box-shadow 0.08s;
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "slug unirse" "meta unirse" "lugares unirse";
+  gap: 2px 16px; align-items: center; padding: 14px 18px; text-decoration: none; color: var(--texto);
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio);
+  box-shadow: var(--sombra); transition: transform .12s, border-color .12s;
 }
-.room-card:hover { box-shadow: 6px 6px 0 var(--color-primary); }
-
-.animal-emoji { font-size: 1.4rem; }
-
-.room-card .room-info { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; }
-.room-card .room-slug { font-size: 11px; color: var(--color-text); }
-.room-card .room-meta { font-size: 8px; color: var(--color-muted); }
-
-.room-card .room-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;
+.room-card:nth-child(2n) { transform: rotate(calc(var(--giro) * .6)); }
+.room-card:nth-child(3n) { transform: rotate(calc(var(--giro) * -.6)); }
+.room-card:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-.5deg); }
+.room-slug { grid-area: slug; font: 400 18px var(--fuente-titulo); overflow-wrap: anywhere; }
+.room-meta { grid-area: meta; color: var(--texto-suave); font-size: 13px; }
+.room-lugares { grid-area: lugares; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 6px; }
+.room-lugares i { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed var(--borde); }
+.room-lugares i.ocupado { border: 2px solid var(--superficie); background: var(--c); box-shadow: 0 0 0 1.5px var(--c); }
+.room-lugares em { margin-left: 8px; font: 800 12px var(--fuente-texto); font-style: normal; padding: 1px 9px; border-radius: 99px;
+  background: var(--aviso-fondo); color: var(--aviso-texto); border: 2px solid var(--ambar-dia-7); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.room-unirse {
+  grid-area: unirse; font: 400 16px var(--fuente-titulo); padding: 9px 16px; border-radius: var(--radio-chico);
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde);
 }
-.room-card .room-players { font-size: 9px; color: var(--color-primary); }
+.room-card.sin-saldo { opacity: .55; }
+.room-card.sin-saldo .room-unirse { background: var(--superficie); color: var(--texto-suave); }
+.empty-state { padding: 24px; text-align: center; border: var(--borde-ancho) dashed var(--borde); border-radius: var(--radio); }
 
-.btn-join {
-  padding: 0.45rem 0.85rem;
-  background: var(--color-green); color: var(--color-bg);
-  border: 3px solid var(--color-text);
-  box-shadow: 3px 3px 0 var(--color-border);
-  font-family: var(--font-pixel); font-size: 8px;
-  cursor: pointer; text-decoration: none;
-  transition: box-shadow 0.08s; display: inline-block;
+/* Lo recién corrido y los más ricos. */
+.inicio-lado { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+.ultimas { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ultimas a { display: grid; grid-template-columns: 44px 1fr; gap: 0 10px; align-items: center; padding: 5px 12px 5px 8px; background: var(--superficie);
+  border: 2px solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra); text-decoration: none; color: var(--texto); }
+.ultimas a:hover { border-color: var(--acento-borde); }
+.ultimas-chibi { grid-row: span 2; width: 44px; height: 44px; object-fit: contain; }
+.ultimas b { font: 400 14px var(--fuente-titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ultimas span { font-size: 12.5px; font-weight: 700; color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inicio-ranking { display: grid; gap: 0; }
+.ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ranking-lista li {
+  display: grid; grid-template-columns: 30px 1fr auto auto; align-items: center; gap: 8px; padding: 7px 12px;
+  background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra);
 }
-.btn-join:hover { box-shadow: 1px 1px 0 var(--color-border); }
+.ranking-lista li b { font: 700 15px var(--fuente-titulo); text-align: center; }
+.ranking-nombre { font-weight: 800; font-size: 14px; text-decoration: none; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-saldo { font: 700 13px var(--fuente-titulo); white-space: nowrap; }
+.ranking-saldo::before { content: "🪙 "; }
+/* Tu fila: la misma tarjeta crema, marcada con contorno y sombra de tinta. */
+.ranking-lista li.tu { background: var(--fondo); border-color: var(--acento); box-shadow: 4px 4px 0 var(--acento); }
+.ranking-mas { justify-self: start; margin-top: 12px; font-weight: 800; font-size: 15px; text-decoration: none; }
+.ranking-nota { margin: 6px 0 0; color: var(--texto-suave); font-size: 14px; }
+.ranking-pagina { max-width: 640px; display: grid; gap: 16px; }
+.ranking-pagina h1 { margin: 0; }
 
-.btn-primary {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary); color: var(--color-bg);
-  border: 3px solid var(--color-text);
-  box-shadow: 3px 3px 0 var(--color-border);
-  font-family: var(--font-pixel); font-size: 8px;
-  cursor: pointer; text-decoration: none;
-  transition: box-shadow 0.08s; display: inline-block;
+/* 1920 × 1080: tres columnas, todo a la vista sin bajar. */
+@media (min-width: 1400px) {
+  .app-main { padding: 28px 48px; }
+  .app-top { padding: 16px 48px; }
+  .inicio { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) minmax(0, .95fr); gap: 48px; }
+  .inicio-lado { grid-column: auto; grid-template-columns: 1fr; gap: 24px; }
 }
-.btn-primary:hover { box-shadow: 1px 1px 0 var(--color-border); }
+/* 800 × 800: dos columnas compactas. */
+@media (min-width: 620px) and (max-width: 860px) {
+  .inicio { gap: 24px 28px; padding-top: 8px; }
+  .inicio-marca { font-size: 62px; }
+  .tu-favorito-link { grid-template-columns: 84px 1fr; }
+  .fav-chibi { width: 84px; height: 84px; }
+  .tu-favorito b { font-size: 20px; }
+  .temporada .lider { margin-left: 0; }
+  .room-card { padding: 10px 14px; }
+}
+/* Teléfono: una columna, en el orden en que se usa. */
+@media (max-width: 619px) {
+  .inicio { grid-template-columns: 1fr; gap: 26px; padding-top: 4px; }
+  .inicio-hero { justify-items: center; text-align: center; }
+  .inicio-lado { grid-template-columns: 1fr; }
+  .temporada .lider { margin-left: 0; }
+  .btn-jugar { font-size: 28px; padding: 18px 36px; }
+  .room-card { padding: 12px 14px; }
+  .room-unirse { padding: 8px 12px; }
+  .tu-favorito-link { text-align: left; }
+}
 
-.empty-state { font-size: 9px; color: var(--color-muted); margin-top: 2rem; }
+/* «Jugar ya» se anima de vez en cuando y no siempre igual: el brillo cruza cada 17 s y un saltito cada 23 s. */
+.btn-jugar.brilla::after { animation: brillo-esporadico 17s ease-in-out 2s infinite; }
+.btn-jugar { animation: rebote 23s ease-in-out 9s infinite; }
+@keyframes brillo-esporadico { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 1%, 8% { opacity: .85; } 9%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0; } }
+@keyframes rebote { 0%, 93%, 100% { translate: 0 0; rotate: 0deg; } 95% { translate: 0 -7px; rotate: -2deg; } 97% { translate: 0 1px; rotate: 1deg; } }

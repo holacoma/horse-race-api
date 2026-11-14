@@ -1,0 +1,79 @@
+/* Tragamonedas para elegir un nombre (invitado y sala): un mueble de juguete, redondeado, con su palanca. */
+.slot-machine {
+  --slot-cell: 2.6rem;
+  display: grid; grid-template-columns: 1fr 34px; align-items: center; gap: 4px;
+}
+.slot-cabinet {
+  display: flex; flex-direction: column; gap: 10px; padding: 12px;
+  background: var(--acento); border-radius: var(--radio); clip-path: var(--recorte);
+  box-shadow: var(--sombra), inset 0 -5px 0 color-mix(in oklch, var(--texto) 18%, transparent);
+}
+.slot-display {
+  min-height: 2.6rem; padding: 8px; border-radius: var(--radio-chico);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  background: var(--fondo); color: var(--texto); border: 2px solid var(--borde);
+  font: 700 13px/1.3 var(--fuente-titulo); letter-spacing: .06em; text-transform: uppercase;
+}
+.slot-machine.won .slot-display { animation: slot-win .5s steps(1) 2; }
+@keyframes slot-win {
+  0%, 100% { background: var(--fondo); color: var(--texto); }
+  50% { background: var(--acento); color: var(--sobre-acento); }
+}
+.slot-reels { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* Flechas de la línea de premio, a los lados de la fila del medio. */
+.slot-reels::before, .slot-reels::after { position: absolute; top: 50%; z-index: 1; transform: translateY(-50%); color: var(--sobre-acento); font-size: 11px; }
+.slot-reels::before { content: "▶"; left: 3px; }
+.slot-reels::after { content: "◀"; right: 3px; }
+.slot-reel {
+  position: relative; height: calc(var(--slot-cell) * 3); overflow: hidden;
+  background: var(--superficie); border-radius: var(--radio-chico);
+}
+/* Curva del tambor: las filas de arriba y abajo se oscurecen. */
+.slot-reel::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(color-mix(in oklch, var(--texto) 45%, transparent) 0, transparent 33.3%, transparent 66.6%, color-mix(in oklch, var(--texto) 45%, transparent) 100%);
+}
+.slot-strip { will-change: transform; }
+.slot-cell { height: var(--slot-cell); display: flex; align-items: center; justify-content: center; color: var(--texto); font: 700 15px var(--fuente-titulo); white-space: nowrap; }
+/* Elegir a mano: la fila de arriba trae la palabra anterior y la de abajo la siguiente, de a una. */
+.slot-nudge {
+  position: absolute; left: 0; right: 0; z-index: 2; height: 33.4%; padding: 0 8px; border: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: flex-end;
+  background: transparent; color: var(--texto-apagado); font-size: 10px; transition: background .12s, color .12s;
+}
+.slot-nudge.arriba { top: 0; }
+.slot-nudge.abajo { bottom: 0; }
+.slot-nudge:hover { background: color-mix(in oklch, var(--texto) 10%, transparent); color: var(--texto); }
+.slot-nudge:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.slot-machine.spinning .slot-nudge { opacity: 0; pointer-events: none; }
+/* Girando no se lee: el texto baja de contraste y vuelve de golpe al frenar. */
+.slot-reel.spinning .slot-cell { color: var(--texto-apagado); }
+
+/* Palanca: la vara gira sobre el pivote y se da vuelta hacia abajo al tirarla. */
+.slot-lever { position: relative; height: 8.5rem; padding: 0; background: none; border: none; cursor: pointer; }
+.slot-lever::before {
+  content: ""; position: absolute; left: -2px; top: 50%; z-index: 1; width: 18px; height: 26px;
+  background: var(--acento-encima); border-radius: 0 var(--radio-chico) var(--radio-chico) 0; transform: translateY(-50%);
+}
+.slot-lever-stick { position: absolute; left: 9px; bottom: 50%; width: 6px; height: 3.4rem; background: var(--borde-fuerte); border-radius: 3px; transform-origin: bottom; }
+.slot-lever-stick::before {
+  content: ""; position: absolute; left: -7px; top: -16px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--peligro); box-shadow: inset -3px -3px 0 color-mix(in oklch, var(--texto) 30%, transparent);
+}
+.slot-lever:focus { outline: none; }
+.slot-lever:focus-visible .slot-lever-stick::before { outline: 2px solid var(--foco); outline-offset: 2px; }
+.slot-lever:hover .slot-lever-stick { transform: scaleY(.88); }
+.slot-machine.spinning .slot-lever { cursor: default; }
+.slot-machine.spinning .slot-lever-stick { animation: slot-pull .55s ease-in-out; }
+@keyframes slot-pull { 40% { transform: scaleY(-.85); } 100% { transform: scaleY(1); } }
+
+/* Teléfono: rodillos más anchos (gabinete y palanca más finos) y la letra se achica para que entren las palabras
+   largas sin pisar las flechas de cada rodillo. */
+@media (max-width: 520px) {
+  .slot-machine { grid-template-columns: 1fr 26px; gap: 2px; }
+  .slot-cabinet { padding: 8px; gap: 8px; }
+  .slot-reels { gap: 4px; }
+  .slot-cell { padding: 0 14px 0 8px; font-size: clamp(11px, 3.6vw, 15px); }
+  .slot-nudge { padding: 0 5px; }
+  .slot-lever { transform: scale(.85); transform-origin: left center; }
+}

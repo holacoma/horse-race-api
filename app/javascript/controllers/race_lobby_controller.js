@@ -1,5 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
+import { sonar, sonarCuandoSePueda, programarMusica, GOLPE_TIEMPO, elegirPista } from "sonidos"
 
+const CLOSE_ANIMATION_MS = 150
+// Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
+// Baja imágenes y espera a que estén listas para pintar (un error no traba: se sigue igual).
+const precargar = urls => Promise.all(urls.map(src => { const img = new Image(); img.src = src; return img.decode().catch(() => {}) }))
+
+const ELEMENTOS = ["fuego", "hielo", "electricidad", "agua", "viento", "roca", "sombra", "luz", "veneno", "metal", "naturaleza", "cosmos"]
+
+// La sala y la carrera son la misma pantalla. La escena 3D se arma al entrar, con un carril por lugar: los caballos
+// esperan en la largada y aparecen a medida que alguien se une. Al largar, la sala se corre y empieza el preludio.
 export default class extends Controller {
   static values = {
     raceId: Number,
@@ -7,177 +17,301 @@ export default class extends Controller {
     animalType: String,
     capacity: Number,
     participantCount: Number,
-    favoriteIds: Array
+    favoriteIds: Array,
+    bettorNames: Array
   }
 
-  static targets = ["participantsList", "playersCount", "statusBar", "horsePicker",
-                     "pickerCards", "raceSection", "countdown", "track", "winnerBanner",
-                     "btnStart", "apostadorSection", "profileOverlay", "profilePopup",
+  static targets = ["participantsList", "playersCount", "statusBar", "horsePicker", "pickerCards",
+                     "btnStart", "apostadorSection", "profileOverlay", "profilePopup", "panel", "cargando",
+                     "tuCaballo", "tuCaballoNombre", "tuChibi", "corte", "results",
                      "ppAvatarWrap", "ppUsername", "ppProfileLink", "ppRaces", "ppWins", "ppFavs"]
 
   connect() {
-    this.hueRotations = [0, 55, 110, 170, 220, 285]
-    this.frameIndex = 0
-    this.animInterval = null
-
-    this.animalCfg = {
-      horse: {
-        frameCount: 5,
-        basePath: "/images/horse/frame_",
-        spriteStyle: "transform: scaleX(-1);",
-        spriteHeight: "132px"
-      },
-      guinea_pig: {
-        frameCount: 4,
-        basePath: "/images/guinea_pig/frame_",
-        spriteStyle: "transform: scaleX(1); height: auto;",
-        spriteHeight: "auto"
-      }
-    }
-
+    this.data3d = JSON.parse(document.getElementById("race-data").textContent)
+    elegirPista(this.data3d.pista)
+    this.myHorseId = this.data3d.myHorseId
+    this.pending = []
     this.setupWebSocket()
+    this.buildScene()
   }
 
   disconnect() {
+    clearInterval(this.vigia)
+    this.yendoAResultados = true // al irse de la página no se reintenta
     if (this.socket) this.socket.close()
-    if (this.animInterval) clearInterval(this.animInterval)
+    this.race?.stop()
   }
 
+  // ── Escena 3D ─────────────────────────────────────────────────────────────────────
+  async buildScene() {
+    // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
+    const [{ createRace }, { loadHorseModel }] = await Promise.all([
+      import("/prototipos/carrera3d/escena.js?v=21"),
+      import("/prototipos/carrera3d/caballo-pro.js")
+    ])
+    const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
+    const data = this.data3d
+    this.race = createRace({
+      participants: data.participants,
+      slots: data.capacity,
+      distance: data.distance,
+      horseModel,
+      myId: data.myHorseId,
+      showFps: false,
+      onCount: text => {
+        if (text !== "¡YA!") return sonar("cuenta", Number(text))
+        sonar("ya")
+        // Las flechas (lado dark) se activan recién con la carrera corriendo, si el jugador tiene caballo en ella.
+        document.dispatchEvent(new CustomEvent("carrera:inicio", { detail: { mio: !!this.myHorseId } }))
+      },
+      onCross: () => sonar("meta"),
+      onCelebrate: () => sonar("ganador"),
+      // Los resultados quedan en la misma pantalla, sobre la escena: ya no se cambia de página ni se reconecta.
+      onDone: () => { this.yendoAResultados = true; this.socket?.close() },
+      resultadosUrl: data.resultsUrl,
+      apuesta: data.bet,
+      pista: data.pista,
+      travesia: data.travesia
+    })
+    window.__sala = { race: this.race }
+    // Lo que llegó mientras cargaba la escena.
+    this.pending.splice(0).forEach(fn => fn())
+    if (data.favoritos) this.race.setFavoritos(data.favoritos)
+    // La música se agenda contra el ¡YA!, el mismo instante que la escena.
+    if (data.running) { this.race.startIn(data.secondsToStart ?? 0); programarMusica(data.secondsToStart ?? 0) }
+    // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
+    if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
+    this.race.run()
+    // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
+    await Promise.all([
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=3`, `/images/retratos/${e}.webp`, `/images/retratos/final-${e}.webp`])),
+      document.fonts.ready
+    ])
+    this.cargandoTarget.hidden = true
+  }
+
+  whenReady(fn) {
+    if (this.race) fn()
+    else this.pending.push(fn)
+  }
+
+  // ── Canal de la carrera ────────────────────────────────────────────────────────────
+  // Si se corta (o se cuelga: el servidor manda un ping cada 3 s), avisa "Reconectando…" y reintenta. Al volver,
+  // si la carrera terminó mientras tanto, pasa a resultados.
   setupWebSocket() {
     const wsUrl = (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/cable"
-    this.socket = new WebSocket(wsUrl)
+    const socket = new WebSocket(wsUrl)
+    this.socket = socket
     const identifier = JSON.stringify({ channel: "RaceChannel", race_id: this.raceIdValue })
+    this.ultimoMensaje = Date.now()
+    this.vigia ||= setInterval(() => {
+      if (this.socket?.readyState === WebSocket.OPEN && Date.now() - this.ultimoMensaje > 8000) this.socket.close()
+    }, 2000)
 
-    this.socket.onopen = () => {
-      this.socket.send(JSON.stringify({ command: "subscribe", identifier }))
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ command: "subscribe", identifier }))
+      if (this.desconectado) this.alReconectar()
+      this.desconectado = false
+      this.reintentos = 0
+      this.whenReady(() => this.race.setConectado(true))
     }
-
-    this.socket.onmessage = (event) => {
+    socket.onclose = () => {
+      if (socket !== this.socket || this.yendoAResultados) return
+      this.desconectado = true
+      this.whenReady(() => this.race.setConectado(false))
+      const espera = Math.min(5000, 1000 * 2 ** (this.reintentos || 0))
+      this.reintentos = (this.reintentos || 0) + 1
+      setTimeout(() => this.setupWebSocket(), espera)
+    }
+    socket.onmessage = event => {
+      this.ultimoMensaje = Date.now()
       const msg = JSON.parse(event.data)
       if (msg.type === "welcome" || msg.type === "ping" || msg.type === "confirm_subscription") return
       const data = msg.message
       if (!data) return
 
       if (data.type === "player_joined") {
-        const p = data.participant
-        this.addParticipant(p.username, p.horse_name, p.horse_id, p.profile_username)
+        this.addParticipant(data.participant)
       } else if (data.type === "race_started") {
-        this.onRaceStarted(data.participants)
+        if (data.favoritos) this.whenReady(() => this.race.setFavoritos(data.favoritos))
+        this.relinchar(data.favoritos)
+        this.onRaceStarted()
+      } else if (data.type === "impulso") {
+        // Alguien lanzó su poder (el jugador, otro o un apostador): arde y deja pisadas quemadas.
+        this.whenReady(() => this.race.encender(data.id, data.segundos))
       } else if (data.type === "progress") {
-        data.participants.forEach(p => this.moveHorse(p.id, p.position))
+        this.whenReady(() => this.race.tick(data.participants))
       } else if (data.type === "finished") {
-        this.onFinished(data.winner)
+        document.dispatchEvent(new CustomEvent("carrera:termino"))
+        // La ilustración animada de la pantalla final (la de tu caballo, o la del ganador si solo se mira) se baja ya.
+        const suyo = this.data3d.myHorseId ?? data.winner?.id
+        precargar([`/images/retratos/final-${ELEMENTOS[(Number(suyo) - 1) % ELEMENTOS.length]}-anim.webp`])
+        this.whenReady(() => this.race.finish(data.winner, data.pozo))
       }
     }
-
-    this.socket.onerror = () => console.error("WebSocket error")
+    socket.onerror = () => {}
   }
 
-  addParticipant(username, horseName, horseId, profileUsername) {
+  async alReconectar() {
+    // Resultados redirige a la sala si la carrera no terminó: si responde, terminó y nos perdimos el final.
+    const r = await fetch(this.data3d.resultsUrl, { redirect: "manual" }).catch(() => null)
+    if (r && r.ok) this.goToResults()
+  }
+
+  addParticipant(p) {
+    if (document.querySelector(`#participants-list [data-horse-id="${p.horse_id}"]`)) return
+    sonar("moneda")
+    // El elemento es del caballo (mismo cálculo que Horse.elemento_de): de ahí su color y su chibi.
+    const elemento = ELEMENTOS[(Number(p.horse_id) - 1) % ELEMENTOS.length]
     const div = document.createElement("div")
-    div.className = "participant-row"
-    const profileBtn = profileUsername
-      ? `<button class="profile-btn" data-action="click->race-lobby#openProfilePopup" data-username="${profileUsername}" title="Ver perfil">👤</button>`
-      : ""
-    div.innerHTML = `<span class="p-username">${username}</span><span class="p-horse">🐎 ${horseName}</span>${profileBtn}`
+    div.className = "participant-row recien"
+    div.dataset.horseId = p.horse_id
+    const color = `var(--caballo-${elemento})`
+    div.style.setProperty("--c", color)
+    const chibi = `/images/chibis/${elemento}.webp?v=3`
+    div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-horse nombre-caballo"></span><span class="p-username"></span>`
+    if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
+    div.querySelector(".p-username").textContent = `de ${p.username}`
+    div.querySelector(".p-horse").textContent = p.horse_name
+    if (p.profile_username) {
+      const button = document.createElement("button")
+      Object.assign(button, { className: "profile-btn", title: "Ver perfil", textContent: "👤" })
+      button.dataset.fx = "profile"
+      button.dataset.action = "click->race-lobby#openProfilePopup"
+      button.dataset.username = p.profile_username
+      div.append(button)
+    }
     this.participantsListTarget.appendChild(div)
 
-    document.querySelectorAll(`[data-horse-id="${horseId}"]`).forEach(el => el.remove())
+    // Ese caballo, y cualquiera de su mismo elemento, ya no se puede elegir ni sumar.
+    document.querySelectorAll(`.picker-card[data-horse-id="${p.horse_id}"], .picker-card[data-elemento="${elemento}"]`).forEach(el => el.remove())
 
     this.participantCountValue += 1
     this.playersCountTarget.textContent = `${this.participantCountValue}/${this.capacityValue} jugadores`
-
     const remaining = this.capacityValue - this.participantCountValue
-    if (remaining <= 0) {
-      this.statusBarTarget.textContent = "¡Sala lista!"
-      this.statusBarTarget.className = "ready"
-    } else {
-      this.statusBarTarget.textContent = `Esperando ${remaining} jugador${remaining === 1 ? "" : "es"} más…`
-    }
+    this.statusBarTarget.textContent = remaining <= 0 ? "¡Sala lista!" : `Esperando ${remaining} jugador${remaining === 1 ? "" : "es"} más…`
+    this.statusBarTarget.classList.toggle("ready", remaining <= 0)
+
+    // El caballo aparece en la largada.
+    this.whenReady(() => this.race.join({ id: p.horse_id, name: p.horse_name, username: p.username, element: elemento }))
   }
 
-  copyLink() {
+  copyLink(event) {
+    const button = event.currentTarget
     const input = document.getElementById("share-link")
-    input.select()
-    document.execCommand("copy")
+    navigator.clipboard?.writeText(input.value).catch(() => { input.select(); document.execCommand("copy") })
+    button.dataset.label ||= button.textContent
+    button.textContent = "¡Copiado!"
+    clearTimeout(this.copiedTimeout)
+    this.copiedTimeout = setTimeout(() => { button.textContent = button.dataset.label }, 1200)
   }
 
+  // ── Elegir caballo y sumar caballos: sin esperas, uno atrás de otro ────────────────────
   pickHorse(event) {
-    const horseId = event.currentTarget.dataset.horseId
     const card = event.currentTarget
-    if (card.classList.contains("taken")) return
-
-    fetch(`/races/${this.raceSlugValue}/participants`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
-      body: JSON.stringify({ horse_id: horseId })
-    })
-      .then(r => r.json())
+    if (card.classList.contains("picking") || this.pickingHorse) return
+    this.pickingHorse = true
+    card.classList.add("picking")
+    this.postParticipant({ horse_id: card.dataset.horseId })
       .then(data => {
-        if (data.race_started) {
-          window.location.href = "/races/" + this.raceSlugValue + "/live"
-        } else if (data.ok) {
-          this.horsePickerTarget.style.display = "none"
-        } else {
-          alert(data.error || "No se pudo elegir ese caballo")
-          card.classList.add("taken")
+        if (!data.ok) throw new Error(data.error || "No se pudo elegir ese caballo")
+        this.horsePickerTarget.remove()
+        this.myHorseId = data.participant.horse_id
+        this.tuCaballoNombreTarget.textContent = data.participant.horse_name
+        // Si el aviso de llegada ya pintó su fila, su color es el de tu caballo.
+        const row = this.participantsListTarget.querySelector(`[data-horse-id="${this.myHorseId}"]`)
+        if (row) {
+          this.tuCaballoTarget.style.setProperty("--c", row.style.getPropertyValue("--c"))
+          this.tuChibiTarget.src = row.querySelector(".p-chibi").src
         }
+        this.tuCaballoTarget.hidden = false
+        this.whenReady(() => this.race.setMine(data.participant.horse_id))
       })
-      .catch(() => alert("Error de red, intentá de nuevo"))
+      .catch(error => { card.classList.add("taken"); this.aviso(error.message) })
+      .finally(() => { this.pickingHorse = false; card.classList.remove("picking") })
   }
 
   addApostador(event) {
-    const horseId = event.currentTarget.dataset.horseId
-    const nameInput = document.getElementById("apostador-name-input")
-    if (!nameInput) return
-    const name = nameInput.value.trim()
-    if (!name) {
-      nameInput.focus()
-      nameInput.style.borderColor = "#b91c1c"
-      setTimeout(() => { nameInput.style.borderColor = "" }, 1500)
-      return
-    }
+    const card = event.currentTarget
+    if (card.classList.contains("picking")) return
+    card.classList.add("picking")
+    const input = document.getElementById("apostador-name-input")
+    const typed = input?.value.trim()
+    if (input) input.value = ""
+    const name = typed || this.nextBettorName()
+    this.postParticipant({ horse_id: card.dataset.horseId, guest_name: name })
+      .then(data => { if (!data.ok) throw new Error(data.error || "No se pudo sumar ese caballo") })
+      .catch(error => { card.classList.remove("picking"); this.aviso(error.message) })
+  }
 
-    fetch(`/races/${this.raceSlugValue}/participants`, {
+  nextBettorName() {
+    this.bettorNames ||= [...this.bettorNamesValue]
+    return this.bettorNames.shift()
+  }
+
+  postParticipant(body) {
+    return fetch(`/races/${this.raceSlugValue}/participants`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": this.csrfToken() },
-      body: JSON.stringify({ horse_id: horseId, guest_name: name })
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) {
-          nameInput.value = ""
-        } else {
-          alert(data.error || "No se pudo agregar el apostador")
-        }
-      })
-      .catch(() => alert("Error de red, intentá de nuevo"))
+      body: JSON.stringify(body)
+    }).then(r => r.json())
   }
 
   startRace() {
     const btn = this.btnStartTarget
     btn.disabled = true
     btn.textContent = "Iniciando…"
-    fetch(`/races/${this.raceSlugValue}/start`, {
-      method: "POST",
-      headers: { "X-CSRF-Token": this.csrfToken() }
-    })
+    fetch(`/races/${this.raceSlugValue}/start`, { method: "POST", headers: { "X-CSRF-Token": this.csrfToken() } })
       .then(r => r.json())
       .then(data => {
-        if (data.race_started) {
-          window.location.href = "/races/" + this.raceSlugValue + "/live"
-        } else if (data.error) {
-          btn.disabled = false
-          btn.textContent = "🏁 Comenzar carrera"
-          alert(data.error)
-        }
+        if (data.error) throw new Error(data.error)
+        this.onRaceStarted()
       })
-      .catch(() => {
-        btn.disabled = false
-        btn.textContent = "🏁 Comenzar carrera"
-      })
+      .catch(error => { btn.disabled = false; btn.textContent = "Iniciar"; this.aviso(error.message) })
   }
 
+  // ── Largada: la sala se corre con un corte seco y la escena pasa al preludio ─────────────
+  onRaceStarted() {
+    if (this.started) return
+    this.started = true
+    // El mundo se detiene: el sonido crece y el corte cruza justo con el golpe.
+    sonarCuandoSePueda("tiempo")
+    const cut = this.corteTarget
+    setTimeout(() => {
+      cut.classList.remove("ya")
+      void cut.offsetWidth
+      cut.classList.add("ya")
+    }, GOLPE_TIEMPO * 1000 - 160)
+    // El cambio de fase, justo cuando el bloque tapa la pantalla.
+    setTimeout(() => {
+      document.documentElement.dataset.fase = "carrera"
+      this.element.classList.add("en-carrera")
+    }, GOLPE_TIEMPO * 1000)
+    this.whenReady(() => { this.race.startIn(13); programarMusica(13) })
+  }
+
+  // Cada favorito se presenta con su relincho, justo cuando la escena se congela en su tarjeta (escena.js: FAVORITOS).
+  relinchar(favoritos) {
+    (favoritos || []).slice(0, 3).forEach((id, i) => {
+      setTimeout(() => sonar("relincho", Number(id)), (2.2 + i * 2.6 + 0.4) * 1000)
+    })
+  }
+
+  goToResults() {
+    this.yendoAResultados = true
+    const url = this.data3d.resultsUrl
+    // La transición entre páginas (view transitions) la hace un fundido, sin corte.
+    location.assign(url)
+  }
+
+  aviso(text) {
+    this.statusBarTarget.textContent = text
+    this.statusBarTarget.classList.add("error")
+    clearTimeout(this.avisoTimeout)
+    this.avisoTimeout = setTimeout(() => this.statusBarTarget.classList.remove("error"), 2500)
+  }
+
+  // ── Perfil emergente ───────────────────────────────────────────────────────────────
   openProfilePopup(event) {
     const username = event.currentTarget.dataset.username
     this.profileOverlayTarget.classList.add("open")
@@ -189,9 +323,7 @@ export default class extends Controller {
     this.ppFavsTarget.innerHTML = ""
     this.ppAvatarWrapTarget.innerHTML = ""
 
-    fetch(`/profiles/${username}.json`, {
-      headers: { "X-CSRF-Token": this.csrfToken() }
-    })
+    fetch(`/profiles/${username}.json`, { headers: { "X-CSRF-Token": this.csrfToken() } })
       .then(r => r.json())
       .then(data => {
         this.profilePopupTarget.classList.remove("loading")
@@ -213,84 +345,8 @@ export default class extends Controller {
   }
 
   closePopupBtn() {
-    this.profileOverlayTarget.classList.remove("open")
-  }
-
-  onRaceStarted(_participants) {
-    window.location.href = "/races/" + this.raceSlugValue + "/live"
-  }
-
-  onFinished(winner) {
-    this.stopAnimation()
-    const banner = this.winnerBannerTarget
-    banner.textContent = `🏆 Ganador: ${winner.username} (${winner.name})`
-    banner.style.display = "block"
-    banner.style.animation = "pop 0.3s ease-out"
-  }
-
-  preloadFrames() {
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    for (let i = 1; i <= cfg.frameCount; i++) {
-      (new Image()).src = cfg.basePath + i + ".png"
-    }
-  }
-
-  renderTrack(participants) {
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    this.trackTarget.innerHTML = participants.map((p, i) => {
-      const hue = this.hueRotations[i % this.hueRotations.length]
-      return `<div class="lane-row">
-        <span class="lane-label" title="${p.username} — ${p.name}">${p.username}</span>
-        <div class="track-wrap" id="wrap-${p.id}">
-          <div class="track-bg"></div>
-          <img class="horse-sprite" id="horse-${p.id}"
-               src="${cfg.basePath}1.png"
-               style="filter: hue-rotate(${hue}deg); ${cfg.spriteStyle}">
-        </div>
-      </div>`
-    }).join("")
-  }
-
-  startAnimation() {
-    if (this.animInterval) return
-    const cfg = this.animalCfg[this.animalTypeValue] || this.animalCfg.horse
-    this.animInterval = setInterval(() => {
-      this.frameIndex = (this.frameIndex + 1) % cfg.frameCount
-      document.querySelectorAll(".horse-sprite").forEach(el => {
-        el.src = cfg.basePath + (this.frameIndex + 1) + ".png"
-      })
-    }, 110)
-  }
-
-  stopAnimation() {
-    clearInterval(this.animInterval)
-    this.animInterval = null
-  }
-
-  moveHorse(horseId, position) {
-    const img = document.getElementById("horse-" + horseId)
-    const wrap = document.getElementById("wrap-" + horseId)
-    if (!img || !wrap) return
-    const maxLeft = wrap.offsetWidth - img.offsetWidth
-    img.style.left = Math.max(0, position / 100 * maxLeft) + "px"
-  }
-
-  showCountdown(callback) {
-    const el = this.countdownTarget
-    el.style.display = "block"
-    const steps = ["3", "2", "1", "🏁 GO!"]
-    let i = 0
-    el.textContent = steps[0]
-    const interval = setInterval(() => {
-      i++
-      if (i < steps.length) {
-        el.textContent = steps[i]
-      } else {
-        clearInterval(interval)
-        el.style.display = "none"
-        callback()
-      }
-    }, 1000)
+    // Se cierra después de la animación de clic de la cruz, que si no queda oculta antes de empezar.
+    setTimeout(() => this.profileOverlayTarget.classList.remove("open"), CLOSE_ANIMATION_MS)
   }
 
   csrfToken() {

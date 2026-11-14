@@ -1,0 +1,57 @@
+<% content_for :title, "#{@race.slug} — Resultados" %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/race-results.css?v=9">
+<% end %>
+
+<%
+  medals = { 1 => "🥇", 2 => "🥈", 3 => "🥉" }
+  winner = @results.first
+  my_position = @my_participant && @results.index(@my_participant) + 1
+  balance = @my_participant && @my_participant.payout - @my_participant.stake
+%>
+
+<%# Resultados, del lado light. El ganador en su versión fuerte (su ilustración); el resto, chibis. Cada caballo lleva
+    a su ficha. %>
+<div class="results-wrap">
+  <header class="results-hero" style="--portada: url('/images/retratos/victoria-<%= elemento_de(winner.horse_id) %>.webp'); --portada-anim: url('/images/retratos/victoria-<%= elemento_de(winner.horse_id) %>-anim.webp')">
+    <%= link_to caballo_path(winner.horse_id), class: "results-hero-link", data: { controller: "corte", action: "click->corte#ir" }, aria: { label: "Ver la ficha de #{winner.horse_name}" } do %><% end %>
+    <div class="results-hero-texto">
+      <h1><%= my_position == 1 ? "🏆 ¡Ganaste!" : "🏆 Ganó #{winner.display_name}" %></h1>
+      <% como = Caballo.como_gano(@race) %>
+      <p class="results-winner-horse">con <%= winner.horse_name %><%= " · #{como.downcase}" unless como == "Ganó" %></p>
+      <% if my_position && my_position > 1 %><p class="results-my-position">Llegaste en el puesto <%= my_position %></p><% end %>
+    </div>
+  </header>
+
+  <div class="results-resumen">
+    <% if balance %>
+      <div class="dato <%= balance.negative? ? 'perdiste' : 'ganaste' %>"><small><%= balance.negative? ? "Perdiste" : "Ganaste" %></small><b><%= balance.negative? ? "−" : "+" %><%= usd(balance.abs) %></b></div>
+    <% end %>
+    <div class="dato"><small>Pozo</small><b><%= usd(@race.pozo) %></b></div>
+    <div class="dato"><small>Premio</small><b><%= usd(winner.payout) %><%= " · x#{Race::PREMIO_A_TIEMPO}" if @race.largada == "a_tiempo" %></b></div>
+    <div class="dato"><small><%= @race.travesia? ? "Travesía" : "Distancia" %></small><b><%= @race.travesia? ? "#{@race.travesia_dias} #{@race.travesia_dias == 1 ? 'día' : 'días'}" : "#{@race.distance} m" %></b></div>
+    <% if @race.largada == "antes" %><div class="dato"><small>Inicio anticipado</small><b>+<%= usd(Race::BONO_ANTICIPADO) %> c/u</b></div><% end %>
+  </div>
+
+  <div class="results-actions">
+    <%= link_to "← Volver al inicio", races_path, class: "results-back", data: { fx: "back" } %>
+    <%= button_to "Jugar otra", jugar_path, class: "results-new", form_class: "results-jugar", data: { fx: "start" } %>
+  </div>
+
+  <ol class="results-list">
+    <% @results.each.with_index(1) do |participant, position| %>
+      <li>
+        <%= link_to caballo_path(participant.horse_id), class: "results-row#{' is-me' if participant == @my_participant}", style: "--c: #{color_de(participant.horse_id, tinta: true)}", data: { controller: "corte", action: "click->corte#ir" } do %>
+          <span class="results-position"><%= medals[position] || "#{position}.º" %></span>
+          <% if position == 1 %>
+            <%= retrato_de(participant.horse_id, clase: "results-retrato") %>
+          <% else %>
+            <%= chibi_de(participant.horse_id, clase: "results-chibi") %>
+          <% end %>
+          <span class="results-horse nombre-caballo"><%= participant.horse_name %></span>
+          <span class="results-player"><%= participant.display_name %><% if participant == @my_participant %> <span class="chip-tinta">tú</span><% end %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+</div>

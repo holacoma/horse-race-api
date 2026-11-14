@@ -1,0 +1,30 @@
+[
+  {
+    "momento": "inicio", "nombre": "t4-metal-oscuro", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 3101,
+    "tags": "instrumental dark heavy metal, fast and aggressive racing theme, menacing catchy lead guitar melody hook loud and up front, low tuned heavy distorted guitars, rhythm guitar with crushing chugs and long ominous pauses, pounding double kick drums, heavy bass, sinister minor key, intense, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t4-metal-oscuro-b", "bpm": 176, "segundos": 40, "tono": "E minor", "semilla": 3102,
+    "tags": "instrumental dark heavy metal, fast and aggressive racing theme, menacing catchy lead guitar melody hook loud and up front, low tuned heavy distorted guitars, rhythm guitar with crushing chugs and long ominous pauses, pounding double kick drums, heavy bass, sinister minor key, intense, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t4-metal-pesado-dropd", "bpm": 168, "segundos": 40, "tono": "D minor", "semilla": 3201,
+    "tags": "instrumental heavy groove metal, drop D tuning, thick crushing low riffs, dark memorable lead guitar melody over the riff, rhythm guitar stops and breathes between heavy hits, huge pounding drums, distorted bass, brooding and menacing, dark minor key, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t4-metal-pesado-dropd-b", "bpm": 168, "segundos": 40, "tono": "D minor", "semilla": 3202,
+    "tags": "instrumental heavy groove metal, drop D tuning, thick crushing low riffs, dark memorable lead guitar melody over the riff, rhythm guitar stops and breathes between heavy hits, huge pounding drums, distorted bass, brooding and menacing, dark minor key, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t4-metal-gotico", "bpm": 176, "segundos": 40, "tono": "C# minor", "semilla": 3301,
+    "tags": "instrumental dark gothic metal, fast, haunting catchy lead guitar melody in harmonic minor, heavy low distorted rhythm guitars with long ominous rests, dark choir and church organ in the background, thunderous double kick drums, demonic, menacing, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t4-meta-oscura", "bpm": 120, "segundos": 11, "tono": "E minor", "semilla": 3401,
+    "tags": "instrumental dark heavy metal victory stinger, short, powerful menacing lead guitar melody, low heavy power chords, huge drum fill and cymbal crash, ends on a long ringing low chord, dark minor key, no synthesizers, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t4-meta-oscura-b", "bpm": 120, "segundos": 11, "tono": "E minor", "semilla": 3402,
+    "tags": "instrumental dark heavy metal victory stinger, short, powerful menacing lead guitar melody, low heavy power chords, huge drum fill and cymbal crash, ends on a long ringing low chord, dark minor key, no synthesizers, no vocals"
+  }
+]
