@@ -25,6 +25,11 @@ Rails.application.routes.draw do
 
   resources :profiles, param: :username, only: [ :show ]
 
+  # Los bots del club: leaderboard y quebrados (a los que se les dona).
+  resources :bots, only: [ :index ] do
+    post :donar, on: :member
+  end
+
   get   "/favorito",    to: "favoritos#edit",   as: :favorito
   patch "/favorito",    to: "favoritos#update"
   get   "/caballos/:id", to: "caballos#show",   as: :caballo

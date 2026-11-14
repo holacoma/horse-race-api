@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_14_030000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -223,6 +223,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_200000) do
     t.integer "favorite_horse_id"
     t.boolean "admin", default: false, null: false
     t.boolean "bot", default: false, null: false
+    t.datetime "quebrado_desde"
     t.index ["balance"], name: "index_users_on_balance"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end
