@@ -16,7 +16,7 @@ class SessionsController < WebController
       session[:user_id] = user.id
       redirect_to root_path
     else
-      flash[:error] = "Ingresá un nombre para continuar"
+      flash[:error] = "Ingresa un nombre para continuar"
       redirect_to login_path
     end
   end

@@ -1,0 +1,30 @@
+<% content_for :title, "Club Race — Elige tu favorito" %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/favoritos.css?v=1">
+<% end %>
+
+<%# Elegir favorito, del lado light: los 36 caballos con su chibi, de a tres por elemento, el tuyo marcado. %>
+<section class="elegir" data-controller="buscador">
+  <header class="elegir-cabeza">
+    <div>
+      <h1>Elige tu favorito</h1>
+      <p class="subtitle">Es el caballo que te espera en el inicio y con el que entras en «Jugar ya». Toca otro para cambiarlo.</p>
+    </div>
+    <input type="text" placeholder="Buscar caballo por nombre…" aria-label="Buscar caballo" data-action="input->buscador#filtrar">
+  </header>
+  <div class="elegir-grilla">
+    <% @caballos.each do |horse| %>
+      <% suyo = current_user.favorite_horse_id == horse.id %>
+      <%= form_with url: favorito_path, method: :patch, class: "elegir-form", data: { buscador_target: "item", nombre: horse.name.downcase } do %>
+        <%= hidden_field_tag :horse_id, horse.id %>
+        <button type="submit" class="elegir-caballo<%= ' es-favorito' if suyo %>" style="--c: <%= color_de(horse.id, tinta: true) %>" data-fx="join"<%= ' aria-current="true"'.html_safe if suyo %>>
+          <%= chibi_de(horse.id, clase: "elegir-chibi") %>
+          <b><%= horse.name %></b>
+          <span class="elem"><%= horse.elemento.capitalize %></span>
+          <% if suyo %><span class="chip-tinta">Tu favorito</span><% end %>
+        </button>
+      <% end %>
+    <% end %>
+  </div>
+  <p class="elegir-vacio" data-buscador-target="vacio" hidden>Ningún caballo se llama así.</p>
+</section>

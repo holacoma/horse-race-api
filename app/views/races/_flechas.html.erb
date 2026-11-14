@@ -1,0 +1,19 @@
+<%# El poder de la carrera intensa (lado dark). A la izquierda rotan tres cartas (corta, media, larga); la barra
+    espaciadora elige la que está al frente. Sus flechas cargan el poder (teclado, o deslizando el dedo en el
+    teléfono). Cargado, la barra espaciadora lo lanza: el caballo arde y acelera. En el teléfono, elegir y lanzar es
+    con el botón del centro. La carta decide cuánto esperar para lanzar el siguiente. La guía aparece solo en la
+    primera carrera. Solo con la carrera corriendo (desde el ¡YA!) y si el jugador tiene caballo en ella.
+    En el banco de pruebas (prueba: true) no hay servidor: el lanzamiento queda en la página. %>
+<% prueba = local_assigns.fetch(:prueba, false) %>
+<div class="poder" data-controller="flechas" data-flechas-url-value="<%= prueba ? "" : race_impulso_path(race) %>" data-flechas-prueba-value="<%= prueba %>" hidden>
+  <div class="poder-mazo">
+    <div class="poder-cartas" data-flechas-target="cartas"></div>
+    <div class="poder-carga" aria-label="poder cargado"><i data-flechas-target="carga"></i></div>
+  </div>
+  <div class="poder-accion" data-flechas-target="accion"><kbd>Espacio</kbd><span data-flechas-target="accionTexto">elige una carta</span></div>
+  <div class="poder-espera" data-flechas-target="espera" hidden><i></i></div>
+  <div class="poder-guia" data-flechas-target="guia" hidden><b>¡Impulsa a tu caballo!</b><span data-flechas-target="guiaTexto"></span></div>
+  <div class="poder-gesto" data-flechas-target="gesto" aria-hidden="true" hidden><i></i></div>
+  <button type="button" class="poder-boton" data-flechas-target="boton" data-action="flechas#espacio">Elegir</button>
+  <div class="poder-grito" data-flechas-target="grito" aria-hidden="true">¡A arder!</div>
+</div>

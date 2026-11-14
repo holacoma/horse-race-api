@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -34,6 +34,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_120000) do
     t.bigint "user_id"
     t.integer "stake", default: 0, null: false
     t.integer "payout", default: 0, null: false
+    t.float "travesia_offset", default: 0.0, null: false
+    t.integer "impulsos", default: 0, null: false
+    t.datetime "ultimo_impulso_at"
+    t.integer "ultimas_flechas"
     t.index ["race_id", "horse_id"], name: "index_participants_on_race_id_and_horse_id", unique: true
     t.index ["race_id", "user_id"], name: "index_participants_on_race_id_and_user_id", unique: true
     t.index ["race_id"], name: "index_participants_on_race_id"
@@ -54,6 +58,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_120000) do
     t.datetime "updated_at", null: false
     t.string "winner_name"
     t.integer "bet", default: 40, null: false
+    t.string "kind", default: "carrera", null: false
+    t.string "pista", default: "pradera", null: false
+    t.datetime "starts_at"
+    t.datetime "ends_at"
+    t.float "win_margin"
+    t.integer "winner_low_rank"
+    t.string "largada"
+    t.index ["kind", "status"], name: "index_races_on_kind_and_status"
     t.index ["slug"], name: "index_races_on_slug", unique: true
   end
 
@@ -208,6 +220,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_120000) do
     t.datetime "updated_at", null: false
     t.string "username", null: false
     t.integer "balance", default: 1000, null: false
+    t.integer "favorite_horse_id"
+    t.boolean "admin", default: false, null: false
+    t.boolean "bot", default: false, null: false
     t.index ["balance"], name: "index_users_on_balance"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end

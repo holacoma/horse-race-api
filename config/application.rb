@@ -34,6 +34,10 @@ module HorseRaceApi
     # in config/environments, which are processed later.
     #
     # config.time_zone = "Central Time (US & Canada)"
+    # Los jugadores están en Chile: las temporadas y los horarios de largada se cuentan en su hora.
+    config.time_zone = "America/Santiago"
+    config.i18n.default_locale = :es
+    config.i18n.available_locales = [ :es, :en ]
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Only loads a smaller set of middleware suitable for API only apps.

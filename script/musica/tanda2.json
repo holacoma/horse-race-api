@@ -1,0 +1,39 @@
+[
+  {
+    "momento": "inicio", "nombre": "t2-guitarra-gancho", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1101,
+    "tags": "instrumental, late 90s futuristic racing game theme, melody-driven, catchy memorable lead guitar hook riff up front and loud, bright major key, rhythm guitar plays sparse power chord stabs with long rests and lots of space, strong bright synth brass and synth lead doubling the hook, light bass, tight fast rock drums, uplifting high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-guitarra-gancho-b", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1102,
+    "tags": "instrumental, late 90s futuristic racing game theme, melody-driven, catchy memorable lead guitar hook riff up front and loud, bright major key, rhythm guitar plays sparse power chord stabs with long rests and lots of space, strong bright synth brass and synth lead doubling the hook, light bass, tight fast rock drums, uplifting high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-sinte-gancho", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1201,
+    "tags": "instrumental, late 90s futuristic racing game theme, melody-driven, catchy memorable hook played by a loud bright synth lead, answered by an overdriven lead guitar riff, bright major key, rhythm guitar plays short stabs with long rests, big 90s rompler synth brass and FM synth bass, light low end, tight fast drums, uplifting high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-sinte-gancho-b", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1202,
+    "tags": "instrumental, late 90s futuristic racing game theme, melody-driven, catchy memorable hook played by a loud bright synth lead, answered by an overdriven lead guitar riff, bright major key, rhythm guitar plays short stabs with long rests, big 90s rompler synth brass and FM synth bass, light low end, tight fast drums, uplifting high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-sinte-fuerte", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1301,
+    "tags": "instrumental, late 90s futuristic racing game theme, synth-heavy, catchy memorable lead melody on a powerful bright synth lead, stacked synth brass stabs, fast arpeggiated synths, electric guitar only for occasional power chord accents with long rests, bright major key, light bass, punchy fast drums, euphoric high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-sinte-fuerte-b", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1302,
+    "tags": "instrumental, late 90s futuristic racing game theme, synth-heavy, catchy memorable lead melody on a powerful bright synth lead, stacked synth brass stabs, fast arpeggiated synths, electric guitar only for occasional power chord accents with long rests, bright major key, light bass, punchy fast drums, euphoric high speed, video game music, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t2-guitarra-gancho-secciones", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 1101,
+    "letra": "[Intro - synth brass stabs and drum fill]\n\n[Main Theme - catchy lead guitar hook, rhythm guitar resting]\n\n[Break - synth lead answers, long pause in the guitars]\n\n[Main Theme - lead guitar and synth in unison]",
+    "tags": "instrumental, late 90s futuristic racing game theme, melody-driven, catchy memorable lead guitar hook riff up front and loud, bright major key, rhythm guitar plays sparse power chord stabs with long rests and lots of space, strong bright synth brass and synth lead doubling the hook, light bass, tight fast rock drums, uplifting high speed, video game music, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t2-meta-fanfarria", "bpm": 123, "segundos": 11, "tono": "E major", "semilla": 1401,
+    "tags": "instrumental, short goal fanfare, bright catchy triumphant melody, lead guitar and synth brass in unison, rising run into a big final chord held to the end, drum roll and cymbal crash, light bass, late 90s racing game, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t2-meta-fanfarria-sinte", "bpm": 123, "segundos": 11, "tono": "E major", "semilla": 1402,
+    "tags": "instrumental, short goal fanfare, bright catchy triumphant melody on loud synth brass and synth lead, guitar power chord accents, rising run into a big final chord held to the end, drum roll and cymbal crash, light bass, late 90s racing game, no vocals"
+  }
+]

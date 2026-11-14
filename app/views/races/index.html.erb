@@ -1,16 +1,96 @@
 <% content_for :title, "Club Race" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-list.css?v=12">
+  <link rel="stylesheet" href="/css/races-list.css?v=13">
+  <link rel="stylesheet" href="/css/races-new.css?v=4">
+  <link rel="stylesheet" href="/css/slot-machine.css?v=3">
 <% end %>
 
-<%# Dos cosas para hacer, nada más: jugar ya, o elegir una sala de las abiertas (o armar una para tus amigos). %>
+<%# Dos cosas para hacer, nada más: jugar ya, o elegir una sala de las abiertas (o armar una para tus amigos).
+    Alrededor, lo que está pasando en el club: tu favorito, la temporada, lo recién corrido y los más ricos. %>
 <%= render "shared/pradera" %>
-<section class="inicio">
+<section class="inicio" data-controller="cuenta">
   <div class="inicio-hero">
     <h1 class="inicio-marca brilla-texto" data-texto="Club Race">Club Race</h1>
     <p class="inicio-regla">La primera regla del Club Race es: no se habla del Club Race.</p>
     <%= button_to "Jugar ya", jugar_path, class: "btn-jugar brilla", form_class: "inicio-jugar", data: { fx: "start" } %>
-    <%= link_to "Armar una sala para tus amigos", new_race_path, class: "inicio-crear", data: { fx: "create" } %>
+    <button type="button" class="inicio-crear" data-fx="create" onclick="document.getElementById('armar-sala').showModal()">Armar una sala para tus amigos</button>
+
+    <% if @favorito %>
+      <% rank = @temporada.puesto_de(@favorito.id) %>
+      <div class="tu-favorito" style="--c: <%= color_de(@favorito.id, tinta: true) %>">
+        <%= link_to caballo_path(@favorito.id), class: "tu-favorito-link", data: { controller: "corte", action: "click->corte#ir" }, aria: { label: "Ver la ficha de #{@favorito.name}" } do %>
+          <%= chibi_de(@favorito.id, clase: "fav-chibi") %>
+          <span class="chip-tinta">Tu favorito</span>
+          <b><%= @favorito.name %></b>
+          <span class="datos"><span>🏆 <%= @favorito.victorias %> <%= @favorito.victorias == 1 ? "victoria" : "victorias" %></span><span><%= rank ? "#{rank}.º en la temporada" : "sin carreras en la temporada" %></span></span>
+        <% end %>
+        <%= link_to "Cambiar", favorito_path, class: "fav-cambiar", data: { fx: "nav" } %>
+      </div>
+    <% else %>
+      <%= link_to favorito_path, class: "tu-favorito sin-favorito", data: { fx: "nav" } do %>
+        <span class="chip-tinta">Tu favorito</span>
+        <b>Elige tu caballo</b>
+        <span class="datos"><span>Te espera aquí y corre contigo en «Jugar ya»</span></span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="inicio-salas">
+    <% lider = @temporada.lider %>
+    <div class="temporada">
+      <b>Temporada <%= @temporada.numero %></b>
+      <span class="dias" aria-label="día <%= @temporada.dia %> de 5"><% 5.times do |i| %><i class="<%= 'pasado' if i + 1 < @temporada.dia %><%= 'hoy' if i + 1 == @temporada.dia %>"></i><% end %></span>
+      <span>quedan <%= @temporada.dias_restantes %> <%= @temporada.dias_restantes == 1 ? "día" : "días" %></span>
+      <span class="lider"><%= lider ? "va primero: #{lider.name}" : "nadie ganó todavía" %></span>
+    </div>
+
+    <h2>Salas abiertas</h2>
+    <% if @races.empty? %>
+      <p class="empty-state">No hay salas abiertas. Con «Jugar ya» abres la primera.</p>
+    <% else %>
+      <div class="rooms-grid">
+        <% @races.each do |race| %>
+          <% participants = race.participants.sort_by(&:created_at) %>
+          <% alcanza = race.bet <= @saldo %>
+          <%= link_to race_path(race), class: ["room-card", ("sin-saldo" unless alcanza)], data: { fx: "join" } do %>
+            <span class="room-slug"><%= "🌄 " if race.travesia? %><%= race.slug %></span>
+            <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.travesia? ? "travesía de #{race.travesia_dias} #{race.travesia_dias == 1 ? 'día' : 'días'}" : "#{race.distance} m" %> · apuesta <%= usd(race.bet) %> · <%= Race::PISTAS[race.pista] %></span>
+            <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
+              <% race.capacity.times do |i| %>
+                <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
+              <% end %>
+              <% if (segundos = race.segundos_para_largar) %>
+                <em data-cuenta-target="reloj" data-hasta="<%= (Time.current + segundos).to_i %>" data-prefijo="<%= race.travesia? ? 'intensa en' : 'inicia en' %>"><%= race.travesia? ? "intensa en" : "larga en" %> <%= segundos / 60 %>:<%= format("%02d", segundos % 60) %></em>
+              <% end %>
+            </span>
+            <span class="room-unirse"><%= alcanza ? "Unirse" : "No te alcanza" %></span>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="inicio-lado">
+    <div>
+      <h2>Recién corridas</h2>
+      <% if @recientes.empty? %>
+        <p class="empty-state">Todavía no terminó ninguna carrera.</p>
+      <% else %>
+        <ol class="ultimas">
+          <% @recientes.each do |race| %>
+            <% ganador = race.results.first %>
+            <li>
+              <%= link_to caballo_path(ganador.horse_id), data: { controller: "corte", action: "click->corte#ir" } do %>
+                <%= chibi_de(ganador.horse_id, clase: "ultimas-chibi") %>
+                <b><%= ganador.horse_name %></b>
+                <span><%= ganador.user_id && ganador.payout.positive? ? "#{ganador.display_name} ganó #{usd(ganador.payout)}" : "ganó #{ganador.display_name}" %> · hace <%= time_ago_in_words(race.finished_at) %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ol>
+      <% end %>
+    </div>
+
     <%# Leaderboard: los que más plata tienen. %>
     <div class="inicio-ranking">
       <h2>Los más ricos</h2>
@@ -22,39 +102,19 @@
             <li class="<%= 'tu' if user == current_user %>">
               <b><%= puesto %>.º</b>
               <%= link_to user.username, profile_path(user.username), class: "ranking-nombre" %>
+              <span><% if user == current_user %><span class="chip-tinta">tú</span><% end %></span>
               <span class="ranking-saldo"><%= usd(user.balance) %></span>
             </li>
           <% end %>
         </ol>
       <% end %>
       <%= link_to "Ver el ranking completo", ranking_path, class: "ranking-mas", data: { fx: "nav" } %>
-      <% if current_user.guest? %><p class="ranking-nota">Entrá con Google para aparecer en el ranking.</p><% end %>
+      <% if current_user.guest? %><p class="ranking-nota">Entra con Google para aparecer en el ranking.</p><% end %>
     </div>
   </div>
-
-  <div class="inicio-salas">
-    <h2>Salas abiertas</h2>
-    <% if @races.empty? %>
-      <p class="empty-state">No hay salas abiertas. Con "Jugar ya" abrís la primera.</p>
-    <% else %>
-      <div class="rooms-grid">
-        <% @races.each do |race| %>
-          <% participants = race.participants.sort_by(&:created_at) %>
-          <% alcanza = race.bet <= @saldo %>
-          <%= link_to race_path(race), class: ["room-card", ("sin-saldo" unless alcanza)], data: { fx: "join" } do %>
-            <span class="room-slug"><%= race.slug %></span>
-            <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.distance %> m · apuesta <%= usd(race.bet) %></span>
-            <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
-              <% race.capacity.times do |i| %>
-                <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
-              <% end %>
-            </span>
-            <span class="room-unirse"><%= alcanza ? "Unirse" : "No te alcanza" %></span>
-          <% end %>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
-
 </section>
 
+<%# Armar una sala: un panel sobre el inicio (en el teléfono, a pantalla completa). %>
+<dialog id="armar-sala" class="armar-dialogo" aria-labelledby="armar-titulo">
+  <%= render "races/formulario", race: @nueva, room_name: @room_name, en_dialogo: true %>
+</dialog>

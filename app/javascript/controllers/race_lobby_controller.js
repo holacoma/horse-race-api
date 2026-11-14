@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { sonar, sonarCuandoSePueda, GOLPE_TIEMPO } from "sonidos"
+import { sonar, sonarCuandoSePueda, programarMusica, GOLPE_TIEMPO, elegirPista } from "sonidos"
 
 const CLOSE_ANIMATION_MS = 150
 // Mismo orden que ELEMENTS en public/prototipos/carrera3d/caballo-pro.js y que RacesHelper: el color es el del carril.
@@ -28,6 +28,7 @@ export default class extends Controller {
 
   connect() {
     this.data3d = JSON.parse(document.getElementById("race-data").textContent)
+    elegirPista(this.data3d.pista)
     this.myHorseId = this.data3d.myHorseId
     this.pending = []
     this.setupWebSocket()
@@ -45,7 +46,7 @@ export default class extends Controller {
   async buildScene() {
     // Solo en esta página: three.js y el modelo se cargan acá, no en el resto del juego.
     const [{ createRace }, { loadHorseModel }] = await Promise.all([
-      import("/prototipos/carrera3d/escena.js?v=18"),
+      import("/prototipos/carrera3d/escena.js?v=21"),
       import("/prototipos/carrera3d/caballo-pro.js")
     ])
     const horseModel = await loadHorseModel().catch(error => { console.error(error); return null })
@@ -57,25 +58,33 @@ export default class extends Controller {
       horseModel,
       myId: data.myHorseId,
       showFps: false,
-      onCount: text => (text === "¡YA!" ? sonar("ya") : sonar("cuenta", Number(text))),
+      onCount: text => {
+        if (text !== "¡YA!") return sonar("cuenta", Number(text))
+        sonar("ya")
+        // Las flechas (lado dark) se activan recién con la carrera corriendo, si el jugador tiene caballo en ella.
+        document.dispatchEvent(new CustomEvent("carrera:inicio", { detail: { mio: !!this.myHorseId } }))
+      },
       onCross: () => sonar("meta"),
       onCelebrate: () => sonar("ganador"),
       // Los resultados quedan en la misma pantalla, sobre la escena: ya no se cambia de página ni se reconecta.
       onDone: () => { this.yendoAResultados = true; this.socket?.close() },
       resultadosUrl: data.resultsUrl,
-      apuesta: data.bet
+      apuesta: data.bet,
+      pista: data.pista,
+      travesia: data.travesia
     })
     window.__sala = { race: this.race }
     // Lo que llegó mientras cargaba la escena.
     this.pending.splice(0).forEach(fn => fn())
     if (data.favoritos) this.race.setFavoritos(data.favoritos)
-    if (data.running) this.race.startIn(data.secondsToStart ?? 0)
+    // La música se agenda contra el ¡YA!, el mismo instante que la escena.
+    if (data.running) { this.race.startIn(data.secondsToStart ?? 0); programarMusica(data.secondsToStart ?? 0) }
     // Entró con la carrera recién largada (por ejemplo, con "Jugar ya"): el tiempo se detiene igual.
     if (data.running && (data.secondsToStart ?? 0) > 11) sonarCuandoSePueda("tiempo", 2500)
     this.race.run()
     // Todo cargado antes de mostrar: chibis, portadas y letras; así nada aparece a medias.
     await Promise.all([
-      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=2`, `/images/retratos/${e}.webp`, `/images/retratos/final-${e}.webp`])),
+      precargar(ELEMENTOS.flatMap(e => [`/images/chibis/${e}.webp?v=3`, `/images/retratos/${e}.webp`, `/images/retratos/final-${e}.webp`])),
       document.fonts.ready
     ])
     this.cargandoTarget.hidden = true
@@ -125,14 +134,19 @@ export default class extends Controller {
         this.addParticipant(data.participant)
       } else if (data.type === "race_started") {
         if (data.favoritos) this.whenReady(() => this.race.setFavoritos(data.favoritos))
+        this.relinchar(data.favoritos)
         this.onRaceStarted()
+      } else if (data.type === "impulso") {
+        // Alguien lanzó su poder (el jugador, otro o un apostador): arde y deja pisadas quemadas.
+        this.whenReady(() => this.race.encender(data.id, data.segundos))
       } else if (data.type === "progress") {
         this.whenReady(() => this.race.tick(data.participants))
       } else if (data.type === "finished") {
-        // La ilustración animada de la pantalla final (la de tu caballo, o la del ganador si solo mirás) se baja ya.
+        document.dispatchEvent(new CustomEvent("carrera:termino"))
+        // La ilustración animada de la pantalla final (la de tu caballo, o la del ganador si solo se mira) se baja ya.
         const suyo = this.data3d.myHorseId ?? data.winner?.id
         precargar([`/images/retratos/final-${ELEMENTOS[(Number(suyo) - 1) % ELEMENTOS.length]}-anim.webp`])
-        this.whenReady(() => this.race.finish(data.winner))
+        this.whenReady(() => this.race.finish(data.winner, data.pozo))
       }
     }
     socket.onerror = () => {}
@@ -154,7 +168,7 @@ export default class extends Controller {
     div.dataset.horseId = p.horse_id
     const color = `var(--caballo-${elemento})`
     div.style.setProperty("--c", color)
-    const chibi = `/images/chibis/${elemento}.webp?v=2`
+    const chibi = `/images/chibis/${elemento}.webp?v=3`
     div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-horse nombre-caballo"></span><span class="p-username"></span>`
     if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
     div.querySelector(".p-username").textContent = `de ${p.username}`
@@ -246,14 +260,14 @@ export default class extends Controller {
   startRace() {
     const btn = this.btnStartTarget
     btn.disabled = true
-    btn.textContent = "Largando…"
+    btn.textContent = "Iniciando…"
     fetch(`/races/${this.raceSlugValue}/start`, { method: "POST", headers: { "X-CSRF-Token": this.csrfToken() } })
       .then(r => r.json())
       .then(data => {
         if (data.error) throw new Error(data.error)
         this.onRaceStarted()
       })
-      .catch(error => { btn.disabled = false; btn.textContent = "Largar"; this.aviso(error.message) })
+      .catch(error => { btn.disabled = false; btn.textContent = "Iniciar"; this.aviso(error.message) })
   }
 
   // ── Largada: la sala se corre con un corte seco y la escena pasa al preludio ─────────────
@@ -273,7 +287,14 @@ export default class extends Controller {
       document.documentElement.dataset.fase = "carrera"
       this.element.classList.add("en-carrera")
     }, GOLPE_TIEMPO * 1000)
-    this.whenReady(() => this.race.startIn(13))
+    this.whenReady(() => { this.race.startIn(13); programarMusica(13) })
+  }
+
+  // Cada favorito se presenta con su relincho, justo cuando la escena se congela en su tarjeta (escena.js: FAVORITOS).
+  relinchar(favoritos) {
+    (favoritos || []).slice(0, 3).forEach((id, i) => {
+      setTimeout(() => sonar("relincho", Number(id)), (2.2 + i * 2.6 + 0.4) * 1000)
+    })
   }
 
   goToResults() {

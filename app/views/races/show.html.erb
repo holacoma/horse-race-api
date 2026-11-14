@@ -3,7 +3,7 @@
 <% content_for :fase, @race.running? ? "carrera" : "fuera" %>
 <% content_for :head do %>
   <link rel="stylesheet" href="/prototipos/carrera3d/carrera3d.css?v=14">
-  <link rel="stylesheet" href="/css/race-lobby.css?v=9">
+  <link rel="stylesheet" href="/css/race-lobby.css?v=10">
 <% end %>
 
 <%# La escena 3D se arma con un carril por lugar y estos caballos ya en la largada; el resto aparece al unirse. %>
@@ -17,7 +17,10 @@
   participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, element: elemento_de(p.horse_id) } },
   myHorseId: @my_participant&.horse_id,
   favoritos: @race.running? ? @race.favoritos : nil,
-  resultsUrl: results_race_path(@race)
+  resultsUrl: results_race_path(@race),
+  pista: @race.pista,
+  kind: @race.kind,
+  travesia: (@race.travesia? && @race.pending? ? { posiciones: @race.travesia_posiciones.map { |id, km| { id: id, km: km.round(2) } } } : nil)
 }.to_json) %></script>
 
 <div class="sala<%= ' en-carrera' if @race.running? %>"
@@ -48,13 +51,13 @@
     <%# Tu caballo, bien claro: grande, con su color y un cartel. %>
     <div class="tu-caballo" data-race-lobby-target="tuCaballo" style="<%= "--c: #{color_de(@my_participant.horse_id)}" if @my_participant %>"<%= ' hidden' unless @my_participant %>>
       <span class="tu-cartel">Tu caballo</span>
-      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de(@my_participant.horse_id)}.webp?v=2" if @my_participant %>">
+      <img class="tu-chibi" alt="" data-race-lobby-target="tuChibi" src="<%= "/images/chibis/#{elemento_de(@my_participant.horse_id)}.webp?v=3" if @my_participant %>">
       <b data-race-lobby-target="tuCaballoNombre"><%= @my_participant&.horse_name %></b>
     </div>
 
     <% if @my_participant.nil? %>
       <div id="horse-picker" data-race-lobby-target="horsePicker">
-        <h2>Elegí tu caballo</h2>
+        <h2>Elige tu caballo</h2>
         <div id="picker-cards" class="picker-cards" data-race-lobby-target="pickerCards">
           <% @available_horses.each do |horse| %>
             <% is_fav = @favorite_horse_ids.include?(horse.id) %>
@@ -84,7 +87,7 @@
     <% if @is_creator && @race.pending? %>
       <div id="apostador-section" data-race-lobby-target="apostadorSection">
         <h3>Sumar caballos</h3>
-        <p class="sala-ayuda">Tocá los que quieras, uno atrás de otro: entran con un apostador cada uno.</p>
+        <p class="sala-ayuda">Toca los que quieras, uno tras otro: entran con un apostador cada uno.</p>
         <input id="apostador-name-input" type="text" placeholder="Nombre del apostador (opcional)">
         <div id="apostador-cards" class="picker-cards">
           <% @all_available_horses.each do |horse| %>
@@ -99,11 +102,15 @@
 
     <div id="status-bar" data-race-lobby-target="statusBar">
       <% remaining = @race.capacity - @participants.size %>
-      <%= remaining > 0 ? "Esperando #{remaining} jugador#{remaining == 1 ? '' : 'es'} más…" : "¡Sala lista!" %>
+      <% if @race.travesia? %>
+        Travesía: corre <%= @race.travesia_dias %> <%= @race.travesia_dias == 1 ? "día" : "días" %> y se puede entrar mientras dura.
+      <% else %>
+        <%= remaining > 0 ? "Esperando #{remaining} jugador#{remaining == 1 ? '' : 'es'} más…" : "¡Sala lista!" %>
+      <% end %>
     </div>
 
-    <% if @race.creator_id == current_user.id && @race.pending? %>
-      <button id="btn-start" class="brilla" data-fx="start" data-race-lobby-target="btnStart" data-action="click->race-lobby#startRace">Largar</button>
+    <% if @race.creator_id == current_user.id && @race.pending? && @race.carrera? %>
+      <button id="btn-start" class="brilla" data-fx="start" data-race-lobby-target="btnStart" data-action="click->race-lobby#startRace">Iniciar</button>
     <% end %>
   </aside>
 
@@ -121,10 +128,24 @@
         <div><div class="pp-stat-val" data-race-lobby-target="ppRaces">—</div><div class="pp-stat-lbl">Carreras</div></div>
         <div><div class="pp-stat-val" data-race-lobby-target="ppWins">—</div><div class="pp-stat-lbl">Victorias</div></div>
       </div>
-      <div class="pp-favs-title">Caballos favoritos</div>
+      <div class="pp-favs-title">Favorito</div>
       <div class="pp-favs" data-race-lobby-target="ppFavs"></div>
     </div>
   </div>
+
+  <% if @race.travesia? && @race.pending? %>
+    <%= render "races/travesia_hud", race: @race %>
+  <% end %>
+  <% if @race.carrera? && @race.pending? && @race.starts_at %>
+    <div class="larga-sola" data-controller="cuenta">
+      <small>Inicia sola</small>
+      <b data-cuenta-target="reloj" data-hasta="<%= @race.starts_at.to_i %>" data-prefijo="en">en <%= @race.segundos_para_largar / 60 %>:<%= format("%02d", @race.segundos_para_largar % 60) %></b>
+      <span>Si la inician antes, cada jugador cobra <%= usd(Race::BONO_ANTICIPADO) %>. A la hora, el premio va x<%= Race::PREMIO_A_TIEMPO %>.</span>
+    </div>
+  <% end %>
+  <% if @my_participant || @race.pending? %>
+    <%= render "races/flechas", race: @race %>
+  <% end %>
 
   <%# Al largar: un bloque carmesí cruza y deja un flash seco, y la sala se corre. %>
   <div class="corte" data-race-lobby-target="corte" aria-hidden="true"></div>

@@ -11,7 +11,7 @@ module RacesHelper
   end
 
   # El caballo chibi, con borde transparente (public/images/chibis): así se ve en la sala, antes de largar.
-  def chibi_de(horse_id, clase: "p-chibi") = image_tag("/images/chibis/#{elemento_de(horse_id)}.webp?v=2", alt: "", class: clase)
+  def chibi_de(horse_id, clase: "p-chibi") = image_tag("/images/chibis/#{elemento_de(horse_id)}.webp?v=3", alt: "", class: clase)
 
   def color_de(horse_id, tinta: false) = "var(--caballo-#{elemento_de(horse_id)}#{"-tinta" if tinta})"
 

@@ -20,6 +20,6 @@
       <% end %>
     </ol>
   <% end %>
-  <% if current_user.guest? %><p class="ranking-nota">Jugás como invitado: tenés <%= usd(current_user.balance) %>, pero solo las cuentas de Google figuran en el ranking.</p><% end %>
+  <% if current_user.guest? %><p class="ranking-nota">Juegas como invitado: tienes <%= usd(current_user.balance) %>, pero solo las cuentas de Google figuran en el ranking.</p><% end %>
   <%= link_to "← Volver a salas", root_path, class: "back-link" %>
 </section>

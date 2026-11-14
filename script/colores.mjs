@@ -143,7 +143,7 @@ const semantic = (n, accent, ink, family, brand = "fuego") => ({
 const PHASES = {
   fuera: {
     selector: ':root, [data-fase="fuera"]',
-    note: "Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos y el costado oscuro (lo tuyo y la regla, en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra.",
+    note: "Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos. Nunca lleva piezas de la carrera (negro, carmesí, letra gótica): cada pantalla es de una sola fase. Sin brillos; la altura se marca con sombra.",
     // Las acciones, en tinta sobre crema, como un cartel de madera de Animal Crossing.
     colors: { ...semantic("arena", n => `${n}-dia`, "var(--arena-12)", "dia", "rosa"),
       "acento": "var(--arena-12)", "acento-encima": "var(--arena-11)", "sobre-acento": "var(--arena-1)",

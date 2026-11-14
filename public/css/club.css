@@ -45,12 +45,11 @@ h3 { font-size: 17px; margin-bottom: 6px; }
 .app-user a { text-decoration: none; }
 .app-main { flex: 1; padding: 32px; max-width: 1100px; width: 100%; margin: 0 auto; }
 
-/* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco, una moneda que late y, cada tanto, el susto. */
+/* De día, neutro y a lo Sanrio: la marca en tinta con contorno blanco y una moneda que late. */
 .app-top .marca { display: inline-block; white-space: nowrap; font: 400 26px var(--fuente-titulo); text-decoration: none; }
 [data-fase="fuera"] .app-top .marca {
   position: relative; color: var(--acento);
   text-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 4px 5px 0 var(--arena-7);
-  animation: susto 13s steps(1) infinite;
 }
 [data-fase="fuera"] .app-top .marca::after { content: "🪙"; text-shadow: none; position: absolute; right: -.7em; top: -.3em; font-size: .5em; animation: latido 1.6s ease-in-out infinite; }
 [data-fase="fuera"] .section-title::before { content: "🪙 "; }
@@ -196,18 +195,44 @@ label { font-weight: 700; }
 .app, .app-solo { position: relative; z-index: 1; }
 body:has(.pradera) .app-main, body:has(.pradera) .app-solo { padding-bottom: min(400px, 46vh); }
 
-/* Nombre de caballo: etiqueta negra en letra gótica, apenas torcida, con la sombra en el color de su elemento (--c). */
+/* Nombre de caballo: etiqueta apenas torcida, con la sombra en el color de su elemento (--c). Cada fase con lo suyo:
+   de día, crema con contorno de tinta; de noche, negra en letra gótica. Nunca se mezclan. */
 .nombre-caballo {
   display: inline-block; max-width: 100%; padding: 1px 10px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  background: var(--noche-1); color: var(--noche-12); font: 400 17px/1.15 var(--fuente-gotica); letter-spacing: .01em;
-  transform: rotate(-2deg); box-shadow: 3px 3px 0 var(--c, var(--carmesi));
+  background: var(--fondo); color: var(--texto); border: 2px solid var(--acento); border-radius: 99px;
+  font: 400 15px/1.2 var(--fuente-titulo); transform: rotate(-2deg); box-shadow: 3px 3px 0 var(--c, var(--arena-7));
+}
+[data-fase="carrera"] .nombre-caballo {
+  background: var(--noche-1); color: var(--noche-12); border: none; border-radius: 0;
+  font: 400 17px/1.15 var(--fuente-gotica); letter-spacing: .01em; box-shadow: 3px 3px 0 var(--c, var(--carmesi));
 }
 
 /* Dentro de botones (tarjetas para elegir) el botón no le pisa el color. */
-button .nombre-caballo { color: var(--noche-12) !important; }
+button .nombre-caballo { color: var(--texto) !important; }
+[data-fase="carrera"] button .nombre-caballo { color: var(--noche-12) !important; }
 
 /* Saldo en la barra de arriba: lleva al ranking. */
 .app-user .saldo { padding: 3px 12px; border: var(--borde-ancho) solid var(--borde-sutil); border-radius: 99px; background: var(--superficie); font: 700 14px var(--fuente-titulo); white-space: nowrap; }
 [data-fase="carrera"] .app-user .saldo { border-radius: 0; background: var(--noche-1); color: var(--noche-12); }
 /* Avisos que vienen de una redirección (por ejemplo, sin fondos para jugar). */
 .aviso-flash { margin: 0 0 18px; padding: 10px 14px; border-left: 4px solid var(--peligro); background: var(--peligro-fondo); color: var(--peligro-texto); font-weight: 700; border-radius: var(--radio-chico); }
+
+/* Cartel de tinta («Tu favorito», «vos»): del lado light. */
+.chip-tinta { display: inline-block; justify-self: start; font: 400 11px var(--fuente-titulo); letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 10px; border-radius: 99px; background: var(--acento); color: var(--sobre-acento); white-space: nowrap; }
+
+/* Ir a una pantalla del lado dark: el corte carmesí de la largada entra y tapa todo (corte_controller.js). */
+.corte-va { position: fixed; inset: 0; z-index: 500; pointer-events: none; overflow: hidden; }
+.corte-va::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -150%; width: 140%; background: var(--carmesi); transform: skewX(-18deg);
+  box-shadow: -26px 0 0 var(--noche-1), 26px 0 0 var(--noche-12); animation: corte-entra .38s cubic-bezier(.7, 0, .3, 1) forwards; }
+@keyframes corte-entra { to { transform: skewX(-18deg) translateX(110%); } }
+
+/* Avisos: una carrera a punto de largar (avisos_controller.js). Cartel arriba, del lado light. */
+.aviso-carrera { position: fixed; top: 14px; left: 50%; translate: -50% 0; z-index: 600; display: grid; gap: 2px; padding: 10px 18px 12px;
+  background: var(--arena-1); color: var(--arena-12); border: 2px solid var(--arena-12); border-radius: 18px; box-shadow: 5px 5px 0 var(--arena-7);
+  text-decoration: none; font-family: var(--fuente-texto); animation: aviso-entra .35s cubic-bezier(.2, 1.4, .4, 1); }
+.aviso-carrera b { font: 400 17px "Mochiy Pop One", system-ui, sans-serif; }
+.aviso-carrera span { font-weight: 800; font-size: 13.5px; color: var(--arena-11); }
+@keyframes aviso-entra { from { translate: -50% -30px; opacity: 0; } }
+.btn-avisos, .btn-musica { width: 34px; height: 34px; border-radius: 50%; border: var(--borde-ancho) solid var(--borde); background: var(--superficie); cursor: pointer; font-size: 15px; }
+.btn-musica[aria-pressed="false"] { background: var(--arena-3); opacity: .8; }

@@ -1,13 +1,16 @@
 class RacesController < WebController
   before_action :require_login
-  before_action :set_race, only: [ :show, :start, :live, :live3d, :results ]
+  before_action :set_race, only: [ :show, :start, :live, :live3d, :results, :estado, :adelantar ]
 
   def index
-    @races = Race.where(is_public: true, status: :pending)
-                 .includes(:participants, :creator)
-                 .order(created_at: :desc)
-    @ranking = User.ranking.limit(5)
-    @saldo   = current_user.reload.balance
+    @races = Race.abiertas.includes(:participants, :creator).order(created_at: :desc).limit(8)
+    @ranking   = User.ranking.limit(5)
+    @saldo     = current_user.reload.balance
+    @temporada = Temporada.actual
+    @favorito  = current_user.favorite_horse && Caballo.new(current_user.favorite_horse)
+    @recientes = Race.finished.where(is_public: true).order(finished_at: :desc).limit(3).includes(:participants)
+    @nueva     = Race.new(pista: "pradera")
+    @room_name = Race.pick_room_name
   end
 
   # El ranking completo: los que más plata tienen (solo cuentas de Google; los invitados son de una visita).
@@ -20,15 +23,44 @@ class RacesController < WebController
     @room_name = Race.pick_room_name
   end
 
+  # Armar una sala: una carrera (larga sola a la hora límite que se elija) o una travesía (dura días).
   def create
-    @race = Race.new(race_params)
-    @race.creator = current_user
-    if @race.save
+    @race = if params.dig(:race, :kind) == "travesia"
+      Race.armar_travesia!(dias: params.dig(:race, :dias), **race_params.except(:kind, :distance).to_h.symbolize_keys, creator: current_user)
+    else
+      Race.new(race_params.except(:kind)).tap do |race|
+        race.creator = current_user
+        espera = params.dig(:race, :espera).to_i
+        race.starts_at = espera.minutes.from_now if Race::ESPERAS.include?(espera)
+        race.save
+      end
+    end
+    if @race.persisted?
       redirect_to race_path(@race)
     else
       @room_name = Race.pick_room_name
       render :new, status: :unprocessable_entity
     end
+  rescue ActiveRecord::RecordInvalid => e
+    @race = e.record
+    @room_name = Race.pick_room_name
+    render :new, status: :unprocessable_entity
+  end
+
+  # La travesía en curso, para refrescar su HUD: posiciones (km) y cuánto falta.
+  def estado
+    render json: {
+      status: @race.status, kind: @race.kind, segundosParaLargar: @race.segundos_para_largar,
+      avance: (@race.travesia_avance if @race.travesia?),
+      posiciones: (@race.travesia_posiciones.map { |id, km| { id: id, km: km.round(2) } } if @race.travesia?)
+    }
+  end
+
+  # Solo para el usuario especial: adelantar la travesía hasta justo antes de la parte intensa, para ver la transición.
+  def adelantar
+    return head(:forbidden) unless current_user.admin?
+    @race.adelantar_al_final!
+    redirect_to race_path(@race)
   end
 
   # La sala y la carrera son la misma pantalla: la carrera 3D ya está en la sala, con los caballos esperando en la
@@ -77,16 +109,16 @@ class RacesController < WebController
 
   # Jugar ya: te suma a la sala abierta más reciente con lugar, o abre una, y te pone un caballo en la largada
   # (uno de tus favoritos si hay alguno libre). Desde la sala se pueden sumar más.
-  # Si ya estás en una sala que no terminó, volvés a esa: un caballo por jugador.
+  # Si ya estás en una sala que no terminó, se vuelve a esa: un caballo por jugador.
   # Los lugares que quedan libres se llenan al toque con apostadores y la carrera larga: no se espera a nadie.
   def jugar
-    race = Race.where(status: %i[pending running]).joins(:participants).where(participants: { user_id: current_user.id })
+    race = Race.carrera.where(status: %i[pending running]).joins(:participants).where(participants: { user_id: current_user.id })
                .order(created_at: :desc).first
     unless race
       saldo = current_user.reload.balance
-      return redirect_to(root_path, alert: "Te quedaste sin fondos: no podés apostar.") if saldo < Race::BET_RANGE.min
+      return redirect_to(root_path, alert: "Te quedaste sin fondos: no puedes apostar.") if saldo < Race::BET_RANGE.min
       # Solo salas cuya apuesta te alcance; si no hay, abre una con la apuesta base (o lo que te quede).
-      race = Race.where(is_public: true, status: :pending).where("bet <= ?", saldo).order(created_at: :desc).includes(:participants)
+      race = Race.carrera.abiertas.where("bet <= ?", saldo).order(created_at: :desc).includes(:participants)
                  .detect { |r| r.participants.size < r.capacity }
       race ||= Race.create!(capacity: 6, distance: 2000, bet: [ Race.new.bet, saldo ].min, is_public: true,
                             creator: current_user, slug: Race.pick_room_name[:slug])
@@ -109,12 +141,7 @@ class RacesController < WebController
   private
 
   def llenar_y_largar(race)
-    (race.capacity - race.participants.count).times do |i|
-      horse = race.available_horses.sample
-      name  = race.random_bettor_name || "Apostador #{i + 1}"
-      race.participants.create!(name: name, horse_id: horse.id, horse_name: horse.name).announce_joined
-    end
-    race.reload.start!
+    race.llenar_con_apostadores!.start!
   end
 
   def set_race
@@ -122,6 +149,6 @@ class RacesController < WebController
   end
 
   def race_params
-    params.require(:race).permit(:slug, :capacity, :distance, :bet, :animal_type, :is_public)
+    params.require(:race).permit(:slug, :capacity, :distance, :bet, :animal_type, :is_public, :pista, :kind)
   end
 end

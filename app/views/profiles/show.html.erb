@@ -16,14 +16,16 @@
   </div>
 </div>
 
-<div class="section-title">Caballos favoritos</div>
-<% available_horses = Horse.all.reject { |h| @my_favorites.include?(h.id) }.first(5) %>
-<%= render "horse_favorites/section",
-    favorites: @favorites,
-    is_own_profile: @is_own_profile,
-    query: "",
-    search_results: (@is_own_profile ? available_horses : []),
-    favorited_all: (@is_own_profile ? @my_favorites.size >= Horse::CATALOG.size : false) %>
+<div class="section-title">Favorito</div>
+<% if @favorito %>
+  <%= link_to caballo_path(@favorito.id), class: "perfil-favorito", style: "--c: #{color_de(@favorito.id, tinta: true)}", data: { fx: "nav" } do %>
+    <%= chibi_de(@favorito.id, clase: "perfil-chibi") %>
+    <b><%= @favorito.name %></b>
+  <% end %>
+<% else %>
+  <p class="empty-note">Todavía no eligió favorito.</p>
+<% end %>
+<% if @is_own_profile %><p><%= link_to "Elegir otro favorito", favorito_path, data: { fx: "nav" } %></p><% end %>
 
 <div class="section-title">Historial de carreras</div>
 

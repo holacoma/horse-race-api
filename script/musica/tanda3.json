@@ -1,0 +1,30 @@
+[
+  {
+    "momento": "inicio", "nombre": "t3-hard-rock-gancho", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 2101,
+    "tags": "instrumental hard rock, fast guitar-driven racing anthem, catchy memorable lead guitar melody riff loud and up front, overdriven Marshall amp tone, rhythm guitar plays sparse power chord hits with long rests, live rock drums, picked electric bass, bright major key, uplifting, 90s hard rock band recording, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t3-hard-rock-gancho-b", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 2102,
+    "tags": "instrumental hard rock, fast guitar-driven racing anthem, catchy memorable lead guitar melody riff loud and up front, overdriven Marshall amp tone, rhythm guitar plays sparse power chord hits with long rests, live rock drums, picked electric bass, bright major key, uplifting, 90s hard rock band recording, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t3-metal-melodico", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 2201,
+    "tags": "instrumental melodic heavy metal, power metal, catchy singable lead guitar melody, twin guitar harmonies on the hook, rhythm guitar with palm-muted chugs and long pauses, fast double kick drums, live drummer, heavy distorted guitars, bright major key, triumphant, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t3-metal-melodico-b", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 2202,
+    "tags": "instrumental melodic heavy metal, power metal, catchy singable lead guitar melody, twin guitar harmonies on the hook, rhythm guitar with palm-muted chugs and long pauses, fast double kick drums, live drummer, heavy distorted guitars, bright major key, triumphant, no synthesizers, no electronic elements, no vocals"
+  },
+  {
+    "momento": "inicio", "nombre": "t3-hard-rock-teclado", "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 2301,
+    "tags": "instrumental hard rock, fast guitar-driven racing anthem, catchy memorable lead guitar melody riff loud and up front, rhythm guitar plays sparse power chord hits with long rests, subtle Hammond organ in the background, live rock drums, electric bass, bright major key, uplifting, 90s hard rock band recording, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t3-meta-guitarra", "bpm": 123, "segundos": 11, "tono": "E major", "semilla": 2401,
+    "tags": "instrumental hard rock victory fanfare, short, catchy triumphant lead guitar melody, twin guitar harmony, rising run into a big final power chord held to the end, live drum fill and cymbal crash, bright major key, no synthesizers, no vocals"
+  },
+  {
+    "momento": "final", "nombre": "t3-meta-guitarra-b", "bpm": 123, "segundos": 11, "tono": "E major", "semilla": 2402,
+    "tags": "instrumental hard rock victory fanfare, short, catchy triumphant lead guitar melody, twin guitar harmony, rising run into a big final power chord held to the end, live drum fill and cymbal crash, bright major key, no synthesizers, no vocals"
+  }
+]

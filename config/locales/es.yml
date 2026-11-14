@@ -1,0 +1,80 @@
+# Castellano: el juego está en español. Lo justo para fechas y «hace X» (time_ago_in_words).
+es:
+  date:
+    day_names: [domingo, lunes, martes, miércoles, jueves, viernes, sábado]
+    abbr_day_names: [dom, lun, mar, mié, jue, vie, sáb]
+    month_names: [~, enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre]
+    abbr_month_names: [~, ene, feb, mar, abr, may, jun, jul, ago, sep, oct, nov, dic]
+    order: [day, month, year]
+  time:
+    am: am
+    pm: pm
+    formats:
+      default: "%d/%m/%Y %H:%M"
+  datetime:
+    distance_in_words:
+      half_a_minute: medio minuto
+      less_than_x_seconds:
+        one: menos de 1 segundo
+        other: menos de %{count} segundos
+      x_seconds:
+        one: 1 segundo
+        other: "%{count} segundos"
+      less_than_x_minutes:
+        one: menos de 1 minuto
+        other: menos de %{count} minutos
+      x_minutes:
+        one: 1 minuto
+        other: "%{count} minutos"
+      about_x_hours:
+        one: 1 hora
+        other: "%{count} horas"
+      x_days:
+        one: 1 día
+        other: "%{count} días"
+      about_x_months:
+        one: 1 mes
+        other: "%{count} meses"
+      x_months:
+        one: 1 mes
+        other: "%{count} meses"
+      about_x_years:
+        one: 1 año
+        other: "%{count} años"
+      over_x_years:
+        one: más de 1 año
+        other: más de %{count} años
+      almost_x_years:
+        one: casi 1 año
+        other: casi %{count} años
+  number:
+    format:
+      delimiter: "."
+      separator: ","
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: no puede estar vacío
+      present: tiene que estar vacío
+      taken: ya está en uso
+      inclusion: no es una opción válida
+      exclusion: no está disponible
+      invalid: no es válido
+      required: tiene que existir
+      accepted: tiene que aceptarse
+      not_a_number: no es un número
+      not_an_integer: tiene que ser un número entero
+      greater_than: tiene que ser mayor que %{count}
+      greater_than_or_equal_to: tiene que ser %{count} o más
+      less_than: tiene que ser menor que %{count}
+      less_than_or_equal_to: tiene que ser %{count} o menos
+      in: tiene que estar entre %{count}
+      too_long: es demasiado largo (máximo %{count})
+      too_short: es demasiado corto (mínimo %{count})
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "No se pudo guardar: %{errors}"
+        restrict_dependent_destroy:
+          has_one: No se puede borrar porque tiene un %{record} asociado
+          has_many: No se puede borrar porque tiene %{record} asociados

@@ -1,22 +1,15 @@
-/* Perfil: avatar y nombre, caballos favoritos (con búsqueda) e historial de carreras. */
+/* Perfil: avatar y nombre, su favorito e historial de carreras. */
 .profile-header { display: flex; align-items: center; gap: 18px; margin-bottom: 8px; }
 .profile-avatar, .profile-avatar-placeholder { width: 84px; height: 84px; border-radius: 50%; border: 4px solid var(--acento); object-fit: cover; flex: none; transform: rotate(-4deg); }
 .profile-avatar-placeholder { display: grid; place-items: center; background: var(--acento-fondo); color: var(--acento-texto); font: 700 36px var(--fuente-titulo); }
 .profile-info h1 { font-size: 32px; }
 .profile-info .subtitle { margin: 0; }
 
-#favorites-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.fav-pill {
-  display: inline-flex; align-items: center; gap: 8px; padding: 6px 8px 6px 14px; border-radius: 99px;
-  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde); font-weight: 800;
-}
-.fav-pill:nth-child(2n) { transform: rotate(var(--giro)); }
-.remove-btn { width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer; background: var(--superficie); color: var(--peligro-texto); font-weight: 800; }
-.remove-btn:hover { background: var(--peligro-fondo); }
-#search-section { margin-top: 14px; max-width: 440px; display: grid; gap: 8px; }
-#search-results { display: grid; gap: 6px; }
-.search-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 6px 6px 14px; background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); font-weight: 700; }
-.add-btn { padding: 6px 12px; font-size: 13px; }
+/* Su favorito: la tarjeta del chibi, lleva a la ficha del caballo. */
+.perfil-favorito { display: inline-flex; align-items: center; gap: 12px; padding: 6px 18px 6px 8px; text-decoration: none; color: var(--texto);
+  background: var(--fondo); border: 2px solid var(--acento); border-radius: var(--radio); box-shadow: 5px 5px 0 var(--c); transform: rotate(-1deg); }
+.perfil-chibi { width: 64px; height: 64px; object-fit: contain; }
+.perfil-favorito b { font: 400 20px var(--fuente-titulo); }
 
 .history-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 14px; }
 .history-table th { text-align: left; padding: 6px 12px; font: 700 12px var(--fuente-titulo); text-transform: uppercase; letter-spacing: .08em; color: var(--texto-suave); }

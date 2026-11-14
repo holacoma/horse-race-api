@@ -1,0 +1,22 @@
+[
+  {
+    "momento": "sala", "nombre": "t9-sala-refinada-040", "motor": "xl", "referencia": "candidatos/sala/t2-sinte-gancho-b.mp3", "fuerza": 0.4,
+    "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 9101,
+    "tags": "Arcade Synth Rock: A polished, catchy instrumental lobby theme in the spirit of late-90s racing games. A bright, singing synth lead carries a sticky main hook, answered by a crisp overdriven electric guitar. Big layered synth brass stabs, sparkling arpeggios and a round synth bass sit under tight, punchy drums with crisp hi-hats. Clean, wide and professionally mixed and mastered, every instrument clear and separated, uplifting and confident."
+  },
+  {
+    "momento": "sala", "nombre": "t9-sala-refinada-055", "motor": "xl", "referencia": "candidatos/sala/t2-sinte-gancho-b.mp3", "fuerza": 0.55,
+    "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 9102,
+    "tags": "Arcade Synth Rock: A polished, catchy instrumental lobby theme in the spirit of late-90s racing games. A bright, singing synth lead carries a sticky main hook, answered by a crisp overdriven electric guitar. Big layered synth brass stabs, sparkling arpeggios and a round synth bass sit under tight, punchy drums with crisp hi-hats. Clean, wide and professionally mixed and mastered, every instrument clear and separated, uplifting and confident."
+  },
+  {
+    "momento": "sala", "nombre": "t9-sala-refinada-070", "motor": "xl", "referencia": "candidatos/sala/t2-sinte-gancho-b.mp3", "fuerza": 0.7,
+    "bpm": 178, "segundos": 40, "tono": "G major", "semilla": 9103,
+    "tags": "Arcade Synth Rock: A polished, catchy instrumental lobby theme in the spirit of late-90s racing games. A bright, singing synth lead carries a sticky main hook, answered by a crisp overdriven electric guitar. Big layered synth brass stabs, sparkling arpeggios and a round synth bass sit under tight, punchy drums with crisp hi-hats. Clean, wide and professionally mixed and mastered, every instrument clear and separated, uplifting and confident."
+  },
+  {
+    "momento": "sala", "nombre": "t9-sala-minimax", "motor": "minimax", "segundos": 60, "semilla": 9201,
+    "tags": "Global Metadata: Polished instrumental arcade synth rock, late-90s racing game lobby theme. Around 178 BPM, G major. Upbeat, confident and catchy, with a bright, playful energy and a slightly cheeky edge; it lifts in each return of the hook. Clean, wide, modern production with every instrument clear and separated.\n\nVocal Details: Instrumental. A bright, singing synth lead carries the main melody, answered by an overdriven electric guitar.\n\nArrangement: Intro: sparkling synth arpeggios and a drum fill. Instrumental sections: the synth lead plays a sticky main hook over big layered synth brass stabs, a round synth bass and tight punchy drums with crisp hi-hats; the guitar answers each phrase. Solo: the guitar and synth lead trade the hook back and forth. Outro: the hook one last time, ending on a bright brass stab.",
+    "letra": "[Intro]\n\n[Instrumental]\n\n[Solo]\n\n[Instrumental]\n\n[Outro]"
+  }
+]

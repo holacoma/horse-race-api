@@ -65,7 +65,8 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form"
     assert_select "input[name='race[slug]']"
     assert_select "select[name='race[capacity]']"
-    assert_select "select[name='race[animal_type]']"
+    assert_select "input[name='race[kind]'][value='travesia']"
+    assert_select "select[name='race[pista]']"
   end
 
   test "GET /races/new offers the slot machine with the chosen room name" do
@@ -162,7 +163,11 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".results-my-position", /puesto 2/
     assert_select ".results-row.is-me .results-horse", "Trueno"
     assert_select "a[href='#{races_path}']"
-    assert_select "a[href='#{new_race_path}']"
+    assert_select "form[action='#{jugar_path}']"
+    # Cada caballo lleva a su ficha; el ganador va con su ilustración y el resto con su chibi.
+    assert_select "a.results-row[href='#{caballo_path(1)}'] img.results-retrato"
+    assert_select "a.results-row[href='#{caballo_path(2)}'] img.results-chibi"
+    assert_select ".results-resumen .perdiste", /40 USD/
   end
 
   test "GET /races/:slug/results congratulates the winner" do

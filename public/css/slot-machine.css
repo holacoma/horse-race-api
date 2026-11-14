@@ -11,14 +11,13 @@
 .slot-display {
   min-height: 2.6rem; padding: 8px; border-radius: var(--radio-chico);
   display: flex; align-items: center; justify-content: center; text-align: center;
-  background: var(--noche-1); color: var(--caballo-naturaleza);
+  background: var(--fondo); color: var(--texto); border: 2px solid var(--borde);
   font: 700 13px/1.3 var(--fuente-titulo); letter-spacing: .06em; text-transform: uppercase;
-  text-shadow: var(--halo-suave);
 }
 .slot-machine.won .slot-display { animation: slot-win .5s steps(1) 2; }
 @keyframes slot-win {
-  0%, 100% { background: var(--noche-1); color: var(--caballo-naturaleza); }
-  50% { background: var(--caballo-naturaleza); color: var(--noche-1); }
+  0%, 100% { background: var(--fondo); color: var(--texto); }
+  50% { background: var(--acento); color: var(--sobre-acento); }
 }
 .slot-reels { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 /* Flechas de la línea de premio, a los lados de la fila del medio. */

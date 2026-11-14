@@ -24,16 +24,14 @@ class HorseFavoriteTest < ActiveSupport::TestCase
     assert fav2.persisted?
   end
 
-  test "favorite_horse_ids returns last 3" do
-    4.times { |i| HorseFavorite.create!(user: @user, horse_id: i + 1) }
-    ids = @user.favorite_horse_ids
-    assert_equal 3, ids.size
+  test "el favorito es uno solo: el que eligió" do
+    @user.update!(favorite_horse_id: 26)
+    assert_equal [ 26 ], @user.favorite_horse_ids
+    assert_equal "El Pistolero", @user.favorite_horse.name
   end
 
-  test "favorite_horse_ids returns most recent first" do
-    HorseFavorite.create!(user: @user, horse_id: 1)
-    HorseFavorite.create!(user: @user, horse_id: 2)
-    ids = @user.favorite_horse_ids
-    assert_equal 2, ids.first
+  test "sin favorito no hay ids" do
+    assert_equal [], @user.favorite_horse_ids
+    assert_nil @user.favorite_horse
   end
 end

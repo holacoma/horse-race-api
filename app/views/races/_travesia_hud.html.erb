@@ -1,0 +1,28 @@
+<%# Travesía en curso: HUD light sobre la escena 3D (los chibis corriendo de día). Cuánto falta, el avance, las
+    posiciones y, solo para el usuario especial, el botón para adelantar al final. %>
+<% segundos = race.segundos_para_largar %>
+<div class="trav-hud" data-controller="travesia cuenta" data-travesia-url-value="<%= estado_race_path(race) %>">
+  <div class="trav-reloj tarjeta-hud">
+    <small>Se pone intensa · <%= l(race.final_desde, format: "%A %-d · %H:%M") %></small>
+    <b data-cuenta-target="reloj" data-hasta="<%= race.final_desde.to_i %>" data-prefijo="faltan">faltan <%= segundos / 3600 %> h</b>
+    <div class="barra" aria-label="avance de la travesía"><i data-travesia-target="barra" style="width: <%= (race.travesia_avance * 100).round(1) %>%"></i></div>
+    <div class="barra-texto"><span>día <%= race.travesia_dia %> de <%= race.travesia_dias %></span><span>🏁 últimos <%= (Race::TRAVESIA_FINAL / 60).to_i %> minutos</span></div>
+  </div>
+  <% if current_user.admin? %>
+    <%= button_to adelantar_race_path(race), class: "adelantar", form_class: "adelantar-form", data: { fx: "start", turbo: false } do %>
+      <b>⏩ Adelantar al final</b><em>solo tú</em>
+    <% end %>
+  <% end %>
+  <div class="trav-pos tarjeta-hud">
+    <h2>Posiciones</h2>
+    <ol data-travesia-target="lista">
+      <% lider = race.travesia_posiciones.first&.last %>
+      <% race.travesia_posiciones.each.with_index(1) do |(horse_id, km), i| %>
+        <% p = race.participants.detect { |x| x.horse_id == horse_id } %>
+        <li class="<%= 'tu' if p&.user_id == current_user.id %>" data-id="<%= horse_id %>">
+          <b><%= i %>.º</b><span><%= p&.horse_name %><%= " · tú" if p&.user_id == current_user.id %></span><span><%= i == 1 ? "líder" : "a #{format('%.1f', lider - km).tr('.', ',')} km" %></span>
+        </li>
+      <% end %>
+    </ol>
+  </div>
+</div>

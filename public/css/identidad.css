@@ -53,7 +53,7 @@
   --halo-fuerte: 0 0 1px currentColor, 0 0 4px currentColor, 0 0 14px color-mix(in oklch, currentColor 80%, transparent), 0 0 40px color-mix(in oklch, currentColor 45%, transparent);
 }
 
-/* Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos y el costado oscuro (lo tuyo y la regla, en negro, carmesí y letra gótica). Sin brillos; la altura se marca con sombra. */
+/* Fuera de la carrera: de día, neutra como Animal Crossing y con el trazo de Sanrio (Pochacco, Hello Kitty): crema, contorno de tinta, color plano y formas redondas. Sin rosa: las acciones van en tinta y el carmesí queda para detalles chicos. Nunca lleva piezas de la carrera (negro, carmesí, letra gótica): cada pantalla es de una sola fase. Sin brillos; la altura se marca con sombra. */
 :root, [data-fase="fuera"] {
   color-scheme: light;
   --fondo: var(--arena-1);

@@ -69,8 +69,32 @@ function textTexture(lines, { width = 1024, height = 200, bg = "#ffc61a", fg = "
   return texture
 }
 
-export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true, resultadosUrl = null, apuesta = null }) {
+// Pistas: cada una con su paleta de día y su relieve. El inframundo de la carrera intensa es el mismo para todas.
+const PISTAS = {
+  pradera: {
+    pasto: [[0.20, 0.55, 0.13], [0.28, 0.66, 0.17]], arena: [[0.60, 0.33, 0.14], [0.72, 0.43, 0.20]],
+    cielo: [[0.72, 0.9, 1.0], [0.16, 0.5, 0.95]], niebla: 0xbfe9ff, suelo: 0xa8c98a, sierras: 0x8fb7d8,
+    copas: [0x2f9e29, 0x54c22d, 0x1f8a55, 0xffa91f, 0xff8fb0, 0x8ed11f], arbol: "copa", sierra: "pico"
+  },
+  desierto: {
+    pasto: [[0.80, 0.62, 0.36], [0.86, 0.69, 0.42]], arena: [[0.70, 0.40, 0.20], [0.80, 0.50, 0.27]],
+    cielo: [[1.0, 0.88, 0.72], [0.42, 0.62, 0.94]], niebla: 0xf2d9b0, suelo: 0xd9b98a, sierras: 0xc98352,
+    copas: [0x6f8f34, 0x8aa042, 0x55752a], arbol: "cactus", sierra: "meseta"
+  },
+  nevado: {
+    pasto: [[0.86, 0.91, 0.96], [0.94, 0.97, 1.0]], arena: [[0.52, 0.48, 0.47], [0.63, 0.58, 0.56]],
+    cielo: [[0.86, 0.93, 1.0], [0.32, 0.52, 0.86]], niebla: 0xe4eef8, suelo: 0xdfe8f2, sierras: 0xb9c9dd,
+    copas: [0x1f5a3a, 0x2b6e48, 0x174a30], arbol: "pino", sierra: "nevado"
+  }
+}
+
+// Travesía (carrera de días): antes de la parte intensa los caballos corren como chibis, de día, y la cámara pasea
+// con cortes por distintos tramos de la pista. Cuánto se separan sale de los kilómetros de cada uno.
+const TRAV = { velocidad: 17, metrosPorKm: 4.5, maxGap: 46, toma: 5.5 }
+
+export function createRace({ participants, slots = null, distance = 2000, horseModel = null, myId = null, capture = false, onCelebrate = null, onDone = null, onCount = null, onCross = null, showFps = true, resultadosUrl = null, apuesta = null, pista = "pradera", travesia = null }) {
   const FINISH = distance
+  const PISTA = PISTAS[pista] || PISTAS.pradera
   // La recta final crece con la carrera, con tope: unos 6 segundos a toda velocidad.
   const STRETCH = Math.min(700, Math.max(38, distance * 0.3))
   const STRETCH_FROM = FINISH - STRETCH
@@ -95,17 +119,17 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   const uPostI = { value: 0 } // la intensidad que llega al piso y al postproceso, menor en las tomas generales
   const uClear = { value: 0 } // 1 en las tomas donde lo importante es leer a los caballos
   const signMaterials = []
-  const mountainDay = new THREE.Color(0x8fb7d8), mountainHell = new THREE.Color(0x0b0407)
+  const mountainDay = new THREE.Color(PISTA.sierras), mountainHell = new THREE.Color(0x0b0407)
   const mountainMaterial = new THREE.MeshBasicMaterial({ color: mountainDay.clone() })
 
-  const fogDay = new THREE.Color(0xbfe9ff)
+  const fogDay = new THREE.Color(PISTA.niebla)
   const fogHell = new THREE.Color(0x060208)
   scene.fog = new THREE.Fog(fogDay.clone(), 90, 340)
 
   const hemiDay = new THREE.Color(0xffffff), hemiHell = new THREE.Color(0xff9a55)
-  const groundDay = new THREE.Color(0xa8c98a), groundHell = new THREE.Color(0x4a1020)
+  const groundDay = new THREE.Color(PISTA.suelo), groundHell = new THREE.Color(0x4a1020)
   const sunDay = new THREE.Color(0xfff0d0), sunHell = new THREE.Color(0xffc488)
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xa8c98a, 1.55)
+  const hemi = new THREE.HemisphereLight(0xffffff, PISTA.suelo, 1.55)
   const sun = new THREE.DirectionalLight(0xfff0d0, 2.5)
   sun.position.set(-30, 60, 45)
   scene.add(hemi, sun)
@@ -147,15 +171,19 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t
   })()
   const EXPLOSION = { cascada: 0.16, dura: 0.6 }
+  // El chibi mide 2,6 de alto; la imagen suma su borde de sticker (16 px de 360 por lado): las patas quedan donde estaban.
+  const CHIBI_ALTO = 2.6 * 392 / 360
   function chibiDe(h) {
     if (!h.element || h.chibi) return h.chibi
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false }))
-    texturas.load(`/images/chibis/${h.element}.webp?v=2`, t => {
+    texturas.load(`/images/chibis/${h.element}.webp?v=3`, t => {
       t.colorSpace = THREE.SRGBColorSpace
+      // Los chibis miran a la izquierda: en la travesía corren hacia adelante, así que se dan vuelta.
+      if (travesia) { t.repeat.x = -1; t.offset.x = 1 }
       s.material.map = t; s.material.needsUpdate = true
-      s.scale.set(2.6 * t.image.width / t.image.height, 2.6, 1)
+      s.scale.set(CHIBI_ALTO * t.image.width / t.image.height, CHIBI_ALTO, 1)
     })
-    s.scale.set(2.6, 2.6, 1); s.position.set(0, 1.35, 0)
+    s.scale.set(CHIBI_ALTO, CHIBI_ALTO, 1); s.position.set(0, 1.35, 0)
     h.root.add(s); h.chibi = s
     return s
   }
@@ -212,7 +240,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     state.congelado = false
     hud.favorito(null)
     renderer.domElement.classList.remove("congelado")
-    hud.final(state.winner, [...horses].sort((a, b) => b.x - a.x))
+    // Por el puesto que dio el servidor, no por quién quedó más adelante después de cruzar (siguen de largo).
+    hud.final(state.winner, [...horses].sort((a, b) => (a.finalRank ?? 99) - (b.finalRank ?? 99) || b.x - a.x))
     resize()
     onDone?.()
   }
@@ -260,6 +289,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   const SHOTS = ["peloton", "heroe", "tele", "peloton", "arco", "peloton", "cola"]
 
   const dust = buildDust()
+  const quemaduras = buildQuemaduras()
   const confetti = buildConfetti()
   const post = buildPost()
   const hud = buildHud()
@@ -269,7 +299,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     countdownEnd: null, preludeStart: Infinity, started: false, winner: null, crossedAt: null, lastTick: null,
     tape: [], resume: null, crossRt: 0, impactStage: null,
     leaderX: 0, leaderOffset: 0, lastLeader: null, raceStart: null, celebrating: false, doneFired: false, shot: null, shotChanged: 0,
-    order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null
+    order: horses, clarity: 0, span: 0, gapSecond: 0, gapThird: 0, arrival: null,
+    travesia: travesia ? { km: new Map((travesia.posiciones || []).map(p => [Number(p.id), Number(p.km)])) } : null
   }
   // Los que ya estaban en la sala entran después de armar el estado (join mira si la carrera largó).
   participants.forEach(join)
@@ -277,6 +308,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   // ── Datos ─────────────────────────────────────────────────────────────────────────
   // Si la página abre tarde, el preludio ya va avanzado y se entra directo al inframundo.
   function startIn(seconds) {
+    // Travesía: termina el paseo de día; vuelven a la largada para la parte intensa, donde se transforman.
+    if (state.travesia) {
+      horses.forEach(h => {
+        h.x = 0; h.root.position.x = 0; h.travGap = undefined
+        if (h.chibi) { h.chibi.position.y = 1.35; h.chibi.material.rotation = 0 }
+      })
+    }
     // Larga ahora: explotan. Si la página abre con la carrera ya avanzada, aparecen en llamas sin explotar.
     state.explotaDesde = state.clock + 0.55
     if (seconds < PRELUDE_SECONDS - 1.5) horses.forEach(h => verChibi(h, false))
@@ -316,7 +354,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     })
   }
 
-  function finish(winner) {
+  function finish(winner, premio = null) {
+    state.premio = premio // lo que cobró el ganador, según el servidor (con la largada a la hora va x10)
     state.winner = horses.find(h => h.id === winner.id) || null
     if (!state.winner) return
     const lastEntry = h => h.history[h.history.length - 1]
@@ -354,9 +393,12 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   }
 
   // ── Bucle ─────────────────────────────────────────────────────────────────────────
-  function step(realDt) {
-    state.clock += realDt
+  // relojDt: el tiempo real que pasó (el reloj de la escena no se atrasa si un cuadro se traba: la cuenta y el ¡YA!
+  // caen a la hora, sincronizados con la música). realDt: el mismo, pero acotado, para el movimiento.
+  function step(realDt, relojDt = realDt) {
+    state.clock += relojDt
     uT.value = state.clock
+    if (state.travesia && state.countdownEnd === null && horses.length) return travesiaFrame(realDt)
     const crossedFor = state.crossedAt === null ? -1 : state.clock - state.crossedAt
 
     const stage = finishStage(crossedFor)
@@ -428,7 +470,9 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const fireLane = horses.indexOf(fireHorse)
     horses.forEach((h, i) => {
       const x = (fireSince - Math.abs(i - fireLane) * FIRE_CASCADE) / FIRE_SECONDS
-      h.setFire?.(x > 0 && x < 1 ? Math.sin(Math.PI * Math.sqrt(x)) : 0)
+      // El poder lanzado: arde fuerte, con un parpadeo, hasta que se le termina.
+      const arde = h.ardeHasta > state.clock ? 0.8 + 0.2 * Math.sin(state.clock * 19 + i * 2.1) : 0
+      h.setFire?.(Math.max(x > 0 && x < 1 ? Math.sin(Math.PI * Math.sqrt(x)) : 0, arde))
     })
 
     if (state.winner && racing && state.winner.x >= FINISH - 0.4) {
@@ -461,6 +505,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const motion = replaying ? realDt * REPLAY_RATE : dt
     animateHorses(realDt, motion)
     dust.update(motion)
+    quemaduras.update(realDt)
     confetti.update(realDt)
     actualizarExplosiones()
     presentarFavoritos()
@@ -530,6 +575,62 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     shared.uHorseRim.value = 0.45 + 1.1 * w + 0.5 * i
   }
 
+  // Travesía: los chibis corren de día con efectos simples (polvo y saltitos) y la cámara pasea con cortes secos,
+  // cada toma en otro tramo de la pista. Nada de inframundo ni intensidad: eso llega en la parte intensa.
+  function travesiaFrame(realDt) {
+    const t = state.clock
+    const k = Math.floor(t / TRAV.toma)
+    const u = t / TRAV.toma - k
+    const tramo = 160 + ((k * 211) % Math.max(200, FINISH - 420))
+    const L = tramo + u * TRAV.velocidad * TRAV.toma
+    const km = state.travesia.km
+    const lider = Math.max(...horses.map(h => km.get(h.id) ?? 0))
+    horses.forEach((h, i) => {
+      const gap = Math.min(TRAV.maxGap, Math.max(0, (lider - (km.get(h.id) ?? lider)) * TRAV.metrosPorKm))
+      h.travGap = h.travGap === undefined ? gap : damp(h.travGap, gap, 0.6, realDt)
+      h.x = L - h.travGap + Math.sin(t * 0.7 + i * 1.9) * 1.2
+      h.v = TRAV.velocidad
+      h.root.position.x = h.x
+      h.root.position.y = 0
+      h.stride = (h.stride || 0) + realDt * 9
+      if (h.chibi) {
+        h.chibi.position.y = 1.35 + Math.abs(Math.sin(h.stride + i)) * 0.32
+        h.chibi.material.rotation = -0.12 + Math.sin(h.stride * 2 + i) * 0.05
+      }
+      h.dustIn = (h.dustIn ?? 0) - realDt
+      if (h.dustIn < 0) { h.dustIn = 0.09; dust.emit(h.x - 0.8, h.z + (Math.random() - 0.5) * 0.7, 0.6) }
+    })
+    dust.update(realDt)
+    uWorld.value = 0; uWave.value = -100; state.portal = 0; state.intensity = 0; uI.value = 0; uSpeed.value = 0
+    state.clarity = 0; uClear.value = 0
+    scenery.trees.visible = true
+    scenery.rails.forEach(rail => { rail.visible = true })
+
+    const order = [...horses].sort((a, b) => b.x - a.x)
+    const primero = order[0], ultimo = order[order.length - 1]
+    const medio = (primero.x + ultimo.x) / 2, span = primero.x - ultimo.x
+    const toma = ["trav-lado", "trav-frente", "trav-arriba", "trav-paneo"][k % 4]
+    let pos, look, fov
+    if (toma === "trav-lado") {
+      pos = [medio + 2 - 4 * u, 3.2 + span * 0.03, WIDTH / 2 + 10 + span * 0.25]; look = [medio, 1.2, 0]; fov = 42
+    } else if (toma === "trav-frente") {
+      pos = [primero.x + 10 - 2 * u, 1.0, (u - 0.5) * WIDTH * 0.6]; look = [medio, 1.6, 0]; fov = 48
+    } else if (toma === "trav-arriba") {
+      pos = [medio - 18 + 8 * u, 14, WIDTH / 2 + 18]; look = [medio + 6, 0, 0]; fov = 46
+    } else {
+      const a = Math.PI * (0.25 + 0.5 * u)
+      pos = [medio + Math.cos(a) * 18, 5, Math.sin(a) * 18]; look = [medio, 1.2, 0]; fov = 44
+    }
+    camera.position.set(...pos)
+    camera.lookAt(...look)
+    camera.fov = fov
+    camera.updateProjectionMatrix()
+    if (toma !== state.shot) { state.shot = toma; state.shotChanged = t }
+    updateLighting()
+    hud.update()
+    render(realDt)
+  }
+
   // ── Cámara: cortes secos por tramo, como un resumen de carrera anime ──────────────
   function waitingFrame(realDt) {
     const t = state.clock
@@ -574,7 +675,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     const stage = finishStage(crossedFor)
     if (stage === "festejo") {
       // Por delante y un poco en alto, siempre dentro de la pista (lejos de las barandas). En el festejo, el ganador;
-      // en la pantalla final, tu caballo, que es el que te representa (si solo mirás, el ganador).
+      // en la pantalla final, tu caballo, que es el que te representa (si solo se mira, el ganador).
       const w = state.finalMostrado ? mine || state.winner : state.winner
       const a = Math.max(0.55, 1.3 - (crossedFor - CELEBRATE_AFTER) * 0.03)
       shot = "festejo"
@@ -752,8 +853,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     uSpeed.value *= 1 - 0.85 * state.clarity
     scenery.trees.visible = !wide
     // Las cámaras pegadas al caballo de fuego van entre él y la baranda: de ese lado, la baranda taparía la imagen.
-    const hugging = fireHorse && (shot === "transformacion" || shot === "heroe")
-    scenery.rails.forEach(rail => { rail.visible = !(hugging && rail.userData.side === Math.sign(fireHorse.z)) })
+    const pegado = shot === "favorito" ? state.favorito : fireHorse && (shot === "transformacion" || shot === "heroe") ? fireHorse : null
+    scenery.rails.forEach(rail => { rail.visible = !(pegado && rail.userData.side === Math.sign(pegado.z || 1)) })
     // Vibración de cámara en mano, más fuerte al final. Las tomas generales van firmes.
     const shake = (0.005 + 0.05 * i) * (1 - state.clarity)
     const t = state.clock
@@ -775,23 +876,23 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   function buildSky() {
     const material = new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { uI: uPostI, uT, uWorld, uClear },
+      uniforms: { uI: uPostI, uT, uWorld, uClear, uCieloBajo: { value: new THREE.Vector3(...PISTA.cielo[0]) }, uCieloAlto: { value: new THREE.Vector3(...PISTA.cielo[1]) } },
       vertexShader: "varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
       fragmentShader: `
-        varying vec3 vDir; uniform float uI, uT, uWorld, uClear;
+        varying vec3 vDir; uniform float uI, uT, uWorld, uClear; uniform vec3 uCieloBajo, uCieloAlto;
         ${NOISE}
         vec3 prism(float t) { return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67))); }
         void main() {
           vec3 d = normalize(vDir);
           float h = max(d.y, 0.0);
-          vec3 day = mix(vec3(0.72, 0.9, 1.0), vec3(0.16, 0.5, 0.95), pow(h, 0.55));
+          vec3 day = mix(uCieloBajo, uCieloAlto, pow(h, 0.55));
           vec2 cp = d.xz / max(d.y + 0.14, 0.02);
           float clouds = smoothstep(0.52, 0.68, fbm(cp * 0.55 + vec2(uT * 0.012, 0.0)));
           float edge = smoothstep(0.62, 0.74, fbm(cp * 0.55 + vec2(uT * 0.012, 0.0) + 0.05));
           day = mix(day, mix(vec3(0.78, 0.82, 0.95), vec3(1.0), edge), clouds * smoothstep(0.0, 0.14, d.y));
           float sun = max(dot(d, normalize(vec3(-0.5, 0.62, 0.6))), 0.0);
           day += vec3(1.0, 0.85, 0.55) * (pow(sun, 260.0) * 1.8 + pow(sun, 7.0) * 0.14);
-          if (d.y < 0.0) day = vec3(0.74, 0.92, 1.0);
+          if (d.y < 0.0) day = uCieloBajo * 1.02;
 
           // Inframundo: negro con nubes de cobre y estrellas.
           float az = atan(d.z, d.x);
@@ -847,11 +948,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         uLane: { value: LANE },
         uN: { value: N },
         uFog: { value: scene.fog.color },
-        uFogRange: { value: new THREE.Vector2() }
+        uFogRange: { value: new THREE.Vector2() },
+        uPastoA: { value: new THREE.Vector3(...PISTA.pasto[0]) }, uPastoB: { value: new THREE.Vector3(...PISTA.pasto[1]) },
+        uArenaA: { value: new THREE.Vector3(...PISTA.arena[0]) }, uArenaB: { value: new THREE.Vector3(...PISTA.arena[1]) }
       },
       vertexShader: "varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
       fragmentShader: `
-        varying vec3 vW; uniform float uI, uT, uW, uLane, uN, uWorld, uWave, uClear; uniform vec3 uFog; uniform vec2 uFogRange;
+        varying vec3 vW; uniform float uI, uT, uW, uLane, uN, uWorld, uWave, uClear; uniform vec3 uFog, uPastoA, uPastoB, uArenaA, uArenaB; uniform vec2 uFogRange;
         ${NOISE}
         vec3 prism(float t) { return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67))); }
         float line(float v, float w) { return 1.0 - smoothstep(0.0, w, abs(v)); }
@@ -860,11 +963,11 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
           float n = fbm(p * 0.35), fine = fbm(p * 3.2);
           // Pasto cortado a franjas.
           float stripe = step(0.5, fract(floor((p.y + 400.0) / 7.0) * 0.5 + floor((p.x + 400.0) / 14.0) * 0.5));
-          vec3 grass = mix(vec3(0.20, 0.55, 0.13), vec3(0.28, 0.66, 0.17), stripe);
+          vec3 grass = mix(uPastoA, uPastoB, stripe);
           grass *= 0.86 + 0.28 * n;
           // Arena con surcos a lo largo de la pista.
           float furrow = sin(p.y * 14.0 + fbm(p * vec2(0.08, 1.6)) * 6.0) * 0.5 + 0.5;
-          vec3 dirt = mix(vec3(0.60, 0.33, 0.14), vec3(0.72, 0.43, 0.20), furrow * 0.5 + fine * 0.5);
+          vec3 dirt = mix(uArenaA, uArenaB, furrow * 0.5 + fine * 0.5);
           float edge = smoothstep(uW + 0.2, uW - 0.25, abs(p.y));
           vec3 calm = mix(grass, dirt, edge);
           float lanes = 0.0;
@@ -936,16 +1039,21 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
 
     const r = seeded(11)
     const trunkGeo = new THREE.CylinderGeometry(0.32, 0.55, 3.4, 10)
-    const crownGeo = mergeGeometries([
-      new THREE.IcosahedronGeometry(2.7, 3),
-      new THREE.IcosahedronGeometry(2.0, 3).translate(1.5, 0.8, 0.6),
-      new THREE.IcosahedronGeometry(1.9, 3).translate(-1.3, 0.9, -0.7),
-      new THREE.IcosahedronGeometry(1.7, 3).translate(0.2, 1.9, 0.2)
-    ])
-    const COUNT = Math.min(500, Math.round((150 * (FINISH + 240)) / 340))
+    const crownGeo = PISTA.arbol === "pino"
+      ? mergeGeometries([new THREE.ConeGeometry(2.6, 4.2, 8), new THREE.ConeGeometry(2.0, 3.4, 8).translate(0, 2.2, 0), new THREE.ConeGeometry(1.3, 2.6, 8).translate(0, 4.1, 0)])
+      : PISTA.arbol === "cactus"
+        ? mergeGeometries([new THREE.CapsuleGeometry(0.75, 4.2, 4, 8), new THREE.CapsuleGeometry(0.42, 1.6, 4, 8).translate(1.25, 0.5, 0), new THREE.CapsuleGeometry(0.42, 1.3, 4, 8).translate(-1.15, 1.1, 0)])
+        : mergeGeometries([
+          new THREE.IcosahedronGeometry(2.7, 3),
+          new THREE.IcosahedronGeometry(2.0, 3).translate(1.5, 0.8, 0.6),
+          new THREE.IcosahedronGeometry(1.9, 3).translate(-1.3, 0.9, -0.7),
+          new THREE.IcosahedronGeometry(1.7, 3).translate(0.2, 1.9, 0.2)
+        ])
+    const COUNT = Math.min(FINISH > 4000 ? 1600 : 500, Math.round((150 * (FINISH + 240)) / 340))
     const trunks = new THREE.InstancedMesh(trunkGeo, toon(0x7a4f2e), COUNT)
     const crowns = new THREE.InstancedMesh(crownGeo, toon(0xffffff), COUNT)
-    const hues = [0x2f9e29, 0x54c22d, 0x1f8a55, 0xffa91f, 0xff8fb0, 0x8ed11f]
+    const hues = PISTA.copas
+    if (PISTA.arbol === "cactus") trunkGeo.scale(0.01, 0.01, 0.01) // los cactus no tienen tronco
     const m = new THREE.Matrix4()
     const c = new THREE.Color()
     for (let i = 0; i < COUNT; i++) {
@@ -962,9 +1070,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
     scene.add(trees)
 
     // Sierras a lo lejos.
-    for (let x = -150; x < FINISH + 400; x += 42) {
-      const mountain = new THREE.Mesh(new THREE.ConeGeometry(70 + r() * 70, 60 + r() * 60, 8), mountainMaterial)
-      mountain.position.set(x, 22, -(230 + r() * 60))
+    for (let x = -150; x < FINISH + 400; x += PISTA.sierra === "meseta" ? 95 : 42) {
+      const ancho = 70 + r() * 70, alto = 60 + r() * 60
+      // Pradera: picos; desierto: mesetas de techo plano; nevado: picos altos.
+      const geo = PISTA.sierra === "meseta" ? new THREE.CylinderGeometry(ancho * 0.3, ancho * 0.45, alto * 0.45, 7)
+        : new THREE.ConeGeometry(ancho, PISTA.sierra === "nevado" ? alto * 1.25 : alto, 8)
+      const mountain = new THREE.Mesh(geo, mountainMaterial)
+      mountain.position.set(x, PISTA.sierra === "meseta" ? 8 : PISTA.sierra === "nevado" ? 28 : 22, -(230 + r() * 60))
       scene.add(mountain)
     }
     return { rails, trees }
@@ -1139,7 +1251,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
       }
       scene.add(rings)
     }
-    arch(-3, "¡ L A R G A R O N !", 0x18c5b6)
+    arch(-3, "¡ S A L I E R O N !", 0x18c5b6)
   }
 
   // Cajones de largada: un cajón por carril, con su número en el color clásico de la mantilla, y puertas de barrotes
@@ -1209,6 +1321,66 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         puertas.forEach(p => { p.rotation.y = p.userData.lado * u * 1.75 })
       },
       siCamaraAdentro(c) { group.visible = !(c.x > XB - 0.4 && c.x < XF + 1.3 && Math.abs(c.z) < N * LANE / 2 + 0.3 && c.y < H + 0.6) }
+    }
+  }
+
+  // Pisadas quemadas: mientras un caballo arde, cada pisada deja una marca negra con borde de brasa que se apaga sola.
+  function buildQuemaduras() {
+    const c = document.createElement("canvas"); c.width = c.height = 128
+    const g = c.getContext("2d")
+    const grad = g.createRadialGradient(64, 64, 4, 64, 64, 62)
+    grad.addColorStop(0, "rgba(8,3,2,0.95)"); grad.addColorStop(0.55, "rgba(30,6,2,0.9)")
+    grad.addColorStop(0.72, "rgba(255,110,25,0.85)"); grad.addColorStop(1, "rgba(255,60,10,0)")
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128)
+    const textura = new THREE.CanvasTexture(c); textura.colorSpace = THREE.SRGBColorSpace
+    const geo = new THREE.PlaneGeometry(0.95, 1.25).rotateX(-Math.PI / 2)
+    const VIDA = 7
+    const pool = Array.from({ length: 180 }, () => {
+      const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: textura, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }))
+      m.visible = false; m.userData.edad = VIDA; m.renderOrder = 1
+      scene.add(m)
+      return m
+    })
+    let siguiente = 0
+    // El aura: un resplandor naranja que envuelve al caballo mientras arde, con parpadeo.
+    const aura = h => {
+      if (!h.aura) {
+        h.aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: destello, color: 0xff6a10, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }))
+        h.aura.position.set(0, 1.3, 0)
+        h.root.add(h.aura)
+      }
+      return h.aura
+    }
+    return {
+      update(dt) {
+        horses.forEach((h, i) => {
+          const ardiendo = h.ardeHasta > state.clock
+          if (ardiendo || h.aura) {
+            const a = aura(h)
+            a.visible = ardiendo
+            if (ardiendo) {
+              const queda = Math.min(1, (h.ardeHasta - state.clock) / 0.5)
+              a.scale.setScalar(4.2 + Math.sin(state.clock * 23 + i) * 0.5)
+              a.material.opacity = (0.75 + 0.25 * Math.sin(state.clock * 31 + i * 3)) * queda
+            }
+          }
+          if (!ardiendo || Math.abs(h.v) < 3) return
+          h.pisadaEn = (h.pisadaEn ?? 0) - dt
+          if (h.pisadaEn > 0) return
+          h.pisadaEn = 0.075
+          h.pie = !h.pie
+          const m = pool[siguiente]; siguiente = (siguiente + 1) % pool.length
+          m.position.set(h.x - 0.5 + Math.random() * 0.3, 0.03, h.z + (h.pie ? 0.28 : -0.28))
+          m.rotation.y = (Math.random() - 0.5) * 0.5
+          m.userData.edad = 0; m.visible = true
+        })
+        pool.forEach(m => {
+          if (!m.visible) return
+          m.userData.edad += dt
+          if (m.userData.edad >= VIDA) { m.visible = false; return }
+          m.material.opacity = 1 - m.userData.edad / VIDA
+        })
+      }
     }
   }
 
@@ -1692,7 +1864,7 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
         ficha.className = "final-ficha"
         const rotulo = document.createElement("small")
         // Con dinero: el pozo es la apuesta de cada uno; el ganador cobra el doble del pozo.
-        const pozo = apuesta ? apuesta * orden.length * 2 : 0 // el premio
+        const pozo = state.premio ?? (apuesta ? apuesta * orden.length * 2 : 0) // el premio
         const plata = n => `${n.toLocaleString("es")} USD`
         rotulo.textContent = h !== mine ? "Ganador"
           : h === ganador ? (pozo ? `¡Ganaste ${plata(pozo)}!` : "¡Ganaste!")
@@ -1771,7 +1943,8 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   function run() {
     let last = performance.now()
     const loop = now => {
-      step(Math.min(0.1, (now - last) / 1000))
+      const real = (now - last) / 1000
+      step(Math.min(0.1, real), Math.min(1, real))
       last = now
       frame = requestAnimationFrame(loop)
     }
@@ -1781,6 +1954,13 @@ export function createRace({ participants, slots = null, distance = 2000, horseM
   return {
     step, run, tick, finish, startIn, join, setMine,
     setFavoritos(ids) { state.favoritos = ids.map(Number) },
+    // Travesía: los kilómetros de cada uno, para que se separen como en la tabla.
+    // El poder lanzado (de cualquiera: lo avisa el servidor): arde fuerte y deja pisadas quemadas.
+    encender(id, segundos = 3) {
+      const h = horses.find(x => x.id === Number(id))
+      if (h) h.ardeHasta = state.clock + segundos
+    },
+    setTravesia(posiciones) { if (state.travesia) posiciones.forEach(p => state.travesia.km.set(Number(p.id), Number(p.km))) },
     setConectado(si) { state.reconectando = !si; hud.reconectando(!si) },
     stop() { if (frame) cancelAnimationFrame(frame) },
     // Para probar y grabar.

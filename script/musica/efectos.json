@@ -1,0 +1,218 @@
+[
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "click-1",
+  "tags": "a single short crisp interface click, clean dry plastic tick, close and quiet",
+  "segundos": 1,
+  "recortar": 0.18,
+  "semilla": 9001
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "click-2",
+  "tags": "a single short crisp interface click, clean dry plastic tick, close and quiet",
+  "segundos": 1,
+  "recortar": 0.18,
+  "semilla": 9002
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "click-3",
+  "tags": "a single short crisp interface click, clean dry plastic tick, close and quiet",
+  "segundos": 1,
+  "recortar": 0.18,
+  "semilla": 9003
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "tic-1",
+  "tags": "a single short mechanical tick of a spinning slot machine reel, dry wooden click",
+  "segundos": 1,
+  "recortar": 0.12,
+  "semilla": 9011
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "tic-2",
+  "tags": "a single short mechanical tick of a spinning slot machine reel, dry wooden click",
+  "segundos": 1,
+  "recortar": 0.12,
+  "semilla": 9012
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "tic-3",
+  "tags": "a single short mechanical tick of a spinning slot machine reel, dry wooden click",
+  "segundos": 1,
+  "recortar": 0.12,
+  "semilla": 9013
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "moneda-1",
+  "tags": "a single metal coin dropping on a table, bright clear ding with a short ring",
+  "segundos": 2,
+  "recortar": 0.8,
+  "semilla": 9021
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "moneda-2",
+  "tags": "a single metal coin dropping on a table, bright clear ding with a short ring",
+  "segundos": 2,
+  "recortar": 0.8,
+  "semilla": 9022
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "moneda-3",
+  "tags": "a single metal coin dropping on a table, bright clear ding with a short ring",
+  "segundos": 2,
+  "recortar": 0.8,
+  "semilla": 9023
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "premio-1",
+  "tags": "a short bright arcade win chime, sparkling coins jingle, casino jackpot sting",
+  "segundos": 2,
+  "recortar": 1.2,
+  "semilla": 9031
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "premio-2",
+  "tags": "a short bright arcade win chime, sparkling coins jingle, casino jackpot sting",
+  "segundos": 2,
+  "recortar": 1.2,
+  "semilla": 9032
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "premio-3",
+  "tags": "a short bright arcade win chime, sparkling coins jingle, casino jackpot sting",
+  "segundos": 2,
+  "recortar": 1.2,
+  "semilla": 9033
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "cuenta-1",
+  "tags": "one deep heavy war drum hit layered with a distorted electric guitar power chord stab, dark, massive, single hit",
+  "segundos": 2,
+  "recortar": 1,
+  "semilla": 9041
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "cuenta-2",
+  "tags": "one deep heavy war drum hit layered with a distorted electric guitar power chord stab, dark, massive, single hit",
+  "segundos": 2,
+  "recortar": 1,
+  "semilla": 9042
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "cuenta-3",
+  "tags": "one deep heavy war drum hit layered with a distorted electric guitar power chord stab, dark, massive, single hit",
+  "segundos": 2,
+  "recortar": 1,
+  "semilla": 9043
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ya-1",
+  "tags": "a huge explosive starting blast, heavy distorted guitar chord crash with a booming drum hit and cymbal, dark and powerful",
+  "segundos": 3,
+  "recortar": 1.8,
+  "semilla": 9051
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ya-2",
+  "tags": "a huge explosive starting blast, heavy distorted guitar chord crash with a booming drum hit and cymbal, dark and powerful",
+  "segundos": 3,
+  "recortar": 1.8,
+  "semilla": 9052
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ya-3",
+  "tags": "a huge explosive starting blast, heavy distorted guitar chord crash with a booming drum hit and cymbal, dark and powerful",
+  "segundos": 3,
+  "recortar": 1.8,
+  "semilla": 9053
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "meta-1",
+  "tags": "a massive cinematic impact boom with a cymbal crash and a ringing distorted guitar chord, finish line hit, dark",
+  "segundos": 3,
+  "recortar": 2.2,
+  "semilla": 9061
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "meta-2",
+  "tags": "a massive cinematic impact boom with a cymbal crash and a ringing distorted guitar chord, finish line hit, dark",
+  "segundos": 3,
+  "recortar": 2.2,
+  "semilla": 9062
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "meta-3",
+  "tags": "a massive cinematic impact boom with a cymbal crash and a ringing distorted guitar chord, finish line hit, dark",
+  "segundos": 3,
+  "recortar": 2.2,
+  "semilla": 9063
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ganador-1",
+  "tags": "a short triumphant heavy metal victory sting, screaming electric guitar lick ending on a big distorted chord and cymbal crash",
+  "segundos": 4,
+  "recortar": 3,
+  "semilla": 9071
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ganador-2",
+  "tags": "a short triumphant heavy metal victory sting, screaming electric guitar lick ending on a big distorted chord and cymbal crash",
+  "segundos": 4,
+  "recortar": 3,
+  "semilla": 9072
+ },
+ {
+  "carpeta": "candidatos/efectos",
+  "motor": "sfx",
+  "nombre": "ganador-3",
+  "tags": "a short triumphant heavy metal victory sting, screaming electric guitar lick ending on a big distorted chord and cymbal crash",
+  "segundos": 4,
+  "recortar": 3,
+  "semilla": 9073
+ }
+]

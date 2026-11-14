@@ -1,0 +1,63 @@
+/* La ficha de un caballo, del lado dark: su ilustración de fondo y la ficha recta y desbalanceada encima. */
+body { background: var(--noche-1); }
+.ficha-fondo { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(90deg, var(--noche-1) 0 26%, rgb(0 0 0 / .6) 48%, transparent 76%), var(--fondo-anim) right center / cover no-repeat,
+    var(--fondo-img) right center / cover no-repeat; }
+/* Encima de la ilustración de fondo (que es fija y está posicionada). */
+.app-top, .ficha { position: relative; z-index: 1; }
+.app-top { border-bottom: 1px solid var(--noche-4); }
+.ficha { display: grid; gap: 28px; padding-block: 12px 40px; }
+.ficha > * { max-width: 780px; }
+.ficha-etiqueta { display: inline-block; padding: 3px 24px 3px 12px; background: var(--carmesi); color: var(--noche-12); clip-path: var(--recorte-etiqueta);
+  font: 700 13px var(--fuente-titulo); letter-spacing: .16em; text-transform: uppercase; }
+.ficha-nombre { margin: 22px 0 26px; font: 400 clamp(52px, 6.2vw, 116px)/.9 var(--fuente-gotica); color: var(--noche-12); text-shadow: var(--ecos);
+  transform: rotate(-3deg); transform-origin: left bottom; letter-spacing: .01em; text-transform: none; }
+.ficha-sub { font: 600 15px var(--fuente-texto); letter-spacing: .12em; text-transform: uppercase; color: var(--noche-11); }
+.ficha-sub b { color: var(--c); font-weight: 700; }
+.ficha-accion { display: inline-flex; margin-top: 20px; padding: 10px 28px 10px 16px; clip-path: var(--recorte); text-decoration: none; border: none; cursor: pointer;
+  font: 700 14px var(--fuente-titulo); letter-spacing: .14em; text-transform: uppercase; }
+.ficha-accion.principal { background: var(--carmesi); color: var(--noche-12); }
+.ficha-accion.secundaria { background: var(--noche-2); color: var(--noche-12); border: 1px solid var(--noche-7); border-left: 3px solid var(--noche-12); }
+.ficha h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font: 700 13px var(--fuente-titulo); letter-spacing: .16em; text-transform: uppercase; color: var(--noche-11); }
+.ficha h2::before { content: ""; width: 34px; height: 9px; background: var(--franjas); }
+.ficha-numeros { display: grid; grid-template-columns: repeat(5, auto); gap: 12px; justify-content: start; margin: 0; }
+.ficha-numeros div { min-width: 118px; padding: 10px 22px 10px 14px; background: var(--noche-2); border: 1px solid var(--noche-5); border-left: 3px solid var(--noche-12); clip-path: var(--recorte); }
+.ficha-numeros dt { font: 600 11px var(--fuente-titulo); letter-spacing: .16em; text-transform: uppercase; color: var(--noche-9); white-space: nowrap; }
+.ficha-numeros dd { margin: 0; font: 700 34px/1.15 var(--fuente-titulo); color: var(--noche-12); white-space: nowrap; }
+.ficha-numeros .fuerte { border-left-color: var(--carmesi); }
+.ficha-numeros .fuerte dd { font: 400 38px/1.02 var(--fuente-gotica); text-shadow: 3px 3px 0 var(--carmesi); }
+.ficha-forma ol { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.ficha-forma li { width: 46px; height: 46px; display: grid; place-items: center; font: 700 15px var(--fuente-titulo); color: var(--noche-11);
+  background: var(--noche-3); border: 1px solid var(--noche-5); clip-path: polygon(0 0, 100% 0, 100% 68%, 76% 100%, 0 100%); }
+.ficha-forma li.p1 { background: var(--carmesi); border-color: var(--carmesi); color: var(--noche-12); }
+.ficha-victorias ol { display: grid; gap: 8px; list-style: none; justify-items: start; margin: 0; padding: 0; }
+.ficha-victorias li { display: grid; gap: 2px; padding: 10px 26px 10px 14px; background: var(--noche-2); border: 1px solid var(--noche-5); border-left: 3px solid var(--carmesi); clip-path: var(--recorte); }
+.ficha-victorias li:nth-child(2) { margin-left: 22px; }
+.ficha-victorias b { font: 700 17px var(--fuente-titulo); letter-spacing: .04em; color: var(--noche-12); }
+.ficha-victorias span, .ficha-nada { font: 500 13px var(--fuente-texto); letter-spacing: .04em; color: var(--noche-11); }
+
+/* Al entrar, el corte carmesí de la largada termina de cruzar: se llega de light a dark de un golpe. */
+.corte { position: fixed; inset: 0; z-index: 400; pointer-events: none; overflow: hidden; }
+.corte::before { content: ""; position: absolute; top: -20%; bottom: -20%; left: -40%; width: 70%; background: var(--carmesi); transform: skewX(-18deg);
+  box-shadow: -26px 0 0 var(--noche-1), 26px 0 0 var(--noche-12); }
+.corte.entra::before { animation: corte-sale .45s cubic-bezier(.7, 0, .3, 1) both; }
+@keyframes corte-sale { to { transform: skewX(-18deg) translateX(260%); } }
+
+@media (max-width: 900px) {
+  .ficha-fondo { position: absolute; inset: 0 0 auto 0; height: 430px;
+    background: linear-gradient(180deg, transparent 0 46%, var(--noche-1) 96%), var(--fondo-anim) 78% top / auto 430px no-repeat, var(--fondo-img) 78% top / auto 430px no-repeat, var(--noche-1); }
+  .ficha { padding-top: 150px; gap: 24px; }
+  .ficha-nombre { font-size: 64px; margin: 16px 0 20px; }
+  .ficha-numeros { grid-template-columns: repeat(3, 1fr); justify-content: stretch; }
+  .ficha-numeros div { min-width: 0; }
+  .ficha-numeros div:nth-child(5) { grid-column: span 2; }
+}
+@media (max-width: 619px) {
+  .ficha-fondo { height: 360px; background: linear-gradient(180deg, transparent 0 46%, var(--noche-1) 96%), var(--fondo-anim) 80% top / auto 360px no-repeat, var(--fondo-img) 80% top / auto 360px no-repeat, var(--noche-1); }
+  .ficha { padding-top: 130px; }
+  .ficha-nombre { font-size: 50px; }
+  .ficha-sub { font-size: 12.5px; }
+  .ficha-numeros { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .ficha-numeros dd { font-size: 28px; }
+  .ficha-forma li { width: 38px; height: 38px; font-size: 13px; }
+}

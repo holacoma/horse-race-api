@@ -1,20 +1,45 @@
-// Sonidos y música de Club Race, sintetizados con Web Audio.
-// Sin música por ahora (llegan archivos). La carrera es metal: al largar el tiempo se detiene (si hay un archivo
-// public/sonidos/the-world.*, suena ese; si no, uno sintetizado), en la largada entra un riff de guitarra, la cuenta y la meta son golpes fuertes y el ganador tiene una fanfarria de guitarra.
-// La UI (clic, carretes, monedas) queda chica, para dejarle lugar a lo demás.
+// Sonidos y música de Club Race: solo los archivos generados con IA y elegidos en el soundboard (public/sonidos/juego/)
+// y The World (public/sonidos/the-world.mp3). Nada sintetizado: si un sonido no tiene archivo, no suena.
+// La música de la carrera empieza justo cuando termina The World, suena durante la presentación y su parte principal
+// (después del solo de batería) cae justo en el ¡YA!. Se apaga en el festejo. Se puede apagar desde afuera (🎵).
+// Los archivos se bajan y decodifican apenas abre la página, así el primer sonido ya es el nuevo.
 
 let ctx = null
 let master = null
 let sfx = null
-let reverb = null
-let distorsion = null
-let ruido = null
 let theWorld = null
+const archivos = {}
+let musica = null
+let bus = null // la música pasa por acá: así se apaga sin tocar los efectos
+let pista = "pradera"
+let finTheWorld = 0 // cuándo termina The World (reloj del audio)
+let yaEn = null // cuándo es el ¡YA! (performance.now)
+let reintentoMusica = null
+
+// Dónde entra la parte principal de cada tema (después del solo de batería), en segundos del archivo. Medido con
+// ffmpeg (golpe del bombo y el platillo después del redoble). Un tema sin medir empieza en el ¡YA!.
+const PRINCIPAL = { "musica-carrera": 10.44 }
+
+// Música sí o no: la elige cada uno (botón 🎵 fuera de la carrera) y queda en este navegador.
+const MUSICA = "clubrace:musica"
+let musicaSi = (() => { try { return localStorage.getItem(MUSICA) !== "no" } catch { return true } })()
+export const hayMusica = () => musicaSi
+export function activarMusica(si) {
+  musicaSi = si
+  try { localStorage.setItem(MUSICA, si ? "si" : "no") } catch {}
+  if (bus) bus.gain.setTargetAtTime(si ? 1 : 0, ctx.currentTime, 0.08)
+}
 
 // Momento en que pega el golpe de "tiempo", para sincronizar lo visual.
 export const GOLPE_TIEMPO = 0.6
 
-// El navegador no deja sonar hasta que la persona toca algo: el contexto se crea o se reanuda con el primer gesto.
+// Música por pista: musica-<pista>.mp3 si existe; si no, la de siempre (musica-carrera).
+export function elegirPista(nombre) { pista = nombre || "pradera" }
+
+const ARCHIVOS = ["click", "tic", "moneda", "premio", "cuenta", "ya", "meta", "ganador", "relincho", "riff",
+  "musica-carrera", "musica-pradera", "musica-desierto", "musica-nevado"]
+
+// El contexto se crea al cargar (queda en pausa) para decodificar ya; el navegador lo deja sonar con el primer gesto.
 function audio() {
   if (!ctx) {
     const Ctx = window.AudioContext || window.webkitAudioContext
@@ -32,14 +57,11 @@ function audio() {
     master.connect(compresor).connect(ctx.destination)
     sfx = ctx.createGain()
     sfx.connect(master)
-    reverb = ctx.createConvolver()
-    reverb.buffer = impulso(2.6, 2.2)
-    const wet = ctx.createGain()
-    wet.gain.value = 0.5
-    reverb.connect(wet).connect(master)
-    distorsion = new Float32Array(2048).map((_, i) => Math.tanh(((i / 2047) * 2 - 1) * 10))
-    ruido = buffer(2, () => Math.random() * 2 - 1)
-    cargarTheWorld()
+    bus = ctx.createGain()
+    bus.gain.value = musicaSi ? 1 : 0
+    bus.connect(master)
+    ctx.addEventListener("statechange", agendarMusica)
+    cargar()
   }
   if (ctx.state === "suspended") ctx.resume().catch(() => {})
   return ctx
@@ -50,238 +72,138 @@ for (const type of ["pointerdown", "keydown", "touchstart"]) {
 
 const ahora = () => ctx.currentTime
 
-function buffer(seconds, sample, channels = 1) {
-  const length = Math.floor(ctx.sampleRate * seconds)
-  const b = ctx.createBuffer(channels, length, ctx.sampleRate)
-  for (let c = 0; c < channels; c++) {
-    const data = b.getChannelData(c)
-    for (let i = 0; i < length; i++) data[i] = sample(i / length)
-  }
-  return b
+// Solo los que existen (los lista el layout), más The World si está.
+function cargar() {
+  const hay = document.querySelector('meta[name="sonidos-juego"]')?.content.split(" ")
+  const bajar = (url, guardar) => fetch(url)
+    .then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
+    .then(data => ctx.decodeAudioData(data))
+    .then(guardar)
+    .catch(() => {})
+  for (const nombre of ARCHIVOS.filter(n => !hay || hay.includes(n))) bajar(`/sonidos/juego/${nombre}.mp3`, b => { archivos[nombre] = b })
+  const tw = document.querySelector('meta[name="sonido-the-world"]')?.content
+  if (tw) bajar(tw, b => { theWorld = b })
 }
-const impulso = (seconds, decay) => buffer(seconds, x => (Math.random() * 2 - 1) * Math.pow(1 - x, decay), 2)
+if (document.readyState === "loading") addEventListener("DOMContentLoaded", audio, { once: true })
+else audio()
 
-// El archivo de The World, si está (el layout lo anuncia con <meta name="sonido-the-world">).
-function cargarTheWorld() {
-  const url = document.querySelector('meta[name="sonido-the-world"]')?.content
-  if (!url) return
-  fetch(url).then(r => r.arrayBuffer()).then(data => ctx.decodeAudioData(data)).then(b => { theWorld = b }).catch(() => {})
-}
-
-// ── Piezas ──────────────────────────────────────────────────────────────────────────
-function tono({ t = ahora(), type = "sine", freq, to = null, dur, gain = 0.2, attack = 0.005, wet = 0, out = sfx, detune = 0 }) {
-  const osc = ctx.createOscillator()
-  const env = ctx.createGain()
-  osc.type = type
-  osc.detune.value = detune
-  osc.frequency.setValueAtTime(freq, t)
-  if (to) osc.frequency.exponentialRampToValueAtTime(to, t + dur)
-  env.gain.setValueAtTime(0.0001, t)
-  env.gain.exponentialRampToValueAtTime(gain, t + attack)
-  env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-  osc.connect(env).connect(out)
-  if (wet && out === sfx) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
-  osc.start(t)
-  osc.stop(t + dur + 0.05)
-}
-
-function soplo({ t = ahora(), dur, gain = 0.2, filter = "bandpass", freq = 2000, sweep = null, q = 1, attack = 0.003, rise = false, wet = 0, out = sfx }) {
+function tocar(buffer, { t = ahora(), rate = 1, gain = 1, out = sfx, desde = 0 } = {}) {
   const src = ctx.createBufferSource()
-  src.buffer = ruido
-  src.loop = true
-  const f = ctx.createBiquadFilter()
-  f.type = filter
-  f.Q.value = q
-  f.frequency.setValueAtTime(freq, t)
-  if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t + dur)
-  const env = ctx.createGain()
-  env.gain.setValueAtTime(0.0001, t)
-  if (rise) {
-    // Al revés: crece hasta el final y se corta seco, como un platillo invertido.
-    env.gain.exponentialRampToValueAtTime(gain, t + dur)
-    env.gain.setValueAtTime(0.0001, t + dur + 0.01)
-  } else {
-    env.gain.exponentialRampToValueAtTime(gain, t + attack)
-    env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-  }
-  src.connect(f).connect(env).connect(out)
-  if (wet && out === sfx) { const send = ctx.createGain(); send.gain.value = wet; env.connect(send).connect(reverb) }
-  src.start(t, Math.random())
-  src.stop(t + dur + 0.05)
+  src.buffer = buffer
+  src.playbackRate.value = rate
+  const g = ctx.createGain()
+  g.gain.value = gain
+  // Empezar a mitad del archivo: un fundido cortito para que no haga clic.
+  if (desde > 0) { g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gain, t + 0.12) }
+  src.connect(g).connect(out)
+  src.start(t, desde)
+  return { src, g }
 }
 
-const tono_ = opciones => tono({ type: "triangle", ...opciones })
+// Suena un archivo si está; devuelve si sonó.
+const archivo = (nombre, opciones) => !!archivos[nombre] && !!tocar(archivos[nombre], opciones)
 
-// Batería.
-const bombo = (t, gain = 0.9, out = sfx) => {
-  tono({ t, freq: 150, to: 42, dur: 0.32, gain, attack: 0.002, out })
-  soplo({ t, dur: 0.015, gain: gain * 0.35, filter: "highpass", freq: 3000, out })
-}
-const caja = (t, gain = 0.6, out = sfx) => {
-  soplo({ t, dur: 0.2, gain, freq: 1900, q: 0.7, out, wet: 0.15 })
-  tono({ t, type: "triangle", freq: 190, to: 160, dur: 0.12, gain: gain * 0.5, out })
-}
-const platillo = (t, gain = 0.35, out = sfx) => soplo({ t, dur: 1.8, gain, filter: "highpass", freq: 5500, attack: 0.002, out, wet: 0.3 })
-const charles = (t, gain = 0.1, out = sfx) => soplo({ t, dur: 0.045, gain, filter: "highpass", freq: 8000, out })
-const tambor = (t, freq, gain = 0.9) => {
-  tono({ t, freq, to: freq * 0.5, dur: 0.7, gain, attack: 0.003, wet: 0.4 })
-  soplo({ t, dur: 0.18, gain: gain * 0.5, filter: "lowpass", freq: 900, wet: 0.3 })
-}
-
-// Guitarra distorsionada: power chord (raíz, quinta y octava) con dos voces desafinadas, distorsión y caja.
-// Apagada (palm mute) es corta y oscura; abierta suena llena.
-function guitarra(t, raiz, dur, { apagada = false, gain = 0.3, out = sfx } = {}) {
-  const pre = ctx.createGain()
-  pre.gain.value = 0.5
-  const shaper = ctx.createWaveShaper()
-  shaper.curve = distorsion
-  shaper.oversample = "2x"
-  const parlante = ctx.createBiquadFilter()
-  parlante.type = "lowpass"
-  parlante.frequency.value = apagada ? 1100 : 3600
-  parlante.Q.value = 0.9
-  const cuerpo = ctx.createBiquadFilter()
-  cuerpo.type = "peaking"
-  cuerpo.frequency.value = 110
-  cuerpo.gain.value = 5
-  const env = ctx.createGain()
-  env.gain.setValueAtTime(0.0001, t)
-  env.gain.exponentialRampToValueAtTime(gain, t + 0.004)
-  env.gain.setValueAtTime(gain, t + dur * (apagada ? 0.35 : 0.75))
-  env.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-  pre.connect(shaper).connect(parlante).connect(cuerpo).connect(env).connect(out)
-  for (const f of [raiz, raiz * 1.5, raiz * 2]) {
-    for (const cents of [-9, 9]) {
-      const o = ctx.createOscillator()
-      o.type = "sawtooth"
-      o.frequency.value = f
-      o.detune.value = cents
-      o.connect(pre)
-      o.start(t)
-      o.stop(t + dur + 0.05)
-    }
-  }
+// La música se agenda contra el ¡YA!: empieza cuando termina The World (o ya, si no suena), desde el punto del tema
+// que hace que la parte principal caiga en el ¡YA!. Si el audio recién se pudo activar a mitad de carrera, entra en
+// el punto que corresponde, sincronizada igual.
+export function programarMusica(segundosAlYa) {
+  yaEn = performance.now() + segundosAlYa * 1000
+  clearInterval(reintentoMusica)
+  // Hasta que el archivo esté bajado y el audio activo (lo activa el primer toque).
+  reintentoMusica = setInterval(() => {
+    agendarMusica()
+    if (musica || !yaEn || performance.now() > yaEn + 60_000) clearInterval(reintentoMusica)
+  }, 200)
+  agendarMusica()
 }
 
-// Afinación baja (drop D): las raíces de los power chords.
-const NOTA = { D: 73.42, F: 87.31, G: 98.0, Gs: 103.83, A: 110.0, C: 130.81 / 2, Bb: 116.54 }
-const DIECISEISAVO = 60 / 170 / 4
+function agendarMusica() {
+  if (musica || !yaEn || !ctx || ctx.state !== "running") return
+  const tema = archivos[`musica-${pista}`] ? `musica-${pista}` : "musica-carrera"
+  const buffer = archivos[tema]
+  if (!buffer) return
+  const tYa = ahora() + (yaEn - performance.now()) / 1000
+  const base = tYa - (PRINCIPAL[tema] ?? 0) // cuándo tendría que haber empezado el archivo desde cero
+  const inicio = Math.max(base, finTheWorld, ahora() + 0.02)
+  const desde = inicio - base
+  if (desde >= buffer.duration) return
+  musica = tocar(buffer, { t: inicio, desde, gain: 0.7, out: bus })
+  window.__musica = { inicio, desde, tYa, tema, finTheWorld, yaEn, ahora: ahora(), perf: performance.now() } // para las pruebas
+}
 
-// ── Sonidos ────────────────────────────────────────────────────────────────────────
+function pararMusica(fundido = 1.5) {
+  yaEn = null
+  clearInterval(reintentoMusica)
+  if (!musica) return
+  const { src, g } = musica
+  musica = null
+  const t = ahora()
+  g.gain.cancelScheduledValues(t)
+  g.gain.setValueAtTime(g.gain.value, t)
+  g.gain.linearRampToValueAtTime(0.0001, t + fundido)
+  src.stop(t + fundido + 0.05)
+}
+
+// Cada sonido del juego, desde su archivo. Devuelven si sonaron.
 const SONIDOS = {
-  // UI: chicos.
-  click() { tono({ freq: 880, to: 520, dur: 0.07, gain: 0.1 }) },
-  tic() {
-    soplo({ dur: 0.03, gain: 0.14, freq: 2400, q: 6 })
-    tono({ type: "triangle", freq: 1200, dur: 0.05, gain: 0.08 })
-  },
-  // Un carrete rodando: un clic por fila que pasa, parejo mientras gira y cada vez más espaciado al frenar.
+  click: () => archivo("click", { gain: 0.6 }),
+  tic: () => archivo("tic", { gain: 0.7 }),
+  // El carrete: un tic por fila que pasa, parejo mientras gira y cada vez más espaciado al frenar.
   rodar(giraMs, frenaMs, carrete = 0) {
+    if (!archivos.tic) return false
     const t0 = ahora()
-    const tono = carrete ? 1700 : 2100
     let t = 0
     let paso = 1 / 16
     while (t < (giraMs + frenaMs) / 1000) {
-      soplo({ t: t0 + t, dur: 0.02, gain: 0.07, freq: tono, q: 5 })
-      tono_({ t: t0 + t, freq: tono / 2, dur: 0.03, gain: 0.03 })
+      tocar(archivos.tic, { t: t0 + t, gain: 0.45, rate: carrete ? 0.92 : 1 })
       if (t > giraMs / 1000) paso *= 1.35
       t += paso
     }
+    return true
   },
-  premio() {
-    [1047, 1319, 1568].forEach((freq, i) => tono({ t: ahora() + i * 0.07, type: "triangle", freq, dur: 0.22, gain: 0.14, wet: 0.2 }))
-  },
-  // Un tintineo de moneda: parciales inarmónicos que caen rápido.
-  moneda() {
-    [[2350, 0.12], [3530, 0.07], [5170, 0.05]].forEach(([freq, gain]) => tono({ freq, dur: 0.35, gain, wet: 0.15 }))
-    ;[[2350 * 1.06, 0.08], [3530 * 1.06, 0.05]].forEach(([freq, gain]) => tono({ t: ahora() + 0.08, freq, dur: 0.3, gain, wet: 0.15 }))
-  },
-
-  // La carrera: fuertes.
-  // El mundo se detiene.
+  moneda: () => archivo("moneda", { gain: 0.8 }),
+  premio: () => archivo("premio", { gain: 0.8 }),
+  // El mundo se detiene: The World. Una carrera nueva corta la música que haya quedado de otra.
+  // Si la música ya estaba agendada para esta carrera, se vuelve a agendar para que entre cuando The World termine.
   tiempo() {
-    if (theWorld) {
-      const src = ctx.createBufferSource()
-      src.buffer = theWorld
-      src.connect(sfx)
-      src.start()
-      return
-    }
-    const t = ahora()
-    const crece = GOLPE_TIEMPO
-    soplo({ t, dur: crece, gain: 0.5, freq: 300, sweep: 7000, q: 0.7, rise: true })
-    tono({ t, freq: 70, to: 300, dur: crece, gain: 0.18, attack: crece * 0.9 })
-    tono({ t: t + crece, freq: 75, to: 30, dur: 1.6, gain: 1 })
-    soplo({ t: t + crece, dur: 0.35, gain: 0.5, filter: "lowpass", freq: 1200, wet: 0.6 })
-    // Campana: parciales de una campana real (1, 2.76, 5.40, 8.93), con mucha reverberación.
-    ;[[1, 0.3], [2.76, 0.16], [5.4, 0.09], [8.93, 0.05]].forEach(([ratio, gain]) =>
-      tono({ t: t + crece, freq: 196 * ratio, dur: 2.8, gain, wet: 0.9 }))
-    tono({ t: t + crece + 0.1, freq: 55, dur: 3, gain: 0.12, attack: 0.4 })
-    // El reloj: tic, tac, cada vez más lento y más bajo.
-    ;[0.95, 1.4, 1.95, 2.65, 3.5].forEach((at, i) => {
-      soplo({ t: t + at, dur: 0.03, gain: 0.22 - i * 0.035, freq: i % 2 ? 1500 : 2100, q: 6, wet: 0.5 })
-      tono({ t: t + at, type: "triangle", freq: i % 2 ? 750 : 1050, dur: 0.05, gain: 0.12 - i * 0.02, wet: 0.5 })
-    })
+    const ya = yaEn
+    pararMusica(0.3)
+    if (!theWorld) return false
+    tocar(theWorld)
+    finTheWorld = ahora() + theWorld.duration
+    if (ya) programarMusica((ya - performance.now()) / 1000)
+    return true
   },
-
-  // 3, 2, 1: tambores graves que suben.
-  cuenta(n) {
-    const t = ahora()
-    tambor(t, { 3: 62, 2: 74, 1: 88 }[n] || 70, 1)
-    guitarra(t, NOTA.D, 0.5, { apagada: true, gain: 0.35 })
-    platillo(t, 0.12)
-  },
-
-  // ¡Ya!: el riff de largada, dos compases.
+  // 3, 2, 1: el mismo golpe, un poco más agudo en cada número.
+  cuenta: n => archivo("cuenta", { rate: { 3: 1, 2: 1.06, 1: 1.12 }[n] ?? 1 }),
+  // Si nadie agendó la música (se entró sobre la hora), entra ahora, en su parte principal.
   ya() {
-    const t = ahora() + 0.02
-    const s = DIECISEISAVO
-    // [semicorchea, nota, duración en semicorcheas, apagada]
-    const RIFF = [
-      [0, "D", 1, 1], [1, "D", 1, 1], [2, "D", 1, 1], [3, "F", 2, 0], [5, "D", 1, 1], [6, "D", 1, 1], [7, "Gs", 2, 0],
-      [9, "D", 1, 1], [10, "D", 1, 1], [11, "A", 2, 0], [13, "G", 1, 0], [14, "F", 2, 0],
-      [16, "D", 8, 0], [24, "D", 1, 1], [25, "D", 1, 1], [26, "D", 1, 1], [27, "C", 2, 0], [29, "D", 1, 1], [30, "Bb", 2, 0]
-    ]
-    for (const [paso, nota, largo, apagada] of RIFF) {
-      guitarra(t + paso * s, NOTA[nota], s * largo, { apagada: !!apagada, gain: 0.34 })
-      bombo(t + paso * s, apagada ? 0.6 : 0.85)
-    }
-    ;[4, 12, 20, 28].forEach(paso => caja(t + paso * s, 0.6))
-    platillo(t, 0.4)
-    platillo(t + 16 * s, 0.4)
+    if (!musica && !yaEn) programarMusica(0)
+    return archivo("ya")
   },
-
-  // Meta: un golpe y un acorde abierto que queda sonando.
-  meta() {
-    const t = ahora()
-    bombo(t, 1)
-    tambor(t, 50, 1)
-    platillo(t, 0.5)
-    guitarra(t, NOTA.D, 2.2, { gain: 0.38 })
-  },
-
-  // Ganador: fanfarria de power chords que sube.
+  meta: () => archivo("meta"),
   ganador() {
-    const t = ahora()
-    ;[["D", 0], ["F", 0.2], ["G", 0.4], ["A", 0.6]].forEach(([nota, at], i) => {
-      guitarra(t + at, NOTA[nota], i === 3 ? 1.8 : 0.22, { gain: 0.34 })
-      bombo(t + at, 0.8)
-    })
-    platillo(t + 0.6, 0.45)
-    caja(t + 0.6, 0.6)
-  }
+    pararMusica(1.2)
+    return archivo("ganador")
+  },
+  // Cada favorito se presenta con su relincho (si hay archivo), con el tono un poco cambiado.
+  relincho: n => archivo("relincho", { rate: 0.9 + ((n * 7) % 5) * 0.06 }),
+  // El riff de la ficha de un caballo: su archivo o, si no hay, el del inicio (sin la música detrás).
+  riff: () => archivo("riff") || archivo("ya")
 }
 
 export function sonar(nombre, ...args) {
   const fn = SONIDOS[nombre]
   if (!fn || !audio() || ctx.state !== "running") return false
-  try { fn(...args) } catch (error) { console.warn("sonido", nombre, error) }
+  let sono = false
+  try { sono = fn(...args) } catch (error) { console.warn("sonido", nombre, error) }
   // Registro de lo que sonó, para las pruebas.
-  window.__sonados = [...(window.__sonados || []), nombre]
-  return true
+  if (sono) window.__sonados = [...(window.__sonados || []), nombre]
+  return sono
 }
 
-// Si todavía no se puede sonar (nadie tocó la página), suena apenas se pueda, una vez y si no pasó demasiado.
+// Si todavía no se puede sonar (nadie tocó la página o no bajó el archivo), suena apenas se pueda, una vez y si no
+// pasó demasiado.
 export function sonarCuandoSePueda(nombre, vence = 1500) {
   if (sonar(nombre)) return
   const hasta = performance.now() + vence
@@ -290,5 +212,5 @@ export function sonarCuandoSePueda(nombre, vence = 1500) {
   for (const type of ["pointerdown", "keydown"]) addEventListener(type, intento, { once: true, passive: true })
   const c = audio()
   if (c) c.resume().then(intento).catch(() => {})
+  const reintento = setInterval(() => { intento(); if (sono || performance.now() >= hasta) clearInterval(reintento) }, 150)
 }
-

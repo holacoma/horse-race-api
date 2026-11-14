@@ -12,15 +12,17 @@
   <%# Si dejás un archivo public/sonidos/the-world.* (mp3, ogg, wav o m4a), suena ese al largar en vez del sintetizado. %>
   <% the_world = Dir[Rails.public_path.join("sonidos", "the-world.{mp3,ogg,wav,m4a}").to_s].first %>
   <% if the_world %><meta name="sonido-the-world" content="/sonidos/<%= File.basename(the_world) %>"><% end %>
+  <%# Los sonidos generados que existen (public/sonidos/juego): solo esos se piden, el resto suena sintetizado. %>
+  <meta name="sonidos-juego" content="<%= Dir[Rails.public_path.join("sonidos", "juego", "*.mp3").to_s].map { |f| File.basename(f, ".mp3") }.join(" ") %>">
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous" defer></script>
   <%= javascript_importmap_tags %>
   <link rel="stylesheet" href="/css/identidad.css?v=5">
-  <link rel="stylesheet" href="/css/club.css?v=15">
+  <link rel="stylesheet" href="/css/club.css?v=16">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/buttons.css">
   <%= yield :head %>
 </head>
-<body data-controller="button-fx" data-action="click->button-fx#play:capture">
+<body data-controller="button-fx<%= " avisos" if logged_in? %>" data-action="click->button-fx#play:capture">
 <%= render "shared/dibujo_defs" %>
 <% if content_for?(:pantalla_completa) %>
   <%# La sala con la carrera 3D: toda la pantalla es de la escena, sin menú. %>

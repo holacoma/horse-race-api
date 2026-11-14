@@ -1,44 +1,47 @@
-/* Resultados: el ganador grande arriba, las acciones, y la lista de puestos. */
-.results-wrap { max-width: 640px; display: grid; gap: 20px; }
-/* Portada de victoria a lo Persona 5: la ilustración entera (el caballo a la derecha, el aire a la izquierda) y en ese
-   aire quién ganó, en un bloque negro. Un velo oscuro a la izquierda une el texto con la imagen. */
+/* Resultados, del lado light: el ganador arriba en su versión fuerte (su ilustración), cuánto ganaste o perdiste y un
+   resumen, y la lista de puestos con los chibis. Cada caballo lleva a su ficha. */
+.results-wrap { max-width: 760px; display: grid; gap: 20px; }
+/* La ilustración del ganador (la animada encima; si no existe, la fija). El texto va en una nota crema, como todo. */
 .results-hero {
   position: relative; display: flex; align-items: center; aspect-ratio: 1216 / 832; padding: 18px 18px 18px 24px; overflow: hidden;
-  /* La animada (loop de ida y vuelta) encima; si no existe, se ve la fija de abajo. */
-  background: linear-gradient(90deg, rgb(0 0 0 / .6), transparent 55%), var(--portada-anim, none) right center / cover no-repeat,
-    var(--noche-1) var(--portada) right center / cover no-repeat; border: 3px solid var(--noche-1);
-  box-shadow: 8px 8px 0 var(--carmesi); transform: rotate(-1deg);
+  background: var(--portada-anim, none) right center / cover no-repeat, var(--arena-12) var(--portada) right center / cover no-repeat;
+  border: 2px solid var(--acento); border-radius: var(--radio); box-shadow: 6px 6px 0 var(--arena-7); transform: rotate(-1deg);
 }
-.results-hero-texto { max-width: 48%; padding: 10px 18px 12px; background: var(--noche-1); color: var(--noche-12); transform: rotate(-2deg); box-shadow: 5px 5px 0 var(--carmesi); }
-.results-hero h1 { margin: 0; font: 400 34px/1.05 var(--fuente-gotica); color: var(--noche-12); text-shadow: 2px 2px 0 var(--carmesi); }
-.results-winner-horse { margin: 4px 0 0; font-weight: 700; color: var(--noche-11, #cfc8bd); }
-.results-my-position { margin: 6px 0 0; font-weight: 800; color: var(--noche-12); }
+.results-hero-link { position: absolute; inset: 0; z-index: 1; }
+.results-hero-texto { position: relative; z-index: 2; max-width: 52%; padding: 12px 18px 14px; background: var(--fondo); color: var(--texto);
+  border: 2px solid var(--acento); border-radius: var(--radio-chico); box-shadow: 4px 4px 0 var(--arena-7); transform: rotate(-2deg); pointer-events: none; }
+.results-hero h1 { margin: 0; font: 400 30px/1.1 var(--fuente-titulo); color: var(--texto); text-shadow: none; }
+.results-winner-horse { margin: 6px 0 0; font-weight: 800; color: var(--texto-suave); }
+.results-my-position { margin: 4px 0 0; font-weight: 800; }
+.results-resumen { display: flex; flex-wrap: wrap; gap: 10px; }
+.results-resumen .dato { display: grid; padding: 8px 16px 10px; background: var(--superficie); border: 2px solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra); }
+.results-resumen small { font-weight: 800; font-size: 12.5px; color: var(--texto-suave); }
+.results-resumen b { font: 400 20px var(--fuente-titulo); white-space: nowrap; }
+.results-resumen .ganaste { border-color: var(--exito); background: var(--exito-fondo); }
+.results-resumen .ganaste b { color: var(--exito-texto); }
+.results-resumen .perdiste { border-color: var(--peligro); background: var(--peligro-fondo); }
+.results-resumen .perdiste b { color: var(--peligro-texto); }
 .results-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.results-list { list-style: none; display: grid; gap: 8px; }
+.results-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .results-row {
-  display: grid; grid-template-columns: 40px 52px 1fr auto; align-items: center; gap: 12px; padding: 6px 14px;
+  display: grid; grid-template-columns: 44px 60px 1fr auto; align-items: center; gap: 12px; padding: 4px 16px 4px 10px; text-decoration: none; color: var(--texto);
   background: var(--superficie); border: var(--borde-ancho) solid var(--borde-sutil); border-radius: var(--radio-chico); box-shadow: var(--sombra);
+  transition: transform .12s, border-color .12s;
 }
-.results-row:nth-child(2n) { transform: rotate(calc(var(--giro) * .5)); }
-.results-row.is-me { background: var(--acento-fondo); border-color: var(--acento-borde); }
-.results-position { font: 700 20px var(--fuente-titulo); text-align: center; }
-.results-retrato { width: 52px; height: 52px; object-fit: cover; object-position: center 30%; border: 2px solid var(--noche-1); box-shadow: 3px 3px 0 var(--carmesi); transform: rotate(-3deg); }
+.results-row:hover { border-color: var(--acento-borde); transform: translateY(-2px) rotate(-.4deg); }
+.results-list li:nth-child(2n) .results-row { transform: rotate(calc(var(--giro) * .5)); }
+/* Tu puesto: la misma tarjeta crema, marcada con contorno y sombra de tinta. */
+.results-row.is-me { background: var(--fondo); border-color: var(--acento); box-shadow: 5px 5px 0 var(--acento); }
+.results-position { font: 400 20px var(--fuente-titulo); text-align: center; }
+.results-chibi { width: 60px; height: 60px; object-fit: contain; }
+.results-retrato { width: 60px; height: 60px; object-fit: cover; object-position: center 30%; border: 2px solid var(--acento); border-radius: var(--radio-chico); box-shadow: 3px 3px 0 var(--c); }
 .results-horse { justify-self: start; min-width: 0; }
-.results-player { color: var(--texto-suave); font-size: 14px; }
+.results-player { color: var(--texto-suave); font-size: 14px; font-weight: 700; white-space: nowrap; }
 @media (max-width: 520px) {
-  .results-row { grid-template-columns: 32px 48px 1fr; }
+  .results-row { grid-template-columns: 36px 48px 1fr; }
   .results-player { grid-column: 3; }
+  .results-chibi, .results-retrato { width: 48px; height: 48px; }
   .results-hero { padding: 10px; }
-  .results-hero-texto { max-width: 58%; padding: 6px 10px 8px; }
-  .results-hero h1 { font-size: 22px; }
-  .results-winner-horse, .results-my-position { font-size: 13px; }
-}
-
-/* Tu puesto, imposible de no ver: la fila sobresale y lleva un sello carmesí con "Tú". */
-.results-row.is-me { position: relative; margin-top: 14px; transform: scale(1.03) rotate(-.6deg); background: var(--noche-1); color: var(--noche-12); border-color: var(--noche-1); box-shadow: 6px 6px 0 var(--carmesi); z-index: 1; }
-.results-row.is-me .results-player { color: var(--noche-11, var(--noche-12)); }
-.results-tu {
-  position: absolute; left: -12px; top: -20px; padding: 2px 12px 4px; transform: rotate(-8deg); font-size: 22px;
-  background: var(--carmesi); color: #fff; font: 400 26px/1 var(--fuente-gotica); box-shadow: 3px 3px 0 var(--noche-1);
-  animation: latido 1.6s ease-in-out infinite;
+  .results-hero-texto { max-width: 64%; padding: 8px 12px 10px; }
+  .results-hero h1 { font-size: 20px; }
 }

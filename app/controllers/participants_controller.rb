@@ -30,7 +30,8 @@ class ParticipantsController < WebController
 
     participant.announce_joined
 
-    race.reload.start! if race.full? && race.pending?
+    # Llena, larga al toque (antes de la hora: bono). La travesía no: corre días y larga sola al final.
+    race.reload.start! if race.carrera? && race.full? && race.pending?
 
     render json: { ok: true, race_started: race.running?, participant: { horse_id: horse.id, horse_name: horse.name, display_name: participant.display_name } }
   end

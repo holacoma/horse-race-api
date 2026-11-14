@@ -10,13 +10,15 @@ class Participant < ApplicationRecord
   # Entrar cuesta la apuesta base de la sala. A un jugador se le descuenta de su saldo (si no le alcanza, no entra);
   # los apostadores de relleno también ponen la suya, así el pozo vale la pena aunque juegues con bots.
   before_create :pagar_apuesta
+  # En una travesía, el que entra tarde arranca a la par del último.
+  before_create { self.travesia_offset = race.offset_para_nuevo(horse_id) if race.travesia? }
 
   def pagar_apuesta
     self.stake = race.bet
     return unless user_id
     cobrado = User.where(id: user_id).where("balance >= ?", stake).update_all([ "balance = balance - ?", stake ])
     return if cobrado == 1
-    errors.add(:base, "No te alcanza: la apuesta de esta sala es #{stake} USD y tenés #{user.reload.balance} USD")
+    errors.add(:base, "No te alcanza: la apuesta de esta sala es #{stake} USD y tienes #{user.reload.balance} USD")
     throw :abort
   end
 
