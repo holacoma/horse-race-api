@@ -68,12 +68,15 @@ class SonidosController < ApplicationController
     archivo = params.require(:archivo).to_s
     return head :unprocessable_entity unless momento.match?(NOMBRE) && archivo.match?(NOMBRE) && momento != DESCARTADOS.basename.to_s
 
-    desde, hacia = [ RAIZ.join(momento), DESCARTADOS.join(momento) ]
+    # NOMBRE acepta puntos: sin esto, ".." sacaría el movimiento de candidatos/.
+    return head :unprocessable_entity if [ momento, archivo ].any? { |n| %w[. ..].include?(n) }
+
+    desde, hacia = [ RAIZ.join(File.basename(momento)), DESCARTADOS.join(File.basename(momento)) ]
     desde, hacia = hacia, desde if ActiveModel::Type::Boolean.new.cast(params[:volver])
-    return head :not_found unless desde.join(archivo).file?
+    return head :not_found unless desde.join(File.basename(archivo)).file?
 
     FileUtils.mkdir_p(hacia)
-    FileUtils.mv(desde.join(archivo), hacia.join(archivo))
+    FileUtils.mv(desde.join(File.basename(archivo)), hacia.join(File.basename(archivo)))
     guardar_elegido(momento, nil) if elegidos[momento] == archivo
     head :no_content
   end
