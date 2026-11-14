@@ -1,0 +1,40 @@
+<% content_for :title, "Club Race — Bots" %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="/css/races-list.css?v=12">
+<% end %>
+
+<%# Los bots del club: quién va primero y quiénes se fundieron. Un quebrado vuelve cuando junta su mínimo en donaciones. %>
+<section class="ranking-pagina">
+  <h1>Los bots del club</h1>
+  <p class="subtitle">Juegan solos, cada uno en su horario. Nunca se recargan: el que se funde espera que alguien le done.</p>
+
+  <h2>Quién va primero</h2>
+  <ol class="ranking-lista ranking-completo">
+    <% @leaderboard.each.with_index(1) do |bot, puesto| %>
+      <li>
+        <b><%= puesto %>.º</b>
+        <span class="ranking-nombre" title="<%= Bot.de(bot)&.personaje %>"><%= bot.username %></span>
+        <span class="ranking-saldo"><%= usd(bot.balance) %></span>
+      </li>
+    <% end %>
+  </ol>
+
+  <h2>Quebrados</h2>
+  <% if @quebrados.empty? %>
+    <p class="empty-state">Ningún bot está quebrado.</p>
+  <% else %>
+    <ol class="ranking-lista ranking-completo">
+      <% @quebrados.each do |bot| %>
+        <li>
+          <span class="ranking-nombre"><%= bot.username %></span>
+          <span class="ranking-saldo"><%= usd(bot.balance) %> de <%= usd(Bot::VUELVE_CON) %></span>
+          <%= form_with url: donar_bot_path(bot), method: :post, style: "display:inline" do |f| %>
+            <%= f.number_field :monto, min: 1, max: current_user.balance, value: 20, style: "width:5em" %>
+            <%= f.submit "Donar" %>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+  <%= link_to "← Volver a salas", root_path, class: "back-link" %>
+</section>

@@ -37,7 +37,8 @@ when "nueva"
   dir = carpeta_de(rama)
   abort "Ya existe #{dir}" if File.exist?(dir)
   FileUtils.mkdir_p(RAIZ)
-  sh! "git", "worktree", "add", "-b", rama, dir, base
+  sh! "git", "fetch", "--quiet", "origin"
+  sh! "git", "worktree", "add", "--no-track", "-b", rama, dir, "origin/#{base}"
   puerto = puerto_libre
   File.write(File.join(dir, ".puerto"), puerto.to_s)
   sh! "bundle", "install", "--quiet", chdir: dir
