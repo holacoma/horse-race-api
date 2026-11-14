@@ -22,6 +22,7 @@ export default class extends Controller {
   connect() {
     this.datos = JSON.parse(document.getElementById("prueba-data").textContent)
     elegirPista(this.datos.pista)
+    this.fuerzas = new Map(this.datos.participants.map(p => [p.id, { id: p.id, aceleracion: entre(ACELERACION), punta: entre(PUNTA) }]))
     this.alLanzar = event => this.lanzar(this.datos.myHorseId, `tú (carta de ${event.detail.flechas})`)
     document.addEventListener("poder:lanzado", this.alLanzar)
     try { const d = localStorage.getItem(DIFICULTAD); if (d !== null) this.dificultadTarget.value = d } catch {}
@@ -78,7 +79,8 @@ export default class extends Controller {
     }
     if (d.presentacion) {
       // Como en la sala: paneo de los chibis, después The World y la transformación.
-      this.race.setFavoritos(d.participants.slice(0, 3).map(p => p.id))
+      // Favoritos: los de mayor punta, como Race#favoritos (la fuerza se sortea antes de largar).
+      this.race.setFavoritos([...this.fuerzas.values()].sort((a, b) => b.punta - a.punta || b.aceleracion - a.aceleracion).slice(0, 3).map(f => f.id))
       this.race.startIn(d.paneo + PRESENTACION_SEC)
       programarMusica(d.paneo + PRESENTACION_SEC)
       setTimeout(() => sonarCuandoSePueda("tiempo"), d.paneo * 1000)
@@ -95,7 +97,7 @@ export default class extends Controller {
     this.clock = 0
     this.entradas = this.datos.participants.map(p => ({
       id: p.id, nombre: p.name, pos: 0, speed: 0, previa: 0, reached: 0,
-      aceleracion: entre(ACELERACION), punta: entre(PUNTA), fase: Math.random() * 6.283, periodo: 2.2 + Math.random() * 2.6,
+      aceleracion: this.fuerzas.get(p.id).aceleracion, punta: this.fuerzas.get(p.id).punta, fase: Math.random() * 6.283, periodo: 2.2 + Math.random() * 2.6,
       desde: -100, bot: p.id !== this.datos.myHorseId
     }))
     this.reloj = setInterval(() => this.tick(), TICK * 1000)

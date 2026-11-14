@@ -28,4 +28,12 @@ class PruebasControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, datos["myHorseId"]
     assert_equal RaceSimulationJob::PANEO_SEC, datos["paneo"]
   end
+
+  test "?caballos=N arma la carrera con N caballos (2 a 8)" do
+    { "2" => 2, "5" => 5, "1" => 2, "99" => 8 }.each do |param, esperado|
+      get prueba_carrera_path(caballos: param)
+      datos = JSON.parse(css_select("#prueba-data").first.text)
+      assert_equal esperado, datos["participants"].size, "caballos=#{param}"
+    end
+  end
 end
