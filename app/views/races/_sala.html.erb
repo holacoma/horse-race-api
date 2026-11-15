@@ -1,0 +1,17 @@
+<%# Una sala abierta en el inicio. Sin saldo (el que la transmite en vivo no sabe quién mira), la tarjeta sale como
+    «Unirse» y lobby_controller.js la ajusta al saldo de quien la ve (data-bet). %>
+<% participants = race.participants.sort_by(&:created_at) %>
+<% alcanza = saldo.nil? || race.bet <= saldo %>
+<%= link_to race_path(race), class: ["room-card", ("sin-saldo" unless alcanza)], data: { fx: "join", slug: race.slug, bet: race.bet } do %>
+  <span class="room-slug"><%= "🌄 " if race.travesia? %><%= race.slug %></span>
+  <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.travesia? ? "travesía de #{race.travesia_dias} #{race.travesia_dias == 1 ? 'día' : 'días'}" : "#{race.distance} m" %> · apuesta <%= usd(race.bet) %> · <%= Race::PISTAS[race.pista] %></span>
+  <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
+    <% race.capacity.times do |i| %>
+      <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
+    <% end %>
+    <% if (segundos = race.segundos_para_largar) %>
+      <em data-cuenta-target="reloj" data-hasta="<%= (Time.current + segundos).to_i %>" data-prefijo="<%= race.travesia? ? 'intensa en' : 'inicia en' %>"><%= race.travesia? ? "intensa en" : "larga en" %> <%= segundos / 60 %>:<%= format("%02d", segundos % 60) %></em>
+    <% end %>
+  </span>
+  <span class="room-unirse"><%= alcanza ? "Unirse" : "No te alcanza" %></span>
+<% end %>

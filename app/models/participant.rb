@@ -10,6 +10,7 @@ class Participant < ApplicationRecord
   # Entrar cuesta la apuesta base de la sala. A un jugador se le descuenta de su saldo (si no le alcanza, no entra);
   # los apostadores de relleno también ponen la suya, así el pozo vale la pena aunque juegues con bots.
   before_create :pagar_apuesta
+  after_create_commit { race.anunciar_en_lobby }
   # En una travesía, el que entra tarde arranca a la par del último.
   before_create { self.travesia_offset = race.offset_para_nuevo(horse_id) if race.travesia? }
 

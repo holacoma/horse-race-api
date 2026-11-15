@@ -17,6 +17,10 @@ production:
   bots:
     class: BotsJob
     schedule: every 10 minutes
+  # Lobby vivo: el vigía enciende el latido (LobbyJob, que se reprograma cada segundo) si no hay ninguno corriendo.
+  lobby:
+    class: LobbyJob
+    schedule: every minute
 
 development:
   bots:
