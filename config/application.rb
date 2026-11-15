@@ -57,7 +57,8 @@ module HorseRaceApi
     # Session middleware needed for OmniAuth and WebController views
     config.middleware.use Rack::MethodOverride
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore, key: "_horse_race_session"
+    # La sesión se renueva por 7 días con cada visita (Rack reescribe la cookie en cada pedido); quien tarda más, vuelve a entrar.
+    config.middleware.use ActionDispatch::Session::CookieStore, key: "_horse_race_session", expire_after: 7.days
     config.middleware.use ActionDispatch::Flash
   end
 end
