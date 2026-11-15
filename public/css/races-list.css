@@ -145,7 +145,7 @@
 .temporada-que-es summary { cursor: pointer; text-decoration: underline; width: max-content; }
 .temporada-que-es p { margin: .35rem 0 0; line-height: 1.35; }
 /* Apuestas por bots (/bots): suaves, dentro de la misma tarjeta de la lista. */
-.apuesta-mercado, .apuesta-fila { grid-template-columns: 70px 1fr auto; }
+.ranking-lista li.apuesta-mercado, .ranking-lista li.apuesta-fila { grid-template-columns: auto 1fr auto; }
 .apuesta-mercado .apuesta-nota { grid-column: 2 / -1; }
 .apuesta-nota { color: var(--texto-suave); font-size: 12.5px; font-weight: 700; }
 .apuesta-ganada .apuesta-nota { color: var(--acento); }
