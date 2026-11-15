@@ -1,6 +1,6 @@
 <% content_for :title, "Club Race" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-list.css?v=13">
+  <link rel="stylesheet" href="/css/races-list.css?v=19">
   <link rel="stylesheet" href="/css/races-new.css?v=4">
   <link rel="stylesheet" href="/css/slot-machine.css?v=3">
 <% end %>
@@ -35,39 +35,27 @@
     <% end %>
   </div>
 
-  <div class="inicio-salas">
+  <div class="inicio-salas" data-controller="lobby">
     <% lider = @temporada.lider %>
     <div class="temporada">
       <b>Temporada <%= @temporada.numero %></b>
       <span class="dias" aria-label="día <%= @temporada.dia %> de 5"><% 5.times do |i| %><i class="<%= 'pasado' if i + 1 < @temporada.dia %><%= 'hoy' if i + 1 == @temporada.dia %>"></i><% end %></span>
       <span>quedan <%= @temporada.dias_restantes %> <%= @temporada.dias_restantes == 1 ? "día" : "días" %></span>
       <span class="lider"><%= lider ? "va primero: #{lider.name}" : "nadie ganó todavía" %></span>
+      <details class="temporada-que-es">
+        <summary>¿Qué es?</summary>
+        <p>Una temporada dura 5 días y empieza a medianoche (hora de Chile). Cuenta las victorias y los podios de cada caballo en las carreras de esos días; el que más gana va primero. Al terminar, empieza otra desde cero.</p>
+        <p>Esta es la temporada <%= @temporada.numero %>: va en el día <%= @temporada.dia %> de 5 y <%= @temporada.dias_restantes == 1 ? "queda 1 día" : "quedan #{@temporada.dias_restantes} días" %>.</p>
+      </details>
     </div>
 
     <h2>Salas abiertas</h2>
-    <% if @races.empty? %>
-      <p class="empty-state">No hay salas abiertas. Con «Jugar ya» abres la primera.</p>
-    <% else %>
-      <div class="rooms-grid">
-        <% @races.each do |race| %>
-          <% participants = race.participants.sort_by(&:created_at) %>
-          <% alcanza = race.bet <= @saldo %>
-          <%= link_to race_path(race), class: ["room-card", ("sin-saldo" unless alcanza)], data: { fx: "join" } do %>
-            <span class="room-slug"><%= "🌄 " if race.travesia? %><%= race.slug %></span>
-            <span class="room-meta">de <%= race.creator&.username || "anónimo" %> · <%= race.travesia? ? "travesía de #{race.travesia_dias} #{race.travesia_dias == 1 ? 'día' : 'días'}" : "#{race.distance} m" %> · apuesta <%= usd(race.bet) %> · <%= Race::PISTAS[race.pista] %></span>
-            <span class="room-lugares" aria-label="<%= participants.size %> de <%= race.capacity %> lugares">
-              <% race.capacity.times do |i| %>
-                <i class="<%= 'ocupado' if i < participants.size %>" style="<%= "--c: #{color_de(participants[i].horse_id, tinta: true)}" if i < participants.size %>"></i>
-              <% end %>
-              <% if (segundos = race.segundos_para_largar) %>
-                <em data-cuenta-target="reloj" data-hasta="<%= (Time.current + segundos).to_i %>" data-prefijo="<%= race.travesia? ? 'intensa en' : 'inicia en' %>"><%= race.travesia? ? "intensa en" : "larga en" %> <%= segundos / 60 %>:<%= format("%02d", segundos % 60) %></em>
-              <% end %>
-            </span>
-            <span class="room-unirse"><%= alcanza ? "Unirse" : "No te alcanza" %></span>
-          <% end %>
-        <% end %>
-      </div>
-    <% end %>
+    <p class="empty-state" data-lobby-target="vacio" <%= "hidden" if @races.any? %>>No hay salas abiertas. Con «Jugar ya» abres la primera.</p>
+    <div class="rooms-grid" data-lobby-target="salas" data-saldo="<%= @saldo %>">
+      <% @races.each do |race| %>
+        <%= render "races/sala", race: race, saldo: @saldo %>
+      <% end %>
+    </div>
   </div>
 
   <div class="inicio-lado">

@@ -7,6 +7,7 @@ class User < ApplicationRecord
   ].freeze
 
   has_many :horse_favorites, dependent: :destroy
+  has_many :apuestas, dependent: :destroy
 
   validates :username, presence: true
 

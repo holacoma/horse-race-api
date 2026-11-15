@@ -2,7 +2,7 @@ class Race < ApplicationRecord
   SLUG_ADJECTIVES = %w[swift bold wild dark golden silver crimson].freeze
   SLUG_ANIMALS    = %w[fox wolf hawk eagle tiger bear].freeze
   DISTANCE_RANGE  = (100..20_000)
-  BET_RANGE       = (1..1000) # USD por caballo; 40 por defecto
+  BET_RANGE       = (1..10_000) # USD por caballo; 40 por defecto
   PREMIO_MULTIPLICADOR = 2    # el ganador cobra el doble del pozo
   # Hora límite para largar: si el creador larga antes, cada jugador cobra un bono; si se espera a la hora y larga
   # sola, el premio se multiplica por 10.
@@ -54,6 +54,8 @@ class Race < ApplicationRecord
 
   before_validation :generate_slug, on: :create
   after_create_commit :agendar
+  after_create_commit :anunciar_en_lobby
+  after_update_commit :anunciar_en_lobby, if: :saved_change_to_status?
 
   def to_param = slug
 
@@ -65,6 +67,17 @@ class Race < ApplicationRecord
     elsif starts_at
       LargadaJob.set(wait_until: starts_at).perform_later(id)
       AvisoJob.set(wait_until: starts_at - 1.minute).perform_later(id) if starts_at - 1.minute > Time.current
+    end
+  end
+
+  # El inicio en vivo (LobbyChannel): la sala nueva o con un lugar más aparece, la que larga se va.
+  def anunciar_en_lobby
+    return unless is_public
+    if pending?
+      html = WebController.render(partial: "races/sala", locals: { race: self, saldo: nil })
+      ActionCable.server.broadcast("lobby", { type: "sala", slug: slug, html: html })
+    else
+      ActionCable.server.broadcast("lobby", { type: "sala_cerrada", slug: slug })
     end
   end
 

@@ -24,4 +24,23 @@ class Bot
   end
 
   def apuesta = APUESTA.fetch(estilo, 40)
+
+  # Los usuarios de todos los bots (se crean la primera vez), por nombre.
+  def self.asegurar_usuarios
+    existentes = User.bots.where(username: todos.map(&:nombre)).index_by(&:username)
+    todos.to_h { |bot| [ bot.nombre, existentes[bot.nombre] || User.bots.create!(username: bot.nombre, balance: SALDO_INICIAL) ] }
+  end
+
+  # El que no puede pagar ni la apuesta más chica queda quebrado hasta que le donen.
+  def self.quebrar!(usuarios)
+    User.where(id: usuarios.map(&:id), quebrado_desde: nil).where("balance < ?", APUESTA.values.min).update_all(quebrado_desde: Time.current)
+  end
+
+  # [bot, usuario] de los que juegan ahora: despiertos y no quebrados.
+  def self.activos(usuarios)
+    todos.select(&:despierto?).filter_map do |bot|
+      user = usuarios[bot.nombre]
+      [ bot, user ] if user.quebrado_desde.nil?
+    end
+  end
 end

@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   # Los bots del club: leaderboard y quebrados (a los que se les dona).
   resources :bots, only: [ :index ] do
     post :donar, on: :member
+    post :apostar, on: :member
   end
 
   get   "/favorito",    to: "favoritos#edit",   as: :favorito

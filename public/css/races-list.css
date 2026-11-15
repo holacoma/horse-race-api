@@ -136,3 +136,26 @@
 .btn-jugar { animation: rebote 23s ease-in-out 9s infinite; }
 @keyframes brillo-esporadico { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 1%, 8% { opacity: .85; } 9%, 100% { transform: translateX(330%) skewX(-20deg); opacity: 0; } }
 @keyframes rebote { 0%, 93%, 100% { translate: 0 0; rotate: 0deg; } 95% { translate: 0 -7px; rotate: -2deg; } 97% { translate: 0 1px; rotate: 1deg; } }
+
+/* Sala que llega en vivo al inicio. */
+@keyframes sala-llega { from { opacity: 0; translate: 0 -10px; } }
+.room-card.recien-llegada { animation: sala-llega .45s ease-out; }
+
+.temporada-que-es { flex-basis: 100%; font-size: .85rem; margin-top: .4rem; }
+.temporada-que-es summary { cursor: pointer; text-decoration: underline; width: max-content; }
+.temporada-que-es p { margin: .35rem 0 0; line-height: 1.35; }
+/* Apuestas por bots (/bots): suaves, dentro de la misma tarjeta de la lista. */
+.ranking-lista li.apuesta-mercado, .ranking-lista li.apuesta-fila { grid-template-columns: auto 1fr auto; }
+.apuesta-mercado .apuesta-nota { grid-column: 2 / -1; }
+.apuesta-nota { color: var(--texto-suave); font-size: 12.5px; font-weight: 700; }
+.apuesta-ganada .apuesta-nota { color: var(--acento); }
+.ranking-lista li .apostar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.apostar-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.apostar-form input[type=number] { width: 5em; }
+.btn-suave {
+  font: 400 15px var(--fuente-titulo); padding: 7px 14px; border-radius: var(--radio-chico); cursor: pointer;
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde);
+}
+.btn-suave:hover { border-color: var(--acento); }
+.ranking-lista li.bot-quebrado { grid-template-columns: 1fr auto auto; }
+.ranking-lista li.bot-quebrado .ranking-nombre { white-space: normal; }
