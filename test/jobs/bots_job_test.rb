@@ -10,17 +10,12 @@ class BotsJobTest < ActiveJob::TestCase
     refute_includes User.ranking, User.bots.first
   end
 
-  test "solo juegan los despiertos: arman carreras y una travesía" do
+  test "solo juegan los despiertos: arman la travesía y no carreras (eso es del lobby)" do
     BotsJob.perform_now
-    carrera = Race.carrera.abiertas.last
-    assert carrera.creator.bot?
-    assert Bot.de(carrera.creator).despierto?
-    assert Race.travesia.abiertas.exists?
-  end
-
-  test "no amontonan salas propias" do
-    3.times { BotsJob.perform_now }
-    assert_operator Race.carrera.abiertas.where(creator: User.bots).count, :<=, BotsJob::SALAS_DE_BOTS
+    travesia = Race.travesia.abiertas.last
+    assert travesia.creator.bot?
+    assert Bot.de(travesia.creator).despierto?
+    assert_not Race.carrera.exists?
   end
 
   test "el que no puede pagar queda quebrado y no juega; no se recarga" do
