@@ -7,13 +7,15 @@ class Bot
   VUELVE_CON = 1_000 # un quebrado vuelve al club cuando junta esto en donaciones
   APUESTA = { "prudente" => 20, "normal" => 40, "arriesgado" => 100 }.freeze
 
-  attr_reader :nombre, :personaje, :despierta, :duerme, :estilo
+  attr_reader :nombre, :personaje, :despierta, :duerme, :estilo, :dificultad
+
+  FUERZA = { "facil" => 0.4, "normal" => 0.7, "dificil" => 1.0 }
 
   def self.todos = @todos ||= YAML.load_file(ARCHIVO).map { |datos| new(**datos.symbolize_keys) }
-  def self.de(user) = todos.find { |bot| bot.nombre == user.username }
+  def self.de(user) = user && todos.find { |bot| bot.nombre == user.username }
 
-  def initialize(nombre:, personaje:, despierta:, duerme:, estilo:)
-    @nombre, @personaje, @despierta, @duerme, @estilo = nombre, personaje, despierta, duerme, estilo
+  def initialize(nombre:, personaje:, despierta:, duerme:, estilo:, dificultad: "facil")
+    @nombre, @personaje, @despierta, @duerme, @estilo, @dificultad = nombre, personaje, despierta, duerme, estilo, dificultad
   end
 
   # duerme puede ser menor que despierta: el horario cruza la medianoche.
