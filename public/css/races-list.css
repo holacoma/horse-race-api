@@ -152,3 +152,10 @@
 .ranking-lista li .apostar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .apostar-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .apostar-form input[type=number] { width: 5em; }
+.btn-suave {
+  font: 400 15px var(--fuente-titulo); padding: 7px 14px; border-radius: var(--radio-chico); cursor: pointer;
+  background: var(--acento-fondo); color: var(--acento-texto); border: var(--borde-ancho) solid var(--acento-borde);
+}
+.btn-suave:hover { border-color: var(--acento); }
+.ranking-lista li.bot-quebrado { grid-template-columns: 1fr auto auto; }
+.ranking-lista li.bot-quebrado .ranking-nombre { white-space: normal; }

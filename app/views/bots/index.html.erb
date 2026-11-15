@@ -51,12 +51,12 @@
   <% else %>
     <ol class="ranking-lista ranking-completo">
       <% @quebrados.each do |bot| %>
-        <li>
-          <span class="ranking-nombre"><%= bot.username %></span>
+        <li class="bot-quebrado">
+          <span class="ranking-nombre" title="<%= bot.username %>"><%= bot.username %></span>
           <span class="ranking-saldo"><%= usd(bot.balance) %> de <%= usd(Bot::VUELVE_CON) %></span>
           <%= form_with url: donar_bot_path(bot), method: :post, style: "display:inline" do |f| %>
             <%= f.number_field :monto, min: 1, max: current_user.balance, value: 20, style: "width:5em" %>
-            <%= f.submit "Donar" %>
+            <%= f.submit "Donar", class: "btn-suave" %>
           <% end %>
           <%= render "apostar", bot: bot, mercados: %w[temporada] %>
         </li>

@@ -6,7 +6,7 @@
     <%= form_with url: apostar_bot_path(bot), method: :post, class: "apostar-form" do |f| %>
       <%= f.hidden_field :mercado, value: mercado, id: nil %>
       <%= f.number_field :monto, min: Apuesta::MINIMO, max: current_user.balance, value: Apuesta::MINIMO, id: nil, "aria-label": "Monto" %>
-      <%= f.submit "Apostar #{mercado == 'dia' ? 'al día' : 'a la temporada'}", id: nil %>
+      <%= f.submit "Apostar #{mercado == 'dia' ? 'al día' : 'a la temporada'}", id: nil, class: "btn-suave" %>
       <small class="apuesta-nota">Hoy <%= Apuesta::MINIMO %> USD pagarían <%= usd(Apuesta.pagaria(mercado, datos[:temporada], datos[:fecha], bot, Apuesta::MINIMO)) %></small>
     <% end %>
   <% end %>
