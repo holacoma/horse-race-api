@@ -8,7 +8,7 @@ class BotsController < WebController
     @temporada = Temporada.actual
     @mercados = Apuesta::MERCADOS.index_with do |mercado|
       _, temporada, fecha = Apuesta.clave_actual(mercado)
-      { abierto: Apuesta.abierto?(mercado), cierre: Apuesta.cierre(mercado), pozo: Apuesta.pozo(mercado, temporada, fecha),
+      { abierto: Apuesta.abierto?(mercado), cierre: Apuesta.cierre(mercado), apostado: Apuesta.apostado(mercado, temporada, fecha),
         temporada: temporada, fecha: fecha }
     end
     @pozo_torneo = PozoTorneo.monto_de(@temporada.numero)

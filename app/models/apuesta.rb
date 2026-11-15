@@ -1,8 +1,8 @@
-# Una apuesta por un bot, en uno de dos mercados con pozo común (parimutuel):
+# Una apuesta por un bot, en uno de dos mercados:
 #   dia       — qué bot termina el día (00:00 Chile) con más plata; se apuesta hasta las 18:00 de ese día; solo bots no quebrados.
 #   temporada — qué bot va primero por plata al cerrar la temporada; se apuesta hasta el final de su día 2; también quebrados.
-# Cada apuesta paga 10 % de impuesto (sale de circulación). Los que aciertan se reparten el resto del mercado en proporción
-# a lo apostado; si nadie acierta (o sobra un redondeo), va al pozo del torneo de la temporada.
+# Cada apuesta paga 10 % de impuesto (sale de circulación). Quien acierta cobra el doble de lo neto, pagado por la casa;
+# lo neto de quien falla va al pozo del torneo de la temporada.
 class Apuesta < ApplicationRecord
   self.table_name = "apuestas"
 
@@ -69,17 +69,11 @@ class Apuesta < ApplicationRecord
     apuesta
   end
 
-  # Total apostado, neto de impuesto, en un mercado.
-  def self.pozo(mercado, temporada, fecha) = de_mercado(mercado, temporada, fecha).sum("monto - impuesto")
+  # Total apostado (neto de impuesto) en un mercado.
+  def self.apostado(mercado, temporada, fecha) = de_mercado(mercado, temporada, fecha).sum("monto - impuesto")
 
-  # Lo que pagaría hoy una apuesta de `monto` por `bot` si gana: su parte del pozo con ella dentro.
-  def self.pagaria(mercado, temporada, fecha, bot, monto)
-    neto = monto - monto * IMPUESTO / 100
-    mercado_abierto = de_mercado(mercado, temporada, fecha)
-    pozo = mercado_abierto.sum("monto - impuesto") + neto
-    en_bot = mercado_abierto.where(bot_id: bot.id).sum("monto - impuesto") + neto
-    pozo * neto / en_bot
-  end
+  # Lo que cobra una apuesta de `monto` si acierta: el doble de lo neto (1,8 × monto), pagado por la casa.
+  def self.pagaria(monto) = 2 * (monto - monto * IMPUESTO / 100)
 
   # Liquida todos los mercados vencidos que sigan con apuestas abiertas. Idempotente.
   def self.liquidar_vencidas(at = Time.current)
@@ -99,17 +93,13 @@ class Apuesta < ApplicationRecord
       next false unless ganador
 
       acertadas, falladas = apuestas.partition { |a| a.bot_id == ganador.id }
-      neto = apuestas.sum { |a| a.monto - a.impuesto }
-      base = acertadas.sum(&:monto)
-      repartido = 0
       acertadas.each do |a|
-        pago = neto * a.monto / base
-        repartido += pago
+        pago = pagaria(a.monto)
         User.where(id: a.user_id).update_all([ "balance = balance + ?", pago ])
         a.update!(estado: "ganada", pago: pago, ganador: ganador, liquidada_en: at)
       end
       falladas.each { |a| a.update!(estado: "perdida", pago: 0, ganador: ganador, liquidada_en: at) }
-      PozoTorneo.sumar(temporada, neto - repartido)
+      PozoTorneo.sumar(temporada, falladas.sum { |a| a.monto - a.impuesto })
       true
     end
   end

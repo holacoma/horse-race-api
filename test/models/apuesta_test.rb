@@ -17,12 +17,12 @@ class ApuestaTest < ActiveSupport::TestCase
 
   teardown { travel_back }
 
-  test "apostar descuenta el monto, guarda el impuesto del 10 % y suma al pozo neto" do
+  test "apostar descuenta el monto, guarda el impuesto del 10 % y suma a lo apostado" do
     apuesta = Apuesta.apostar(user: @u1, bot: @a, mercado: "dia", monto: 100)
     assert apuesta.persisted?
     assert_equal 900, @u1.reload.balance
     assert_equal 10, apuesta.impuesto
-    assert_equal 90, Apuesta.pozo("dia", 1, Apuesta.hoy)
+    assert_equal 90, Apuesta.apostado("dia", 1, Apuesta.hoy)
   end
 
   test "mínimo de 20 y sin máximo salvo el saldo" do
@@ -61,29 +61,26 @@ class ApuestaTest < ActiveSupport::TestCase
     refute Apuesta.apostar(user: @u1, bot: @a, mercado: "temporada", monto: 20).persisted?
   end
 
-  test "pagaría hoy: su parte del pozo con su apuesta dentro" do
-    Apuesta.apostar(user: @u1, bot: @a, mercado: "dia", monto: 100) # neto 90
-    Apuesta.apostar(user: @u2, bot: @b, mercado: "dia", monto: 100) # neto 90
-    # apuesta de 20 (neto 18) por A: pozo 198, en A 108 -> 198 * 18 / 108 = 33
-    assert_equal 33, Apuesta.pagaria("dia", 1, Apuesta.hoy, @a, 20)
+  test "pagaría: el doble de lo neto (1,8 × monto)" do
+    assert_equal 180, Apuesta.pagaria(100)
+    assert_equal 36, Apuesta.pagaria(20)
   end
 
-  test "liquidación parimutuel: los ganadores se reparten el pozo neto en proporción a lo apostado" do
-    Apuesta.apostar(user: @u1, bot: @a, mercado: "dia", monto: 100) # neto 90
-    Apuesta.apostar(user: @u2, bot: @a, mercado: "dia", monto: 300) # neto 270
+  test "liquidación: quien acierta cobra 1,8 × su apuesta; lo neto de los que fallan va al torneo" do
+    Apuesta.apostar(user: @u1, bot: @a, mercado: "dia", monto: 100)
+    Apuesta.apostar(user: @u2, bot: @a, mercado: "dia", monto: 300)
     Apuesta.apostar(user: @u3, bot: @b, mercado: "dia", monto: 200) # neto 180, pierde
     travel_to @zona.local(2026, 11, 2, 0, 5)
 
     assert_equal 1, Apuesta.liquidar_vencidas
-    # pozo neto 540: u1 = 540 * 100 / 400 = 135; u2 = 405
-    assert_equal 900 + 135, @u1.reload.balance
-    assert_equal 700 + 405, @u2.reload.balance
+    assert_equal 900 + 180, @u1.reload.balance
+    assert_equal 700 + 540, @u2.reload.balance
     assert_equal 800, @u3.reload.balance
     assert_equal %w[ganada ganada perdida], Apuesta.order(:id).pluck(:estado)
-    assert_equal 0, PozoTorneo.monto_de(1)
+    assert_equal 180, PozoTorneo.monto_de(1)
   end
 
-  test "sin ganadores todo el pozo neto va al torneo" do
+  test "sin ganadores todo lo neto va al torneo" do
     Apuesta.apostar(user: @u1, bot: @b, mercado: "dia", monto: 100)
     Apuesta.apostar(user: @u2, bot: @q, mercado: "temporada", monto: 50)
     travel_to @zona.local(2026, 11, 2, 0, 5)
@@ -92,16 +89,6 @@ class ApuestaTest < ActiveSupport::TestCase
     assert_equal 90, PozoTorneo.monto_de(1)
     assert_equal "perdida", Apuesta.find_by(mercado: "dia").estado
     assert_equal "abierta", Apuesta.find_by(mercado: "temporada").estado # la temporada aún no cierra
-  end
-
-  test "el redondeo sobrante va al torneo" do
-    Apuesta.apostar(user: @u1, bot: @a, mercado: "dia", monto: 21) # neto 19
-    Apuesta.apostar(user: @u2, bot: @a, mercado: "dia", monto: 21) # neto 19
-    Apuesta.apostar(user: @u3, bot: @a, mercado: "dia", monto: 22) # neto 20 -> pozo 58
-    travel_to @zona.local(2026, 11, 2, 0, 5)
-    Apuesta.liquidar_vencidas
-    pagos = Apuesta.pluck(:pago)
-    assert_equal 58 - pagos.sum, PozoTorneo.monto_de(1)
   end
 
   test "es idempotente y no liquida antes de la medianoche" do
@@ -122,6 +109,6 @@ class ApuestaTest < ActiveSupport::TestCase
     assert_equal 0, Apuesta.liquidar_vencidas
     travel_to @zona.local(2026, 11, 6, 0, 1)
     Apuesta.liquidar_vencidas
-    assert_equal 900 + 90, @u1.reload.balance
+    assert_equal 900 + 180, @u1.reload.balance
   end
 end
