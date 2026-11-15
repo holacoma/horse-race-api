@@ -1,0 +1,13 @@
+<%# Apostar por un bot: un formulario por mercado abierto, con lo que pagaría hoy una apuesta mínima si gana. %>
+<div class="apostar">
+  <% mercados.each do |mercado| %>
+    <% datos = @mercados[mercado] %>
+    <% next unless datos[:abierto] %>
+    <%= form_with url: apostar_bot_path(bot), method: :post, class: "apostar-form" do |f| %>
+      <%= f.hidden_field :mercado, value: mercado, id: nil %>
+      <%= f.number_field :monto, min: Apuesta::MINIMO, max: current_user.balance, value: Apuesta::MINIMO, id: nil, "aria-label": "Monto" %>
+      <%= f.submit "Apostar #{mercado == 'dia' ? 'al día' : 'a la temporada'}", id: nil %>
+      <small class="apuesta-nota">Hoy <%= Apuesta::MINIMO %> USD pagarían <%= usd(Apuesta.pagaria(mercado, datos[:temporada], datos[:fecha], bot, Apuesta::MINIMO)) %></small>
+    <% end %>
+  <% end %>
+</div>

@@ -1,12 +1,37 @@
 <% content_for :title, "Club Race — Bots" %>
 <% content_for :head do %>
-  <link rel="stylesheet" href="/css/races-list.css?v=15">
+  <link rel="stylesheet" href="/css/races-list.css?v=19">
 <% end %>
 
 <%# Los bots del club: quién va primero y quiénes se fundieron. Un quebrado vuelve cuando junta su mínimo en donaciones. %>
 <section class="ranking-pagina">
   <h1>Los bots del club</h1>
   <p class="subtitle">Juegan solos, cada uno en su horario. Nunca se recargan: el que se funde espera que alguien le done.</p>
+
+  <h2>Apuestas</h2>
+  <p class="ranking-nota">
+    Apuesta por el bot que terminará con más plata. Mínimo <%= Apuesta::MINIMO %> USD, se descuenta al apostar y cada apuesta paga <%= Apuesta::IMPUESTO %> % de impuesto.
+    Los que aciertan se reparten el pozo; si nadie acierta, va al pozo del torneo.
+  </p>
+  <ul class="ranking-lista">
+    <li class="apuesta-mercado">
+      <b>Día</b>
+      <span class="ranking-nombre">Quién termina el día con más plata</span>
+      <span class="ranking-saldo"><%= usd(@mercados["dia"][:pozo]) %></span>
+      <small class="apuesta-nota"><%= @mercados["dia"][:abierto] ? "Abierto hasta las #{Apuesta::HORA_CIERRE_DIA}:00 (Chile)" : "Cerrado por hoy" %></small>
+    </li>
+    <li class="apuesta-mercado">
+      <b>Temporada</b>
+      <span class="ranking-nombre">Quién va primero al cerrar la temporada <%= @temporada.numero %></span>
+      <span class="ranking-saldo"><%= usd(@mercados["temporada"][:pozo]) %></span>
+      <small class="apuesta-nota"><%= @mercados["temporada"][:abierto] ? "Abierto hasta el final del día #{Apuesta::DIAS_TEMPORADA} de la temporada" : "Cerrado: ya pasó el día #{Apuesta::DIAS_TEMPORADA}" %></small>
+    </li>
+    <li class="apuesta-mercado">
+      <b>Torneo</b>
+      <span class="ranking-nombre">Pozo del torneo de la temporada <%= @temporada.numero %></span>
+      <span class="ranking-saldo"><%= usd(@pozo_torneo) %></span>
+    </li>
+  </ul>
 
   <h2>Quién va primero</h2>
   <ol class="ranking-lista ranking-completo">
@@ -15,6 +40,7 @@
         <b><%= puesto %>.º</b>
         <span class="ranking-nombre" title="<%= Bot.de(bot)&.personaje %>"><%= bot.username %></span>
         <span class="ranking-saldo"><%= usd(bot.balance) %></span>
+        <%= render "apostar", bot: bot, mercados: %w[dia temporada] %>
       </li>
     <% end %>
   </ol>
@@ -32,9 +58,33 @@
             <%= f.number_field :monto, min: 1, max: current_user.balance, value: 20, style: "width:5em" %>
             <%= f.submit "Donar" %>
           <% end %>
+          <%= render "apostar", bot: bot, mercados: %w[temporada] %>
         </li>
       <% end %>
     </ol>
+  <% end %>
+
+  <h2>Tus apuestas</h2>
+  <% if @mis_apuestas.empty? %>
+    <p class="empty-state">Todavía no apuestas.</p>
+  <% else %>
+    <ul class="ranking-lista">
+      <% @mis_apuestas.each do |apuesta| %>
+        <li class="apuesta-fila apuesta-<%= apuesta.estado %>">
+          <b><%= apuesta.mercado == "dia" ? "Día" : "Temp." %></b>
+          <span class="ranking-nombre"><%= apuesta.bot.username %> · <%= usd(apuesta.monto) %></span>
+          <span class="apuesta-nota">
+            <% if apuesta.abierta? %>
+              Abierta · cierra <%= Apuesta.vence(apuesta.mercado, apuesta.temporada, apuesta.fecha).strftime("%d/%m %H:%M") %>
+            <% elsif apuesta.estado == "ganada" %>
+              Ganaste <%= usd(apuesta.pago) %>
+            <% else %>
+              Perdida · ganó <%= apuesta.ganador&.username %>
+            <% end %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
   <% end %>
   <%= link_to "← Volver a salas", root_path, class: "back-link" %>
 </section>

@@ -144,3 +144,11 @@
 .temporada-que-es { flex-basis: 100%; font-size: .85rem; margin-top: .4rem; }
 .temporada-que-es summary { cursor: pointer; text-decoration: underline; width: max-content; }
 .temporada-que-es p { margin: .35rem 0 0; line-height: 1.35; }
+/* Apuestas por bots (/bots): suaves, dentro de la misma tarjeta de la lista. */
+.apuesta-mercado, .apuesta-fila { grid-template-columns: 70px 1fr auto; }
+.apuesta-mercado .apuesta-nota { grid-column: 2 / -1; }
+.apuesta-nota { color: var(--texto-suave); font-size: 12.5px; font-weight: 700; }
+.apuesta-ganada .apuesta-nota { color: var(--acento); }
+.ranking-lista li .apostar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.apostar-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.apostar-form input[type=number] { width: 5em; }
