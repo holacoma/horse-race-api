@@ -14,7 +14,7 @@
   bet: @race.bet,
   running: @race.running?,
   secondsToStart: @seconds_to_start,
-  participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, element: elemento_de(p.horse_id) } },
+  participants: @participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, element: elemento_de(p.horse_id), dificultad: p.dificultad } },
   myHorseId: @my_participant&.horse_id,
   favoritos: @race.running? ? @race.favoritos : nil,
   resultsUrl: results_race_path(@race),
@@ -77,7 +77,11 @@
         <div class="participant-row" id="participant-<%= p.id %>" data-horse-id="<%= p.horse_id %>" style="--c: <%= color_de(p.horse_id) %>">
           <%= chibi_de(p.horse_id) %>
           <span class="p-horse nombre-caballo"><%= p.horse_name %></span>
-          <span class="p-username">de <%= p.display_name %></span>
+          <% if p.user&.bot? %>
+            <span class="p-username" title="<%= p.dificultad.to_s.capitalize %>">de <%= p.display_name %><%= ' ⚡' * ({ 'facil' => 1, 'normal' => 2, 'dificil' => 3 }[p.dificultad] || 1) %></span>
+          <% else %>
+            <span class="p-username">de <%= p.display_name %></span>
+          <% end %>
           <% if p.user_id.present? %>
             <button class="profile-btn" data-fx="profile" data-action="click->race-lobby#openProfilePopup" data-username="<%= p.user.username %>" title="Ver perfil">👤</button>
           <% end %>

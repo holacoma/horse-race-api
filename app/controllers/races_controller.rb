@@ -93,7 +93,7 @@ class RacesController < WebController
     redirect_to results_race_path(@race) and return if @race.finished?
     redirect_to race_path(@race) and return unless @race.running?
     participants = @race.participants.includes(:user).order(:created_at)
-    @participants_json = participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name } }
+    @participants_json = participants.map { |p| { id: p.horse_id, name: p.horse_name, username: p.display_name, dificultad: p.dificultad } }
     @my_horse_id = participants.find { |p| p.user_id == current_user.id }&.horse_id
     @seconds_to_start = [ @race.started_at + RaceSimulationJob::PRELUDE_SEC - Time.current, 0 ].max
     render layout: false

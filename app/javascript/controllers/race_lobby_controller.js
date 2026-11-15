@@ -178,8 +178,14 @@ export default class extends Controller {
     div.style.setProperty("--c", color)
     const chibi = `/images/chibis/${elemento}.webp?v=3`
     div.innerHTML = `<img class="p-chibi" alt="" src="${chibi}"><span class="p-horse nombre-caballo"></span><span class="p-username"></span>`
+    const usernameEl = div.querySelector(".p-username")
+    usernameEl.textContent = `de ${p.username}`
+    if (p.dificultad) {
+      const count = { facil: 1, normal: 2, dificil: 3 }[p.dificultad] || 1
+      usernameEl.textContent += " ⚡" .repeat(count)
+      usernameEl.title = p.dificultad.charAt(0).toUpperCase() + p.dificultad.slice(1)
+    }
     if (String(p.horse_id) === String(this.myHorseId)) { this.tuCaballoTarget.style.setProperty("--c", color); this.tuChibiTarget.src = chibi }
-    div.querySelector(".p-username").textContent = `de ${p.username}`
     div.querySelector(".p-horse").textContent = p.horse_name
     if (p.profile_username) {
       const button = document.createElement("button")
