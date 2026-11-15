@@ -33,11 +33,17 @@ class Participant < ApplicationRecord
     user&.username || name
   end
 
+  def dificultad
+    return nil unless user&.bot?
+    Bot.de(user)&.dificultad
+  end
+
   # Avisa a la sala que alguien se sumó: la lista lo agrega y su caballo aparece en la largada 3D.
   def announce_joined
     ActionCable.server.broadcast("race_#{race_id}", {
       type: "player_joined",
-      participant: { username: display_name, horse_name: horse_name, horse_id: horse_id, profile_username: user&.username }
+      participant: { username: display_name, horse_name: horse_name, horse_id: horse_id,
+                     profile_username: user&.username, dificultad: dificultad }
     })
   end
 end

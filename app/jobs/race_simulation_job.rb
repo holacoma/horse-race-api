@@ -22,15 +22,12 @@ class RaceSimulationJob < ApplicationJob
   # Los apostadores y los bots también lanzan su poder, de vez en cuando: uno cada tantos segundos, en promedio.
   BOT_IMPULSO_CADA = 10.0
   BOT_IMPULSO_MIN  = 6.0
-  # Contra jugadores, los bots (y apostadores de relleno) corren a esta fracción de su fuerza y no recuperan terreno:
-  # un humano les gana casi siempre. Sin humanos en la carrera todos quedan parejos.
-  BOT_FUERZA = 0.4
+  # Contra jugadores, los bots corren a una fracción de su fuerza según dificultad y recuperan terreno a diferente ritmo.
+  # Facil (0.4x, sin recuperación), Normal (0.7x, recuperación a la mitad), Dificil (1.0x, recuperación completa).
+  RECUPERACION = { "facil" => 0.0, "normal" => 0.5, "dificil" => 1.0 }
   # Compensación de latencia: el poder se cuenta desde el instante que el jugador veía al lanzarlo, hasta este tope
   # (una pantalla más atrasada que eso no se perdona: evita trampas).
   COMPENSA_MAX = 0.5
-  # Alarga las carreras: se simula una pista ESCALA veces más larga (las velocidades quedan igual) y por el canal sigue
-  # yendo el porcentaje recorrido. Con 1,0 la de 2000 m dura ~18 s.
-  ESCALA = 2.3
   COUNTDOWN_SEC = 4  # 3-2-1-GO antes de arrancar
   # La entrada en la vista 3D: primero un paneo por los cajones con los caballos como chibis (PANEO_SEC); después
   # The World, la transformación, la presentación y el 3, 2, 1 (13 s). PRELUDE_SEC es todo, hasta el ¡YA!.
@@ -51,7 +48,18 @@ class RaceSimulationJob < ApplicationJob
 
     return if entries.empty?
 
-    entries.select { |e| e[:bot] }.each { |e| e[:top_speed] *= BOT_FUERZA; e[:acceleration] *= BOT_FUERZA; e[:sin_recuperar] = true } if entries.any? { |e| !e[:bot] }
+    # Per-bot difficulty: force multiplier and terrain recovery rate. Only if at least one human is racing.
+    if entries.any? { |e| !e[:bot] }
+      entries.select { |e| e[:bot] }.each do |e|
+        dificultad = Bot.de(e[:participant].user)&.dificultad || "facil"
+        e[:top_speed] *= Bot::FUERZA.fetch(dificultad)
+        e[:acceleration] *= Bot::FUERZA.fetch(dificultad)
+        e[:recuperacion] = RECUPERACION.fetch(dificultad)
+      end
+    else
+      # No humans: give all bots full recovery so races are interesting.
+      entries.each { |e| e[:recuperacion] = 1.0 }
+    end
 
     ActionCable.server.broadcast("race_#{race_id}", {
       type: "race_started",
@@ -156,7 +164,9 @@ class RaceSimulationJob < ApplicationJob
       # En el final las olas se calman un poco: el pelotón llega apretado y se define por poco.
       ola = Math.sin(clock * 2 * Math::PI / e[:periodo] + e[:fase]) * OLA * (1 - 0.5 * final)
       impulso = impulso(e, clock)
-      target = e[:top_speed] + (e[:sin_recuperar] ? 0 : (leader - e[:horse].position) * catch_up) + ola + impulso + rand(SURGE)
+      # Terrain recovery: 0 for facil, half for normal, full for dificil.
+      recuperacion = e[:recuperacion] || 1.0
+      target = e[:top_speed] + (leader - e[:horse].position) * catch_up * recuperacion + ola + impulso + rand(SURGE)
       e[:speed] += (target - e[:speed]).clamp(-MAX_SLOWDOWN, e[:acceleration] * TICK_INTERVAL + impulso)
       e[:previa] = e[:horse].position
       e[:reached] = e[:horse].position + e[:speed] * TICK_INTERVAL
