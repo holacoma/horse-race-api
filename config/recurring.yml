@@ -21,8 +21,14 @@ production:
   lobby:
     class: LobbyJob
     schedule: every minute
+  liquidar_apuestas:
+    class: LiquidarApuestasJob
+    schedule: every 5 minutes
 
 development:
   bots:
     class: BotsJob
     schedule: every 10 minutes
+  liquidar_apuestas:
+    class: LiquidarApuestasJob
+    schedule: every 5 minutes

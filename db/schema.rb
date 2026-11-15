@@ -10,9 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_14_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "apuestas", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "bot_id", null: false
+    t.string "mercado", null: false
+    t.integer "temporada", null: false
+    t.date "fecha"
+    t.integer "monto", null: false
+    t.integer "impuesto", default: 0, null: false
+    t.string "estado", default: "abierta", null: false
+    t.integer "pago", default: 0, null: false
+    t.bigint "ganador_id"
+    t.datetime "liquidada_en"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bot_id"], name: "index_apuestas_on_bot_id"
+    t.index ["ganador_id"], name: "index_apuestas_on_ganador_id"
+    t.index ["mercado", "temporada", "fecha", "estado"], name: "index_apuestas_on_mercado_and_temporada_and_fecha_and_estado"
+    t.index ["user_id"], name: "index_apuestas_on_user_id"
+  end
 
   create_table "horse_favorites", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -43,6 +63,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_120000) do
     t.index ["race_id", "user_id"], name: "index_participants_on_race_id_and_user_id", unique: true
     t.index ["race_id"], name: "index_participants_on_race_id"
     t.index ["user_id"], name: "index_participants_on_user_id"
+  end
+
+  create_table "pozos_torneo", force: :cascade do |t|
+    t.integer "temporada", null: false
+    t.integer "monto", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["temporada"], name: "index_pozos_torneo_on_temporada", unique: true
   end
 
   create_table "races", force: :cascade do |t|
@@ -229,6 +257,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_14_120000) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
   end
 
+  add_foreign_key "apuestas", "users"
+  add_foreign_key "apuestas", "users", column: "bot_id"
+  add_foreign_key "apuestas", "users", column: "ganador_id"
   add_foreign_key "horse_favorites", "users"
   add_foreign_key "participants", "races"
   add_foreign_key "participants", "users"
